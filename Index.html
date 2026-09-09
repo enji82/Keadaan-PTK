@@ -174,14 +174,15 @@
 
       <!-- TABEL KEBUTUHAN GURU SD DENGAN TOGGLE / FILTER JENIS PTK -->
       <div class="card-table">
-        <div class="card-header-bar">
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <h2>Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
-              <!-- Breadcrumb hanya muncul saat berada di dalam detail sekolah suatu kecamatan -->
-              <div class="breadcrumb-wrap" id="breadcrumbWrap" style="display: none;"></div>
-            </div>
+        <div class="card-header-bar" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;">
+            <h2>Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
+            <!-- Breadcrumb hanya muncul saat berada di dalam detail sekolah suatu kecamatan -->
+            <div class="breadcrumb-wrap" id="breadcrumbWrap" style="display: none; margin-bottom: 0;"></div>
+          </div>
 
+          <!-- Baris Kontrol: Pilih Jenis PTK & Tombol Reload Data Kecamatan Sejajar -->
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH JENIS PTK:</span>
               <div class="toggle-bar">
@@ -195,11 +196,9 @@
                 <button class="toggle-btn" id="btnTog_MATRIX" onclick="setFormasiToggle('MATRIX')">Matriks Semua</button>
               </div>
             </div>
-          </div>
 
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <!-- Tombol Reload Data Kecamatan -->
-            <button class="btn btn-secondary" onclick="resetToKecamatanView()" title="Kembali ke tampilan awal data seluruh kecamatan">
+            <!-- Tombol Reload Data Kecamatan Sejajar -->
+            <button class="btn btn-secondary" onclick="resetToKecamatanView()" title="Kembali ke tampilan data seluruh kecamatan">
               🔄 Reload Data Kecamatan
             </button>
           </div>

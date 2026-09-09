@@ -340,21 +340,24 @@
         `;
 
       } else {
-        // Tampilan Ringkas & Fokus per Kecamatan
+        // Tampilan Ringkas & Fokus per Kecamatan dengan Header Bertingkat
         thead.innerHTML = `
           <tr>
-            <th class="text-center" style="width: 50px;">No</th>
-            <th>Kecamatan</th>
-            <th class="text-center">Jumlah SD</th>
-            <th class="text-center">Total Rombel</th>
-            <th class="text-center" style="background:#e2e8f0;">Kebutuhan</th>
+            <th rowspan="2" class="text-center" style="width: 50px; vertical-align: middle;">No</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Jumlah SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Total Rombel</th>
+            <th rowspan="2" class="text-center" style="background:#e2e8f0; vertical-align: middle;">Kebutuhan</th>
+            <th colspan="4" class="text-center" style="background:#f1f5f9; border-bottom: 1px solid var(--border-color);">Keadaan</th>
+            <th rowspan="2" class="text-center" style="background:#fee2e2; font-weight:800; vertical-align: middle;">+/- (Selisih)</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Non-ASN (Info)</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Status Formasi</th>
+          </tr>
+          <tr>
             <th class="text-center">PNS</th>
             <th class="text-center">PPPK</th>
             <th class="text-center">PW</th>
-            <th class="text-center" style="background:#f1f5f9;">Terisi (ASN+PW)</th>
-            <th class="text-center" style="background:#fee2e2; font-weight:800;">+/- (Selisih)</th>
-            <th class="text-center">Non-ASN (Info)</th>
-            <th class="text-center">Status Formasi</th>
+            <th class="text-center" style="font-weight:700; background:#f8fafc;">Jumlah</th>
           </tr>
         `;
 
@@ -554,20 +557,23 @@
       } else {
         thead.innerHTML = `
           <tr>
-            <th class="text-center" style="width: 50px;">No</th>
-            <th>NPSN</th>
-            <th>Nama Sekolah</th>
-            <th>Kecamatan</th>
-            <th class="text-center">Rombel</th>
-            <th class="text-center" style="background:#e2e8f0;">Kebutuhan</th>
+            <th rowspan="2" class="text-center" style="width: 50px; vertical-align: middle;">No</th>
+            <th rowspan="2" style="vertical-align: middle;">NPSN</th>
+            <th rowspan="2" style="vertical-align: middle;">Nama Sekolah</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+            <th rowspan="2" class="text-center" style="background:#e2e8f0; vertical-align: middle;">Kebutuhan</th>
+            <th colspan="4" class="text-center" style="background:#f1f5f9; border-bottom: 1px solid var(--border-color);">Keadaan</th>
+            <th rowspan="2" class="text-center" style="background:#fee2e2; font-weight:800; vertical-align: middle;">+/- (Selisih)</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Non-ASN (Info)</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Status Formasi</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
+          </tr>
+          <tr>
             <th class="text-center">PNS</th>
             <th class="text-center">PPPK</th>
             <th class="text-center">PW</th>
-            <th class="text-center" style="background:#f1f5f9;">Terisi (ASN+PW)</th>
-            <th class="text-center" style="background:#fee2e2; font-weight:800;">+/- (Selisih)</th>
-            <th class="text-center">Non-ASN (Info)</th>
-            <th class="text-center">Status Formasi</th>
-            <th class="text-center">Aksi</th>
+            <th class="text-center" style="font-weight:700; background:#f8fafc;">Jumlah</th>
           </tr>
         `;
 
