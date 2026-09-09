@@ -259,27 +259,27 @@
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
-            <th colspan="3" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
-            <th colspan="3" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
-            <th colspan="3" class="text-center" style="background:#fefce8;">Guru PAI</th>
-            <th colspan="3" class="text-center" style="background:#fdf2f8;">Guru PJOK</th>
-            <th colspan="3" class="text-center" style="background:#f5f3ff;">Guru Kristen</th>
-            <th colspan="3" class="text-center" style="background:#ecfeff;">Guru Katolik</th>
-            <th colspan="6" class="text-center" style="background:#f1f5f9;">TOTAL GURU SD</th>
+            <th colspan="3" class="text-center mat-ks">Kepala Sekolah</th>
+            <th colspan="3" class="text-center mat-kel">Guru Kelas</th>
+            <th colspan="3" class="text-center mat-pai">Guru PAI</th>
+            <th colspan="3" class="text-center mat-pjok">Guru PJOK</th>
+            <th colspan="3" class="text-center mat-kri">Guru Kristen</th>
+            <th colspan="3" class="text-center mat-kat">Guru Katolik</th>
+            <th colspan="6" class="text-center mat-tot">TOTAL GURU SD</th>
           </tr>
           <tr>
-            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
-            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
-            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
-            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
-            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
-            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
-            <th class="text-center" style="background:#e2e8f0;">Butuh</th>
-            <th class="text-center">PNS</th>
-            <th class="text-center">PPPK</th>
-            <th class="text-center">PW</th>
-            <th class="text-center" style="background:#fee2e2;">+/-</th>
-            <th class="text-center">Non-ASN</th>
+            <th class="text-center mat-ks">Bth</th><th class="text-center mat-ks">Ada</th><th class="text-center mat-ks">+/-</th>
+            <th class="text-center mat-kel">Bth</th><th class="text-center mat-kel">Ada</th><th class="text-center mat-kel">+/-</th>
+            <th class="text-center mat-pai">Bth</th><th class="text-center mat-pai">Ada</th><th class="text-center mat-pai">+/-</th>
+            <th class="text-center mat-pjok">Bth</th><th class="text-center mat-pjok">Ada</th><th class="text-center mat-pjok">+/-</th>
+            <th class="text-center mat-kri">Bth</th><th class="text-center mat-kri">Ada</th><th class="text-center mat-kri">+/-</th>
+            <th class="text-center mat-kat">Bth</th><th class="text-center mat-kat">Ada</th><th class="text-center mat-kat">+/-</th>
+            <th class="text-center mat-tot-bth">Butuh</th>
+            <th class="text-center mat-tot">PNS</th>
+            <th class="text-center mat-tot">PPPK</th>
+            <th class="text-center mat-tot">PW</th>
+            <th class="text-center mat-tot-sel">+/-</th>
+            <th class="text-center mat-tot">Non-ASN</th>
           </tr>
         `;
 
@@ -297,10 +297,10 @@
           totSelisih += k.total.selisih;
           totNon += k.total.nonAsn;
 
-          const renderKecFormasi = (f) => `
-            <td class="text-center">${formatNumber(f.butuh)}</td>
-            <td class="text-center">${formatNumber(f.pns + f.pppk + f.pw)}</td>
-            <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
+          const renderKecFormasi = (f, cls) => `
+            <td class="text-center ${cls}">${formatNumber(f.butuh)}</td>
+            <td class="text-center ${cls}">${formatNumber(f.pns + f.pppk + f.pw)}</td>
+            <td class="text-center ${cls}">${renderBadgeSelisih(f.selisih)}</td>
           `;
 
           html += `
@@ -310,18 +310,18 @@
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
               <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
               <td class="text-center">${formatNumber(k.totalRombel)}</td>
-              ${renderKecFormasi(k.ks)}
-              ${renderKecFormasi(k.guruKelas)}
-              ${renderKecFormasi(k.guruPai)}
-              ${renderKecFormasi(k.guruPjok)}
-              ${renderKecFormasi(k.guruKristen)}
-              ${renderKecFormasi(k.guruKatolik)}
-              <td class="text-center">${formatNumber(k.total.butuh)}</td>
-              <td class="text-center">${formatNumber(k.total.pns)}</td>
-              <td class="text-center">${formatNumber(k.total.pppk)}</td>
-              <td class="text-center">${formatNumber(k.total.pw)}</td>
-              <td class="text-center">${renderBadgeSelisih(k.total.selisih)}</td>
-              <td class="text-center">${formatNumber(k.total.nonAsn)}</td>
+              ${renderKecFormasi(k.ks, 'mat-ks')}
+              ${renderKecFormasi(k.guruKelas, 'mat-kel')}
+              ${renderKecFormasi(k.guruPai, 'mat-pai')}
+              ${renderKecFormasi(k.guruPjok, 'mat-pjok')}
+              ${renderKecFormasi(k.guruKristen, 'mat-kri')}
+              ${renderKecFormasi(k.guruKatolik, 'mat-kat')}
+              <td class="text-center mat-tot-bth">${formatNumber(k.total.butuh)}</td>
+              <td class="text-center mat-tot">${formatNumber(k.total.pns)}</td>
+              <td class="text-center mat-tot">${formatNumber(k.total.pppk)}</td>
+              <td class="text-center mat-tot">${formatNumber(k.total.pw)}</td>
+              <td class="text-center mat-tot-sel">${renderBadgeSelisih(k.total.selisih)}</td>
+              <td class="text-center mat-tot">${formatNumber(k.total.nonAsn)}</td>
             </tr>
           `;
         });
@@ -334,12 +334,12 @@
             <th class="text-center">${formatNumber(totMurid)}</th>
             <th class="text-center">${formatNumber(totRombel)}</th>
             <th colspan="18" class="text-center" style="color:#64748b;">- Akumulasi Seluruh Formasi Tertera di Kolom Total -</th>
-            <th class="text-center">${formatNumber(totBth)}</th>
-            <th class="text-center">${formatNumber(totPns)}</th>
-            <th class="text-center">${formatNumber(totPppk)}</th>
-            <th class="text-center">${formatNumber(totPw)}</th>
-            <th class="text-center">${renderBadgeSelisih(totSelisih)}</th>
-            <th class="text-center">${formatNumber(totNon)}</th>
+            <th class="text-center mat-tot-bth">${formatNumber(totBth)}</th>
+            <th class="text-center mat-tot">${formatNumber(totPns)}</th>
+            <th class="text-center mat-tot">${formatNumber(totPppk)}</th>
+            <th class="text-center mat-tot">${formatNumber(totPw)}</th>
+            <th class="text-center mat-tot-sel">${renderBadgeSelisih(totSelisih)}</th>
+            <th class="text-center mat-tot">${formatNumber(totNon)}</th>
           </tr>
         `;
 
@@ -468,28 +468,28 @@
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
-            <th colspan="6" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
-            <th colspan="6" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
-            <th colspan="6" class="text-center" style="background:#fefce8;">Guru PAI</th>
-            <th colspan="6" class="text-center" style="background:#fdf2f8;">Guru PJOK</th>
-            <th colspan="6" class="text-center" style="background:#f5f3ff;">Guru Kristen</th>
-            <th colspan="6" class="text-center" style="background:#ecfeff;">Guru Katolik</th>
-            <th colspan="7" class="text-center" style="background:#f1f5f9;">TOTAL GURU SD</th>
+            <th colspan="6" class="text-center mat-ks">Kepala Sekolah</th>
+            <th colspan="6" class="text-center mat-kel">Guru Kelas</th>
+            <th colspan="6" class="text-center mat-pai">Guru PAI</th>
+            <th colspan="6" class="text-center mat-pjok">Guru PJOK</th>
+            <th colspan="6" class="text-center mat-kri">Guru Kristen</th>
+            <th colspan="6" class="text-center mat-kat">Guru Katolik</th>
+            <th colspan="7" class="text-center mat-tot">TOTAL GURU SD</th>
           </tr>
           <tr>
-            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-            <th class="text-center" style="background:#e2e8f0;">Butuh</th>
-            <th class="text-center">PNS</th>
-            <th class="text-center">PPPK</th>
-            <th class="text-center">PW</th>
-            <th class="text-center">Terisi</th>
-            <th class="text-center" style="background:#fee2e2;">+/-</th>
-            <th class="text-center">Non-ASN</th>
+            <th class="text-center mat-ks">Bth</th><th class="text-center mat-ks">PNS</th><th class="text-center mat-ks">PPPK</th><th class="text-center mat-ks">PW</th><th class="text-center mat-ks">+/-</th><th class="text-center mat-ks">Non</th>
+            <th class="text-center mat-kel">Bth</th><th class="text-center mat-kel">PNS</th><th class="text-center mat-kel">PPPK</th><th class="text-center mat-kel">PW</th><th class="text-center mat-kel">+/-</th><th class="text-center mat-kel">Non</th>
+            <th class="text-center mat-pai">Bth</th><th class="text-center mat-pai">PNS</th><th class="text-center mat-pai">PPPK</th><th class="text-center mat-pai">PW</th><th class="text-center mat-pai">+/-</th><th class="text-center mat-pai">Non</th>
+            <th class="text-center mat-pjok">Bth</th><th class="text-center mat-pjok">PNS</th><th class="text-center mat-pjok">PPPK</th><th class="text-center mat-pjok">PW</th><th class="text-center mat-pjok">+/-</th><th class="text-center mat-pjok">Non</th>
+            <th class="text-center mat-kri">Bth</th><th class="text-center mat-kri">PNS</th><th class="text-center mat-kri">PPPK</th><th class="text-center mat-kri">PW</th><th class="text-center mat-kri">+/-</th><th class="text-center mat-kri">Non</th>
+            <th class="text-center mat-kat">Bth</th><th class="text-center mat-kat">PNS</th><th class="text-center mat-kat">PPPK</th><th class="text-center mat-kat">PW</th><th class="text-center mat-kat">+/-</th><th class="text-center mat-kat">Non</th>
+            <th class="text-center mat-tot-bth">Butuh</th>
+            <th class="text-center mat-tot">PNS</th>
+            <th class="text-center mat-tot">PPPK</th>
+            <th class="text-center mat-tot">PW</th>
+            <th class="text-center mat-tot">Terisi</th>
+            <th class="text-center mat-tot-sel">+/-</th>
+            <th class="text-center mat-tot">Non-ASN</th>
           </tr>
         `;
 
@@ -507,13 +507,13 @@
           sumSelisih += sd.total.selisih;
           sumNon += sd.total.nonAsn;
 
-          const renderCols = (f) => `
-            <td class="text-center">${formatNumber(f.butuh)}</td>
-            <td class="text-center">${f.pns || '-'}</td>
-            <td class="text-center">${f.pppk || '-'}</td>
-            <td class="text-center">${f.pw || '-'}</td>
-            <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
-            <td class="text-center" style="color:#64748b;">${f.nonAsn || '-'}</td>
+          const renderCols = (f, cls) => `
+            <td class="text-center ${cls}">${formatNumber(f.butuh)}</td>
+            <td class="text-center ${cls}">${f.pns || '-'}</td>
+            <td class="text-center ${cls}">${f.pppk || '-'}</td>
+            <td class="text-center ${cls}">${f.pw || '-'}</td>
+            <td class="text-center ${cls}">${renderBadgeSelisih(f.selisih)}</td>
+            <td class="text-center ${cls}" style="color:#64748b;">${f.nonAsn || '-'}</td>
           `;
 
           html += `
@@ -526,19 +526,19 @@
               <td>${escapeHtml(sd.kecamatan)}</td>
               <td class="text-center">${formatNumber(sd.rombel)}</td>
               <td class="text-center">${formatNumber(sd.murid || 0)}</td>
-              ${renderCols(sd.ks)}
-              ${renderCols(sd.guruKelas)}
-              ${renderCols(sd.guruPai)}
-              ${renderCols(sd.guruPjok)}
-              ${renderCols(sd.guruKristen)}
-              ${renderCols(sd.guruKatolik)}
-              <td class="text-center">${formatNumber(sd.total.butuh)}</td>
-              <td class="text-center">${formatNumber(sd.total.pns)}</td>
-              <td class="text-center">${formatNumber(sd.total.pppk)}</td>
-              <td class="text-center">${formatNumber(sd.total.pw)}</td>
-              <td class="text-center">${formatNumber(sd.total.pengurang)}</td>
-              <td class="text-center">${renderBadgeSelisih(sd.total.selisih)}</td>
-              <td class="text-center">${formatNumber(sd.total.nonAsn)}</td>
+              ${renderCols(sd.ks, 'mat-ks')}
+              ${renderCols(sd.guruKelas, 'mat-kel')}
+              ${renderCols(sd.guruPai, 'mat-pai')}
+              ${renderCols(sd.guruPjok, 'mat-pjok')}
+              ${renderCols(sd.guruKristen, 'mat-kri')}
+              ${renderCols(sd.guruKatolik, 'mat-kat')}
+              <td class="text-center mat-tot-bth">${formatNumber(sd.total.butuh)}</td>
+              <td class="text-center mat-tot">${formatNumber(sd.total.pns)}</td>
+              <td class="text-center mat-tot">${formatNumber(sd.total.pppk)}</td>
+              <td class="text-center mat-tot">${formatNumber(sd.total.pw)}</td>
+              <td class="text-center mat-tot">${formatNumber(sd.total.pengurang)}</td>
+              <td class="text-center mat-tot-sel">${renderBadgeSelisih(sd.total.selisih)}</td>
+              <td class="text-center mat-tot">${formatNumber(sd.total.nonAsn)}</td>
             </tr>
           `;
         });
@@ -550,13 +550,13 @@
             <th class="text-center">${formatNumber(sumRombel)}</th>
             <th class="text-center">${formatNumber(sumMurid)}</th>
             <th colspan="36" class="text-center" style="color:#64748b;">- Rincian Matriks Tertera pada Tabel -</th>
-            <th class="text-center">${formatNumber(sumBth)}</th>
-            <th class="text-center">${formatNumber(sumPns)}</th>
-            <th class="text-center">${formatNumber(sumPppk)}</th>
-            <th class="text-center">${formatNumber(sumPw)}</th>
-            <th class="text-center">${formatNumber(sumTerisi)}</th>
-            <th class="text-center">${renderBadgeSelisih(sumSelisih)}</th>
-            <th class="text-center">${formatNumber(sumNon)}</th>
+            <th class="text-center mat-tot-bth">${formatNumber(sumBth)}</th>
+            <th class="text-center mat-tot">${formatNumber(sumPns)}</th>
+            <th class="text-center mat-tot">${formatNumber(sumPppk)}</th>
+            <th class="text-center mat-tot">${formatNumber(sumPw)}</th>
+            <th class="text-center mat-tot">${formatNumber(sumTerisi)}</th>
+            <th class="text-center mat-tot-sel">${renderBadgeSelisih(sumSelisih)}</th>
+            <th class="text-center mat-tot">${formatNumber(sumNon)}</th>
           </tr>
         `;
 
