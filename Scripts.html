@@ -3,6 +3,7 @@
   let rawData = null;
   let activeTab = 'kebutuhanSD';
   let activeFormasiToggle = 'ALL'; // 'ALL', 'KS', 'GURU_KELAS', 'GURU_PAI', 'GURU_PJOK', 'GURU_KRISTEN', 'GURU_KATOLIK', 'MATRIX'
+  let currentKebutuhanMode = 'KECAMATAN'; // 'KECAMATAN' (default) atau 'SEKOLAH' (saat drilldown)
 
   document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData(false);
@@ -154,62 +155,44 @@
   }
 
   /**
-   * Handler Perubahan Dropdown Kecamatan
+   * Handler Perubahan Dropdown Kecamatan di Toolbar
    */
   function onFilterKecamatanChange() {
     const selectedKec = document.getElementById('filterKecamatan').value;
-    const subViewSelect = document.getElementById('subViewKebutuhanSD');
-    
-    // Jika user memilih kecamatan tertentu saat berada di Tab Kebutuhan SD, otomatis ganti subview ke SEKOLAH di kecamatan tersebut
-    if (activeTab === 'kebutuhanSD') {
-      if (selectedKec !== 'ALL') {
-        subViewSelect.value = 'SEKOLAH';
-      }
+    if (selectedKec === 'ALL') {
+      currentKebutuhanMode = 'KECAMATAN';
+    } else {
+      currentKebutuhanMode = 'SEKOLAH';
     }
     applyFilters();
   }
 
   /**
-   * Handler Perubahan SubView (Kecamatan vs Sekolah)
-   */
-  function onSubViewChange() {
-    renderTabKebutuhanSD();
-  }
-
-  /**
-   * Aksi Drilldown: Klik salah satu baris kecamatan untuk melihat sekolah-sekolahnya
+   * Aksi Drilldown: Klik nama kecamatan untuk melihat sekolah-sekolahnya
    */
   function drillDownToKecamatan(kecamatanName) {
     const selKec = document.getElementById('filterKecamatan');
-    const selSubView = document.getElementById('subViewKebutuhanSD');
-    
     selKec.value = kecamatanName;
-    selSubView.value = 'SEKOLAH';
-    
+    currentKebutuhanMode = 'SEKOLAH';
     renderTabKebutuhanSD();
   }
 
   /**
-   * Kembali ke Tampilan Semua Kecamatan
+   * Tombol Reload Data Kecamatan: kembali ke tampilan awal kecamatan
    */
-  function resetToAllKecamatan() {
+  function resetToKecamatanView() {
     const selKec = document.getElementById('filterKecamatan');
-    const selSubView = document.getElementById('subViewKebutuhanSD');
-    
     selKec.value = 'ALL';
-    selSubView.value = 'KECAMATAN';
-    
+    currentKebutuhanMode = 'KECAMATAN';
     renderTabKebutuhanSD();
   }
 
   /**
    * TAB 1: Render Kebutuhan Guru SD
-   * DEFAULT: Sub-view Kecamatan dengan pengurutan KEKURANGAN TERBANYAK di baris atas
    */
   function renderTabKebutuhanSD() {
     if (!rawData || !rawData.kebutuhanSD) return;
 
-    const subView = document.getElementById('subViewKebutuhanSD').value;
     const thead = document.getElementById('theadKebutuhanSD');
     const tbody = document.getElementById('tbodyKebutuhanSD');
     const tfoot = document.getElementById('tfootKebutuhanSD');
@@ -236,12 +219,10 @@
     // -------------------------------------------------------------
     // KONDISI A: TAMPILAN PER KECAMATAN (DEFAULT)
     // -------------------------------------------------------------
-    if (subView === 'KECAMATAN') {
-      breadcrumbWrap.innerHTML = `
-        <span class="breadcrumb-current">📍 Tingkat Kecamatan (Diurutkan dari Kekurangan Terbanyak)</span>
-      `;
+    if (currentKebutuhanMode === 'KECAMATAN') {
+      breadcrumbWrap.style.display = 'none'; // Sembunyikan badge/breadcrumb
 
-      let list = (rawData.kebutuhanSD.perKecamatan || []).slice(); // Salin array agar tidak merusak data mentah
+      let list = (rawData.kebutuhanSD.perKecamatan || []).slice();
 
       // Filter Status
       if (filterStatus !== 'ALL') {
@@ -257,16 +238,16 @@
         });
       }
 
-      // Filter Pencarian nama kecamatan jika diinput di search box
+      // Filter Pencarian jika diisi
       if (searchVal) {
         list = list.filter(k => k.kecamatan && k.kecamatan.toLowerCase().includes(searchVal));
       }
 
-      // SORTING UTAMA: Urutkan berdasarkan KEKURANGAN TERBANYAK (selisih paling negatif di atas)
+      // SORTING: Kekurangan terbanyak (selisih paling minus) di baris paling atas
       list.sort((a, b) => {
         const valA = (activeFormasiToggle === 'ALL' || activeFormasiToggle === 'MATRIX') ? a.total.selisih : (a[fKey] ? a[fKey].selisih : 0);
         const valB = (activeFormasiToggle === 'ALL' || activeFormasiToggle === 'MATRIX') ? b.total.selisih : (b[fKey] ? b[fKey].selisih : 0);
-        return valA - valB; // Nilai paling kecil/minus (kekurangan terbesar) muncul di indeks awal
+        return valA - valB;
       });
 
       if (activeFormasiToggle === 'MATRIX') {
@@ -274,7 +255,7 @@
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
-            <th rowspan="2" style="vertical-align: middle;">Kecamatan (Klik utk Rincian)</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Jml SD</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
             <th colspan="3" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
@@ -321,9 +302,9 @@
           `;
 
           html += `
-            <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat daftar sekolah di Kec. ${escapeHtml(k.kecamatan)}">
+            <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik nama kecamatan untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
               <td class="text-center">${idx + 1}</td>
-              <td><strong>${escapeHtml(k.kecamatan)}</strong> <span style="font-size:0.75rem; color:var(--primary);">👉 Lihat Sekolah</span></td>
+              <td><strong>${escapeHtml(k.kecamatan)}</strong> <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">👉</span></td>
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
               <td class="text-center" style="font-weight:700;">${formatNumber(k.totalRombel)}</td>
               ${renderKecFormasi(k.ks)}
@@ -359,11 +340,11 @@
         `;
 
       } else {
-        // Tampilan Ringkas & Fokus per Kecamatan (Diurutkan Kurang Terbanyak)
+        // Tampilan Ringkas & Fokus per Kecamatan
         thead.innerHTML = `
           <tr>
             <th class="text-center" style="width: 50px;">No</th>
-            <th>Kecamatan (Klik utk Lihat Sekolah)</th>
+            <th>Kecamatan</th>
             <th class="text-center">Jumlah SD</th>
             <th class="text-center">Total Rombel</th>
             <th class="text-center" style="background:#e2e8f0;">Kebutuhan</th>
@@ -374,7 +355,6 @@
             <th class="text-center" style="background:#fee2e2; font-weight:800;">+/- (Selisih)</th>
             <th class="text-center">Non-ASN (Info)</th>
             <th class="text-center">Status Formasi</th>
-            <th class="text-center">Aksi</th>
           </tr>
         `;
 
@@ -400,9 +380,9 @@
           else if (f.selisih > 0) statusTag = `<span class="selisih-pos">Lebih ${f.selisih}</span>`;
 
           html += `
-            <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')">
+            <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
               <td class="text-center">${idx + 1}</td>
-              <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
+              <td><strong>${escapeHtml(k.kecamatan)}</strong> <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">👉</span></td>
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
               <td class="text-center" style="font-weight:700;">${formatNumber(k.totalRombel)}</td>
               <td class="text-center" style="font-weight:800; background:#f8fafc;">${formatNumber(f.butuh)}</td>
@@ -413,16 +393,11 @@
               <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
               <td class="text-center"><span class="badge badge-nonasn">${formatNumber(f.nonAsn)}</span></td>
               <td class="text-center">${statusTag}</td>
-              <td class="text-center">
-                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="event.stopPropagation(); drillDownToKecamatan('${escapeQuote(k.kecamatan)}')">
-                  👁️ Detail Sekolah
-                </button>
-              </td>
             </tr>
           `;
         });
 
-        tbody.innerHTML = html || `<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada data kecamatan untuk formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="12" class="text-center" style="padding: 24px;">Tidak ada data kecamatan untuk formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
         tfoot.innerHTML = `
           <tr>
             <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
@@ -435,32 +410,26 @@
             <th class="text-center">${formatNumber(totTerisi)}</th>
             <th class="text-center">${renderBadgeSelisih(totSelisih)}</th>
             <th class="text-center">${formatNumber(totNon)}</th>
-            <th class="text-center" colspan="2">-</th>
+            <th class="text-center">-</th>
           </tr>
         `;
       }
 
     } 
     // -------------------------------------------------------------
-    // KONDISI B: TAMPILAN PER SEKOLAH (DALAM 1 KECAMATAN / FILTER)
+    // KONDISI B: TAMPILAN PER SEKOLAH DALAM 1 KECAMATAN TERPILIH
     // -------------------------------------------------------------
     else {
+      breadcrumbWrap.style.display = 'flex';
+      breadcrumbWrap.innerHTML = `
+        <a class="breadcrumb-link" onclick="resetToKecamatanView()">⬅️ Kembali ke Data Kecamatan</a>
+        <span>&gt;</span>
+        <span class="breadcrumb-current">Sekolah di Kecamatan: <strong>${escapeHtml(filterKec)}</strong></span>
+      `;
+
       let list = (rawData.kebutuhanSD.perSekolah || []).slice();
 
-      // Update Breadcrumb Navigation
-      if (filterKec !== 'ALL') {
-        breadcrumbWrap.innerHTML = `
-          <a class="breadcrumb-link" onclick="resetToAllKecamatan()">📍 Semua Kecamatan</a>
-          <span>&gt;</span>
-          <span class="breadcrumb-current">🏫 Sekolah di Kecamatan: <strong>${escapeHtml(filterKec)}</strong> (Diurutkan dari Kekurangan Terbanyak)</span>
-        `;
-      } else {
-        breadcrumbWrap.innerHTML = `
-          <span class="breadcrumb-current">🏫 Seluruh Satuan Pendidikan SD (Diurutkan dari Kekurangan Terbanyak)</span>
-        `;
-      }
-
-      // Filter Data
+      // Filter Data per Kecamatan terpilih
       let filtered = list.filter(item => {
         if (filterKec !== 'ALL' && item.kecamatan !== filterKec) return false;
         if (searchVal) {
@@ -480,15 +449,14 @@
         return true;
       });
 
-      // SORTING UTAMA: Urutkan sekolah berdasarkan KEKURANGAN TERBANYAK di baris paling atas
+      // SORTING: Sekolah dengan kekurangan terbanyak di baris atas
       filtered.sort((a, b) => {
         const valA = (activeFormasiToggle === 'ALL' || activeFormasiToggle === 'MATRIX') ? a.total.selisih : (a[fKey] ? a[fKey].selisih : 0);
         const valB = (activeFormasiToggle === 'ALL' || activeFormasiToggle === 'MATRIX') ? b.total.selisih : (b[fKey] ? b[fKey].selisih : 0);
-        return valA - valB; // Nilai paling negatif (kurang terbanyak) di atas
+        return valA - valB;
       });
 
       if (activeFormasiToggle === 'MATRIX') {
-        // Matriks Semua Formasi per Sekolah
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
@@ -584,7 +552,6 @@
         `;
 
       } else {
-        // Tampilan Ringkas & Fokus per Sekolah (Diurutkan Kurang Terbanyak)
         thead.innerHTML = `
           <tr>
             <th class="text-center" style="width: 50px;">No</th>

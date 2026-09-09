@@ -178,10 +178,8 @@
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
               <h2>Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
-              <!-- Breadcrumb Indikator View -->
-              <div class="breadcrumb-wrap" id="breadcrumbWrap">
-                <span class="breadcrumb-current" id="breadcrumbTitle">📍 Tingkat Kecamatan (Diurutkan dari Kekurangan Terbanyak)</span>
-              </div>
+              <!-- Breadcrumb hanya muncul saat berada di dalam detail sekolah suatu kecamatan -->
+              <div class="breadcrumb-wrap" id="breadcrumbWrap" style="display: none;"></div>
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -200,10 +198,10 @@
           </div>
 
           <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="subViewKebutuhanSD" class="form-select" onchange="onSubViewChange()" style="font-weight: 600; min-width: 190px;">
-              <option value="KECAMATAN" selected>📍 Tampilkan Per Kecamatan</option>
-              <option value="SEKOLAH">🏫 Tampilkan Per Sekolah</option>
-            </select>
+            <!-- Tombol Reload Data Kecamatan -->
+            <button class="btn btn-secondary" onclick="resetToKecamatanView()" title="Kembali ke tampilan awal data seluruh kecamatan">
+              🔄 Reload Data Kecamatan
+            </button>
           </div>
         </div>
         
