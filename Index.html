@@ -48,7 +48,7 @@
     <!-- Filter Toolbar -->
     <div class="filters-card">
       <div class="filters-group">
-        <div class="filter-item">
+        <div class="filter-item" id="wrapFilterJenjang">
           <label for="filterJenjang">Jenjang Pendidikan</label>
           <select id="filterJenjang" class="form-select" onchange="applyFilters()">
             <option value="ALL">Semua Jenjang (SD & SMP)</option>
@@ -61,13 +61,12 @@
           <label for="filterKecamatan">Wilayah Kecamatan</label>
           <select id="filterKecamatan" class="form-select" onchange="applyFilters()">
             <option value="ALL">Semua Kecamatan</option>
-            <!-- Opsi kecamatan diinjeksi via JS -->
           </select>
         </div>
 
         <!-- Filter Status Kebutuhan (Khusus Tab Kebutuhan Guru SD) -->
-        <div class="filter-item" id="wrapFilterStatusKebutuhan" style="display: none;">
-          <label for="filterStatusKebutuhan">Status Selisih Guru</label>
+        <div class="filter-item" id="wrapFilterStatusKebutuhan">
+          <label for="filterStatusKebutuhan">Status Selisih Formasi</label>
           <select id="filterStatusKebutuhan" class="form-select" onchange="applyFilters()">
             <option value="ALL">Semua Status (+/-)</option>
             <option value="KURANG">Hanya yang Kurang Guru (&lt; 0)</option>
@@ -85,73 +84,10 @@
       </div>
     </div>
 
-    <!-- KPI Summary Cards -->
-    <div class="kpi-grid">
-      <!-- Total PTK -->
-      <div class="kpi-card">
-        <div class="kpi-card-header">
-          <span class="kpi-title">Total Keseluruhan PTK</span>
-          <div class="kpi-icon icon-blue">👥</div>
-        </div>
-        <div class="kpi-value" id="kpiTotalPTK">0</div>
-        <div class="kpi-subtitle" id="kpiSubSekolah">Mencakup 0 Sekolah</div>
-      </div>
-
-      <!-- Guru / Pendidik -->
-      <div class="kpi-card">
-        <div class="kpi-card-header">
-          <span class="kpi-title">Guru (Pendidik)</span>
-          <div class="kpi-icon icon-green">👨‍🏫</div>
-        </div>
-        <div class="kpi-value" id="kpiTotalGuru">0</div>
-        <div class="kpi-subtitle" id="kpiSubGuru">Guru Kelas, Mapel & BK</div>
-      </div>
-
-      <!-- Kepala Sekolah -->
-      <div class="kpi-card">
-        <div class="kpi-card-header">
-          <span class="kpi-title">Kepala Sekolah</span>
-          <div class="kpi-icon icon-purple">🎓</div>
-        </div>
-        <div class="kpi-value" id="kpiTotalKS">0</div>
-        <div class="kpi-subtitle" id="kpiSubKS">Kepala Sekolah Aktif</div>
-      </div>
-
-      <!-- Tenaga Kependidikan -->
-      <div class="kpi-card">
-        <div class="kpi-card-header">
-          <span class="kpi-title">Tenaga Kependidikan</span>
-          <div class="kpi-icon icon-amber">📑</div>
-        </div>
-        <div class="kpi-value" id="kpiTotalTendik">0</div>
-        <div class="kpi-subtitle" id="kpiSubTendik">Operator, TU & Staf</div>
-      </div>
-
-      <!-- Komposisi Kepegawaian -->
-      <div class="kpi-card">
-        <div class="kpi-card-header">
-          <span class="kpi-title">Komposisi ASN / PW</span>
-          <div class="kpi-icon icon-cyan">🏛️</div>
-        </div>
-        <div class="kpi-value" id="kpiPersenASN">0%</div>
-        <div class="kpi-subtitle" id="kpiSubASN">PNS: 0 | PPPK: 0 | PW: 0</div>
-      </div>
-
-      <!-- Status Analisis Kebutuhan Guru SD -->
-      <div class="kpi-card">
-        <div class="kpi-card-header">
-          <span class="kpi-title">Kekurangan Guru SD</span>
-          <div class="kpi-icon icon-rose">⚠️</div>
-        </div>
-        <div class="kpi-value" id="kpiTotalKurangSD">0</div>
-        <div class="kpi-subtitle" id="kpiSubKebutuhanSD">Kebutuhan vs PNS+PPPK+PW</div>
-      </div>
-    </div>
-
-    <!-- Tabs Navigasi 4 Menu -->
+    <!-- TABS NAVIGASI UTAMA -->
     <div class="tabs-nav">
       <button class="tab-btn active" id="tabBtnKebutuhanSD" onclick="switchTab('kebutuhanSD')">
-        🎯 1. Kebutuhan Guru SD (Kekurangan/Kelebihan)
+        🎯 1. Kebutuhan Guru SD (Formasi)
       </button>
       <button class="tab-btn" id="tabBtnKecamatan" onclick="switchTab('kecamatan')">
         📍 2. Rekap Per Kecamatan
@@ -164,18 +100,100 @@
       </button>
     </div>
 
-    <!-- TAB 1: KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU SD (FITUR UTAMA) -->
+    <!-- ==================== TAB 1: KEBUTUHAN GURU SD ==================== -->
     <div id="tabKebutuhanSD" class="tab-pane active">
+      <!-- SECTION CARD TERPISAH: STATISTIK KEBUTUHAN PER JENIS GURU SD -->
+      <div class="section-header">
+        <h2>📋 Card Kebutuhan Guru SD per Jenis PTK</h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">
+          Terisi = <strong>PNS + PPPK + PW</strong> (Non-ASN tidak mengurangi kebutuhan)
+        </span>
+      </div>
+
+      <div class="kpi-formasi-grid">
+        <!-- 1. Kepala Sekolah -->
+        <div class="kpi-card" onclick="setFormasiToggle('KS')" style="cursor: pointer;" title="Klik untuk filter tabel ke Kepala Sekolah">
+          <div class="kpi-card-header">
+            <span class="kpi-title">Kepala Sekolah</span>
+            <div class="kpi-icon icon-purple">🎓</div>
+          </div>
+          <div class="kpi-value" id="kpiKsSelisih">0</div>
+          <div class="kpi-subtitle" id="kpiKsDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
+        </div>
+
+        <!-- 2. Guru Kelas -->
+        <div class="kpi-card" onclick="setFormasiToggle('GURU_KELAS')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru Kelas">
+          <div class="kpi-card-header">
+            <span class="kpi-title">Guru Kelas</span>
+            <div class="kpi-icon icon-green">📚</div>
+          </div>
+          <div class="kpi-value" id="kpiGkSelisih">0</div>
+          <div class="kpi-subtitle" id="kpiGkDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
+        </div>
+
+        <!-- 3. Guru PAI -->
+        <div class="kpi-card" onclick="setFormasiToggle('GURU_PAI')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru PAI">
+          <div class="kpi-card-header">
+            <span class="kpi-title">Guru PAI</span>
+            <div class="kpi-icon icon-blue">🕌</div>
+          </div>
+          <div class="kpi-value" id="kpiPaiSelisih">0</div>
+          <div class="kpi-subtitle" id="kpiPaiDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
+        </div>
+
+        <!-- 4. Guru PJOK -->
+        <div class="kpi-card" onclick="setFormasiToggle('GURU_PJOK')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru PJOK">
+          <div class="kpi-card-header">
+            <span class="kpi-title">Guru PJOK</span>
+            <div class="kpi-icon icon-amber">⚽</div>
+          </div>
+          <div class="kpi-value" id="kpiPjokSelisih">0</div>
+          <div class="kpi-subtitle" id="kpiPjokDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
+        </div>
+
+        <!-- 5. Guru PA Kristen -->
+        <div class="kpi-card" onclick="setFormasiToggle('GURU_KRISTEN')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru Kristen">
+          <div class="kpi-card-header">
+            <span class="kpi-title">Guru PA Kristen</span>
+            <div class="kpi-icon icon-cyan">⛪</div>
+          </div>
+          <div class="kpi-value" id="kpiKristenSelisih">0</div>
+          <div class="kpi-subtitle" id="kpiKristenDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
+        </div>
+
+        <!-- 6. Guru PA Katolik -->
+        <div class="kpi-card" onclick="setFormasiToggle('GURU_KATOLIK')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru Katolik">
+          <div class="kpi-card-header">
+            <span class="kpi-title">Guru PA Katolik</span>
+            <div class="kpi-icon icon-rose">✝️</div>
+          </div>
+          <div class="kpi-value" id="kpiKatolikSelisih">0</div>
+          <div class="kpi-subtitle" id="kpiKatolikDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
+        </div>
+      </div>
+
+      <!-- TABEL KEBUTUHAN GURU SD DENGAN TOGGLE / FILTER JENIS PTK -->
       <div class="card-table">
         <div class="card-header-bar">
-          <div>
-            <h2>Tabel Analisis Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-              Formasi Terisi = <strong>PNS + PPPK + PW (PPPK Paruh Waktu)</strong>. Kolom <strong>+/-</strong> = Terisi dikurangi Kebutuhan. Kolom <strong>Non-ASN</strong> hanya informasi pelengkap dan tidak mengurangi kebutuhan.
-            </p>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h2>Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">PILIH TAMPILAN JENIS PTK:</span>
+              <div class="toggle-bar">
+                <button class="toggle-btn active" id="btnTog_ALL" onclick="setFormasiToggle('ALL')">Semua (Total)</button>
+                <button class="toggle-btn" id="btnTog_KS" onclick="setFormasiToggle('KS')">Kepala Sekolah</button>
+                <button class="toggle-btn" id="btnTog_GURU_KELAS" onclick="setFormasiToggle('GURU_KELAS')">Guru Kelas</button>
+                <button class="toggle-btn" id="btnTog_GURU_PAI" onclick="setFormasiToggle('GURU_PAI')">Guru PAI</button>
+                <button class="toggle-btn" id="btnTog_GURU_PJOK" onclick="setFormasiToggle('GURU_PJOK')">Guru PJOK</button>
+                <button class="toggle-btn" id="btnTog_GURU_KRISTEN" onclick="setFormasiToggle('GURU_KRISTEN')">PA Kristen</button>
+                <button class="toggle-btn" id="btnTog_GURU_KATOLIK" onclick="setFormasiToggle('GURU_KATOLIK')">PA Katolik</button>
+                <button class="toggle-btn" id="btnTog_MATRIX" onclick="setFormasiToggle('MATRIX')">Matriks Semua</button>
+              </div>
+            </div>
           </div>
+
           <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="subViewKebutuhanSD" class="form-select" onchange="renderTabKebutuhanSD()" style="font-weight: 600; min-width: 180px;">
+            <select id="subViewKebutuhanSD" class="form-select" onchange="renderTabKebutuhanSD()" style="font-weight: 600; min-width: 170px;">
               <option value="SEKOLAH">Tampilkan Per Sekolah</option>
               <option value="KECAMATAN">Tampilkan Per Kecamatan</option>
             </select>
@@ -185,10 +203,10 @@
         <div class="table-responsive">
           <table class="data-table" id="tableKebutuhanSD">
             <thead id="theadKebutuhanSD">
-              <!-- Diisi via JS sesuai subView (Sekolah atau Kecamatan) -->
+              <!-- Header dinamis sesuai toggle jenis PTK -->
             </thead>
             <tbody id="tbodyKebutuhanSD">
-              <!-- Baris data diisi via JS -->
+              <!-- Diisi via JS -->
             </tbody>
             <tfoot id="tfootKebutuhanSD">
               <!-- Total diisi via JS -->
@@ -198,8 +216,37 @@
       </div>
     </div>
 
-    <!-- TAB 2: REKAP PER KECAMATAN -->
+    <!-- ==================== TAB 2: REKAP KECAMATAN ==================== -->
     <div id="tabKecamatan" class="tab-pane">
+      <!-- KPI Umum -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">Total Keseluruhan PTK</span><div class="kpi-icon icon-blue">👥</div></div>
+          <div class="kpi-value" id="kpiTotalPTK">0</div>
+          <div class="kpi-subtitle" id="kpiSubSekolah">Mencakup 0 Sekolah</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">Guru (Pendidik)</span><div class="kpi-icon icon-green">👨‍🏫</div></div>
+          <div class="kpi-value" id="kpiTotalGuru">0</div>
+          <div class="kpi-subtitle" id="kpiSubGuru">Guru Kelas, Mapel & BK</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">Kepala Sekolah</span><div class="kpi-icon icon-purple">🎓</div></div>
+          <div class="kpi-value" id="kpiTotalKS">0</div>
+          <div class="kpi-subtitle" id="kpiSubKS">Kepala Sekolah Aktif</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">Tenaga Kependidikan</span><div class="kpi-icon icon-amber">📑</div></div>
+          <div class="kpi-value" id="kpiTotalTendik">0</div>
+          <div class="kpi-subtitle" id="kpiSubTendik">Operator, TU & Staf</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">Komposisi ASN / PW</span><div class="kpi-icon icon-cyan">🏛️</div></div>
+          <div class="kpi-value" id="kpiPersenASN">0%</div>
+          <div class="kpi-subtitle" id="kpiSubASN">PNS: 0 | PPPK: 0 | PW: 0</div>
+        </div>
+      </div>
+
       <div class="card-table">
         <div class="card-header-bar">
           <h2>Tabel Rekapitulasi PTK per Kecamatan</h2>
@@ -229,18 +276,14 @@
                 <th class="text-center">Non-ASN</th>
               </tr>
             </thead>
-            <tbody id="tbodyKecamatan">
-              <!-- Diisi via JS -->
-            </tbody>
-            <tfoot id="tfootKecamatan">
-              <!-- Total diisi via JS -->
-            </tfoot>
+            <tbody id="tbodyKecamatan"></tbody>
+            <tfoot id="tfootKecamatan"></tfoot>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: REKAP PER JENJANG -->
+    <!-- ==================== TAB 3: REKAP JENJANG ==================== -->
     <div id="tabJenjang" class="tab-pane">
       <div class="card-table">
         <div class="card-header-bar">
@@ -267,15 +310,13 @@
                 <th class="text-center">Tendik</th>
               </tr>
             </thead>
-            <tbody id="tbodyJenjang">
-              <!-- Diisi via JS -->
-            </tbody>
+            <tbody id="tbodyJenjang"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 4: REKAP PER SEKOLAH -->
+    <!-- ==================== TAB 4: REKAP SEKOLAH ==================== -->
     <div id="tabSekolah" class="tab-pane">
       <div class="card-table">
         <div class="card-header-bar">
@@ -305,9 +346,7 @@
                 <th class="text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody id="tbodySekolah">
-              <!-- Diisi via JS -->
-            </tbody>
+            <tbody id="tbodySekolah"></tbody>
           </table>
         </div>
       </div>
@@ -340,9 +379,7 @@
                 <th class="text-center">Jenjang</th>
               </tr>
             </thead>
-            <tbody id="modalTbody">
-              <!-- Detail diisi via JS -->
-            </tbody>
+            <tbody id="modalTbody"></tbody>
           </table>
         </div>
       </div>

@@ -2,6 +2,7 @@
   // State Global
   let rawData = null;
   let activeTab = 'kebutuhanSD';
+  let activeFormasiToggle = 'ALL'; // 'ALL', 'KS', 'GURU_KELAS', 'GURU_PAI', 'GURU_PJOK', 'GURU_KRISTEN', 'GURU_KATOLIK', 'MATRIX'
 
   document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData(false);
@@ -29,8 +30,9 @@
 
     populateKecamatanOptions(data.kecamatanList || []);
 
-    // Render Komponen
-    renderKPI(data);
+    // Render Semua Bagian
+    renderKPIUmum(data.summary);
+    renderCardsFormasiSD(data.kebutuhanSD);
     renderTabKebutuhanSD();
     renderTabKecamatan(data.rekapKecamatan);
     renderTabJenjang(data.rekapJenjang);
@@ -67,12 +69,10 @@
   }
 
   /**
-   * Render KPI Cards
+   * Render KPI Cards Umum
    */
-  function renderKPI(data) {
-    const summary = data.summary;
+  function renderKPIUmum(summary) {
     if (!summary) return;
-
     document.getElementById('kpiTotalPTK').textContent = formatNumber(summary.totalPTK);
     document.getElementById('kpiSubSekolah').textContent = `Mencakup ${formatNumber(summary.totalSekolah)} Sekolah (SD: ${summary.totalSekolahSD}, SMP: ${summary.totalSekolahSMP})`;
 
@@ -82,25 +82,79 @@
 
     document.getElementById('kpiPersenASN').textContent = `${summary.persenASN}%`;
     document.getElementById('kpiSubASN').textContent = `PNS: ${formatNumber(summary.totalPNS)} | PPPK: ${formatNumber(summary.totalPPPK)} | PW: ${formatNumber(summary.totalPW)}`;
-
-    // Hitung total kekurangan guru SD dari data kebutuhan SD
-    if (data.kebutuhanSD && data.kebutuhanSD.perKecamatan) {
-      let totalKurang = 0;
-      let totalButuh = 0;
-      data.kebutuhanSD.perKecamatan.forEach(k => {
-        totalButuh += k.total.butuh;
-        // Jika selisih negatif, akumulasi kekurangan
-        if (k.total.selisih < 0) {
-          totalKurang += Math.abs(k.total.selisih);
-        }
-      });
-      document.getElementById('kpiTotalKurangSD').textContent = `${formatNumber(totalKurang)} Guru`;
-      document.getElementById('kpiSubKebutuhanSD').textContent = `Dari Total Kebutuhan ${formatNumber(totalButuh)} Guru SD`;
-    }
   }
 
   /**
-   * TAB 1: Render Kebutuhan Guru SD
+   * Render 6 Card Kebutuhan Guru SD per Jenis PTK
+   */
+  function renderCardsFormasiSD(kebutuhanSD) {
+    if (!kebutuhanSD || !kebutuhanSD.perSekolah) return;
+
+    const totals = {
+      ks: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
+      gk: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
+      pai: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
+      pjok: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
+      kristen: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
+      katolik: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 }
+    };
+
+    kebutuhanSD.perSekolah.forEach(sd => {
+      const acc = (target, src) => {
+        target.butuh += src.butuh;
+        target.terisi += (src.pns + src.pppk + src.pw);
+        target.selisih += src.selisih;
+        target.nonAsn += src.nonAsn;
+      };
+
+      acc(totals.ks, sd.ks);
+      acc(totals.gk, sd.guruKelas);
+      acc(totals.pai, sd.guruPai);
+      acc(totals.pjok, sd.guruPjok);
+      acc(totals.kristen, sd.guruKristen);
+      acc(totals.katolik, sd.guruKatolik);
+    });
+
+    const setCard = (prefix, item) => {
+      const valElem = document.getElementById(prefix + 'Selisih');
+      const detElem = document.getElementById(prefix + 'Detail');
+      if (valElem) {
+        valElem.innerHTML = renderBadgeSelisihLarge(item.selisih);
+      }
+      if (detElem) {
+        detElem.textContent = `Butuh: ${formatNumber(item.butuh)} | Terisi: ${formatNumber(item.terisi)} | Non: ${formatNumber(item.nonAsn)}`;
+      }
+    };
+
+    setCard('kpiKs', totals.ks);
+    setCard('kpiGk', totals.gk);
+    setCard('kpiPai', totals.pai);
+    setCard('kpiPjok', totals.pjok);
+    setCard('kpiKristen', totals.kristen);
+    setCard('kpiKatolik', totals.katolik);
+  }
+
+  function renderBadgeSelisihLarge(val) {
+    if (val < 0) return `<span style="color:#dc2626;">${val}</span> <span style="font-size:0.9rem; font-weight:600; color:#ef4444;">Kurang</span>`;
+    if (val === 0) return `<span style="color:#16a34a;">0</span> <span style="font-size:0.9rem; font-weight:600; color:#22c55e;">Pas</span>`;
+    return `<span style="color:#0284c7;">+${val}</span> <span style="font-size:0.9rem; font-weight:600; color:#0ea5e9;">Lebih</span>`;
+  }
+
+  /**
+   * Ubah Toggle Jenis PTK untuk Tabel Kebutuhan SD
+   */
+  function setFormasiToggle(formasiKey) {
+    activeFormasiToggle = formasiKey;
+    document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+    
+    const activeBtn = document.getElementById('btnTog_' + formasiKey);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    renderTabKebutuhanSD();
+  }
+
+  /**
+   * TAB 1: Render Kebutuhan Guru SD Dinamis Berdasarkan Toggle
    */
   function renderTabKebutuhanSD() {
     if (!rawData || !rawData.kebutuhanSD) return;
@@ -114,50 +168,21 @@
     const filterStatus = document.getElementById('filterStatusKebutuhan').value;
     const searchVal = document.getElementById('searchSekolah').value.toLowerCase().trim();
 
-    if (subView === 'SEKOLAH') {
-      // Sub-view: PER SEKOLAH
-      thead.innerHTML = `
-        <tr>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
-          <th rowspan="2" style="vertical-align: middle;">NPSN</th>
-          <th rowspan="2" style="vertical-align: middle;">Nama Sekolah</th>
-          <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
-          <th colspan="6" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
-          <th colspan="6" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
-          <th colspan="6" class="text-center" style="background:#fefce8;">Guru PAI</th>
-          <th colspan="6" class="text-center" style="background:#fdf2f8;">Guru PJOK</th>
-          <th colspan="6" class="text-center" style="background:#f5f3ff;">Guru Kristen</th>
-          <th colspan="6" class="text-center" style="background:#ecfeff;">Guru Katolik</th>
-          <th colspan="7" class="text-center" style="background:#f1f5f9;">TOTAL KEBUTUHAN & FORMASI</th>
-        </tr>
-        <tr>
-          <!-- KS -->
-          <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-          <!-- Guru Kelas -->
-          <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-          <!-- PAI -->
-          <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-          <!-- PJOK -->
-          <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-          <!-- Kristen -->
-          <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-          <!-- Katolik -->
-          <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
-          <!-- TOTAL -->
-          <th class="text-center" style="background:#e2e8f0;">Butuh</th>
-          <th class="text-center">PNS</th>
-          <th class="text-center">PPPK</th>
-          <th class="text-center">PW</th>
-          <th class="text-center">Terisi</th>
-          <th class="text-center" style="background:#fee2e2;">+/-</th>
-          <th class="text-center">Non-ASN</th>
-        </tr>
-      `;
+    // Kamus Label Formasi
+    const formasiConfig = {
+      'ALL': { key: 'total', label: 'TOTAL SELURUH GURU SD' },
+      'KS': { key: 'ks', label: 'Kepala Sekolah' },
+      'GURU_KELAS': { key: 'guruKelas', label: 'Guru Kelas' },
+      'GURU_PAI': { key: 'guruPai', label: 'Guru PAI' },
+      'GURU_PJOK': { key: 'guruPjok', label: 'Guru PJOK' },
+      'GURU_KRISTEN': { key: 'guruKristen', label: 'Guru PA Kristen' },
+      'GURU_KATOLIK': { key: 'guruKatolik', label: 'Guru PA Katolik' }
+    };
 
+    if (subView === 'SEKOLAH') {
       let list = rawData.kebutuhanSD.perSekolah || [];
 
-      // Filter Kecamatan & Search
+      // Filter Data
       let filtered = list.filter(item => {
         if (filterKec !== 'ALL' && item.kecamatan !== filterKec) return false;
         if (searchVal) {
@@ -165,187 +190,381 @@
           const matchNpsn = item.npsn && item.npsn.toLowerCase().includes(searchVal);
           if (!matchName && !matchNpsn) return false;
         }
-        if (filterStatus === 'KURANG' && item.total.selisih >= 0) return false;
-        if (filterStatus === 'PAS' && item.total.selisih !== 0) return false;
-        if (filterStatus === 'LEBIH' && item.total.selisih <= 0) return false;
+
+        // Tentukan objek formasi mana yang dievaluasi status filternya
+        let targetEval = item.total;
+        if (activeFormasiToggle !== 'ALL' && activeFormasiToggle !== 'MATRIX') {
+          const conf = formasiConfig[activeFormasiToggle];
+          if (conf && item[conf.key]) targetEval = item[conf.key];
+        }
+
+        if (filterStatus === 'KURANG' && targetEval.selisih >= 0) return false;
+        if (filterStatus === 'PAS' && targetEval.selisih !== 0) return false;
+        if (filterStatus === 'LEBIH' && targetEval.selisih <= 0) return false;
         return true;
       });
 
-      let html = '';
-      let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0;
-
-      filtered.forEach((sd, idx) => {
-        sumRombel += sd.rombel;
-        sumBth += sd.total.butuh;
-        sumPns += sd.total.pns;
-        sumPppk += sd.total.pppk;
-        sumPw += sd.total.pw;
-        sumTerisi += sd.total.pengurang;
-        sumSelisih += sd.total.selisih;
-        sumNon += sd.total.nonAsn;
-
-        const renderFormasiCols = (f) => `
-          <td class="text-center">${formatNumber(f.butuh)}</td>
-          <td class="text-center">${f.pns || '-'}</td>
-          <td class="text-center">${f.pppk || '-'}</td>
-          <td class="text-center">${f.pw || '-'}</td>
-          <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
-          <td class="text-center" style="color:#64748b;">${f.nonAsn || '-'}</td>
-        `;
-
-        html += `
+      if (activeFormasiToggle === 'MATRIX') {
+        // TAMPILAN MATRIKS PENUH
+        thead.innerHTML = `
           <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td><code>${escapeHtml(sd.npsn)}</code></td>
-            <td><strong>${escapeHtml(sd.namaSekolah)}</strong></td>
-            <td>${escapeHtml(sd.kecamatan)}</td>
-            <td class="text-center" style="font-weight:700;">${formatNumber(sd.rombel)}</td>
-            
-            ${renderFormasiCols(sd.ks)}
-            ${renderFormasiCols(sd.guruKelas)}
-            ${renderFormasiCols(sd.guruPai)}
-            ${renderFormasiCols(sd.guruPjok)}
-            ${renderFormasiCols(sd.guruKristen)}
-            ${renderFormasiCols(sd.guruKatolik)}
-
-            <td class="text-center" style="font-weight:800; background:#f8fafc;">${formatNumber(sd.total.butuh)}</td>
-            <td class="text-center"><span class="badge badge-pns">${formatNumber(sd.total.pns)}</span></td>
-            <td class="text-center"><span class="badge badge-pppk">${formatNumber(sd.total.pppk)}</span></td>
-            <td class="text-center"><span class="badge badge-pw">${formatNumber(sd.total.pw)}</span></td>
-            <td class="text-center" style="font-weight:700;">${formatNumber(sd.total.pengurang)}</td>
-            <td class="text-center">${renderBadgeSelisih(sd.total.selisih)}</td>
-            <td class="text-center"><span class="badge badge-nonasn">${formatNumber(sd.total.nonAsn)}</span></td>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
+            <th rowspan="2" style="vertical-align: middle;">NPSN</th>
+            <th rowspan="2" style="vertical-align: middle;">Nama Sekolah</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+            <th colspan="6" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
+            <th colspan="6" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
+            <th colspan="6" class="text-center" style="background:#fefce8;">Guru PAI</th>
+            <th colspan="6" class="text-center" style="background:#fdf2f8;">Guru PJOK</th>
+            <th colspan="6" class="text-center" style="background:#f5f3ff;">Guru Kristen</th>
+            <th colspan="6" class="text-center" style="background:#ecfeff;">Guru Katolik</th>
+            <th colspan="7" class="text-center" style="background:#f1f5f9;">TOTAL GURU SD</th>
+          </tr>
+          <tr>
+            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
+            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
+            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
+            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
+            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
+            <th class="text-center">Bth</th><th class="text-center">PNS</th><th class="text-center">PPPK</th><th class="text-center">PW</th><th class="text-center">+/-</th><th class="text-center">Non</th>
+            <th class="text-center" style="background:#e2e8f0;">Butuh</th>
+            <th class="text-center">PNS</th>
+            <th class="text-center">PPPK</th>
+            <th class="text-center">PW</th>
+            <th class="text-center">Terisi</th>
+            <th class="text-center" style="background:#fee2e2;">+/-</th>
+            <th class="text-center">Non-ASN</th>
           </tr>
         `;
-      });
 
-      tbody.innerHTML = html || '<tr><td colspan="48" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan filter.</td></tr>';
+        let html = '';
+        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0;
 
-      tfoot.innerHTML = `
-        <tr>
-          <th colspan="4" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
-          <th class="text-center">${formatNumber(sumRombel)}</th>
-          <th colspan="36" class="text-center" style="color:#64748b;">- Matriks Agregat Formasi Tertera pada Tampilan Kecamatan -</th>
-          <th class="text-center" style="font-size:0.95rem;">${formatNumber(sumBth)}</th>
-          <th class="text-center">${formatNumber(sumPns)}</th>
-          <th class="text-center">${formatNumber(sumPppk)}</th>
-          <th class="text-center">${formatNumber(sumPw)}</th>
-          <th class="text-center">${formatNumber(sumTerisi)}</th>
-          <th class="text-center">${renderBadgeSelisih(sumSelisih)}</th>
-          <th class="text-center">${formatNumber(sumNon)}</th>
-        </tr>
-      `;
+        filtered.forEach((sd, idx) => {
+          sumRombel += sd.rombel;
+          sumBth += sd.total.butuh;
+          sumPns += sd.total.pns;
+          sumPppk += sd.total.pppk;
+          sumPw += sd.total.pw;
+          sumTerisi += sd.total.pengurang;
+          sumSelisih += sd.total.selisih;
+          sumNon += sd.total.nonAsn;
+
+          const renderCols = (f) => `
+            <td class="text-center">${formatNumber(f.butuh)}</td>
+            <td class="text-center">${f.pns || '-'}</td>
+            <td class="text-center">${f.pppk || '-'}</td>
+            <td class="text-center">${f.pw || '-'}</td>
+            <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
+            <td class="text-center" style="color:#64748b;">${f.nonAsn || '-'}</td>
+          `;
+
+          html += `
+            <tr>
+              <td class="text-center">${idx + 1}</td>
+              <td><code>${escapeHtml(sd.npsn)}</code></td>
+              <td><strong>${escapeHtml(sd.namaSekolah)}</strong></td>
+              <td>${escapeHtml(sd.kecamatan)}</td>
+              <td class="text-center" style="font-weight:700;">${formatNumber(sd.rombel)}</td>
+              ${renderCols(sd.ks)}
+              ${renderCols(sd.guruKelas)}
+              ${renderCols(sd.guruPai)}
+              ${renderCols(sd.guruPjok)}
+              ${renderCols(sd.guruKristen)}
+              ${renderCols(sd.guruKatolik)}
+              <td class="text-center" style="font-weight:800; background:#f8fafc;">${formatNumber(sd.total.butuh)}</td>
+              <td class="text-center"><span class="badge badge-pns">${formatNumber(sd.total.pns)}</span></td>
+              <td class="text-center"><span class="badge badge-pppk">${formatNumber(sd.total.pppk)}</span></td>
+              <td class="text-center"><span class="badge badge-pw">${formatNumber(sd.total.pw)}</span></td>
+              <td class="text-center" style="font-weight:700;">${formatNumber(sd.total.pengurang)}</td>
+              <td class="text-center">${renderBadgeSelisih(sd.total.selisih)}</td>
+              <td class="text-center"><span class="badge badge-nonasn">${formatNumber(sd.total.nonAsn)}</span></td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html || '<tr><td colspan="48" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan filter.</td></tr>';
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="4" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
+            <th class="text-center">${formatNumber(sumRombel)}</th>
+            <th colspan="36" class="text-center" style="color:#64748b;">- Matriks Agregat Formasi Tertera di Tampilan Kecamatan -</th>
+            <th class="text-center">${formatNumber(sumBth)}</th>
+            <th class="text-center">${formatNumber(sumPns)}</th>
+            <th class="text-center">${formatNumber(sumPppk)}</th>
+            <th class="text-center">${formatNumber(sumPw)}</th>
+            <th class="text-center">${formatNumber(sumTerisi)}</th>
+            <th class="text-center">${renderBadgeSelisih(sumSelisih)}</th>
+            <th class="text-center">${formatNumber(sumNon)}</th>
+          </tr>
+        `;
+
+      } else {
+        // TAMPILAN RINGKAS & FOKUS (KOMPAK - TIDAK TERLALU PANJANG)
+        const activeConf = formasiConfig[activeFormasiToggle] || formasiConfig.ALL;
+        const fKey = activeConf.key;
+
+        thead.innerHTML = `
+          <tr>
+            <th class="text-center" style="width: 50px;">No</th>
+            <th>NPSN</th>
+            <th>Nama Sekolah</th>
+            <th>Kecamatan</th>
+            <th class="text-center">Rombel</th>
+            <th class="text-center" style="background:#e2e8f0;">Kebutuhan</th>
+            <th class="text-center">PNS</th>
+            <th class="text-center">PPPK</th>
+            <th class="text-center">PW</th>
+            <th class="text-center" style="background:#f1f5f9;">Terisi (ASN+PW)</th>
+            <th class="text-center" style="background:#fee2e2; font-weight:800;">+/- (Selisih)</th>
+            <th class="text-center">Non-ASN (Info)</th>
+            <th class="text-center">Status Formasi</th>
+          </tr>
+        `;
+
+        let html = '';
+        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0;
+
+        filtered.forEach((sd, idx) => {
+          const f = sd[fKey];
+          const terisi = f.pns + f.pppk + f.pw;
+          
+          sumRombel += sd.rombel;
+          sumBth += f.butuh;
+          sumPns += f.pns;
+          sumPppk += f.pppk;
+          sumPw += f.pw;
+          sumTerisi += terisi;
+          sumSelisih += f.selisih;
+          sumNon += f.nonAsn;
+
+          let statusTag = `<span class="selisih-pas">✓ Pas</span>`;
+          if (f.selisih < 0) statusTag = `<span class="selisih-neg">Kurang ${Math.abs(f.selisih)}</span>`;
+          else if (f.selisih > 0) statusTag = `<span class="selisih-pos">Lebih ${f.selisih}</span>`;
+
+          html += `
+            <tr>
+              <td class="text-center">${idx + 1}</td>
+              <td><code>${escapeHtml(sd.npsn)}</code></td>
+              <td><strong>${escapeHtml(sd.namaSekolah)}</strong></td>
+              <td>${escapeHtml(sd.kecamatan)}</td>
+              <td class="text-center" style="font-weight:700;">${formatNumber(sd.rombel)}</td>
+              <td class="text-center" style="font-weight:800; background:#f8fafc; font-size:0.92rem;">${formatNumber(f.butuh)}</td>
+              <td class="text-center"><span class="badge badge-pns">${formatNumber(f.pns)}</span></td>
+              <td class="text-center"><span class="badge badge-pppk">${formatNumber(f.pppk)}</span></td>
+              <td class="text-center"><span class="badge badge-pw">${formatNumber(f.pw)}</span></td>
+              <td class="text-center" style="font-weight:700;">${formatNumber(terisi)}</td>
+              <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
+              <td class="text-center"><span class="badge badge-nonasn">${formatNumber(f.nonAsn)}</span></td>
+              <td class="text-center">${statusTag}</td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html || `<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan filter formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="4" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
+            <th class="text-center">${formatNumber(sumRombel)}</th>
+            <th class="text-center" style="font-size:0.95rem;">${formatNumber(sumBth)}</th>
+            <th class="text-center">${formatNumber(sumPns)}</th>
+            <th class="text-center">${formatNumber(sumPppk)}</th>
+            <th class="text-center">${formatNumber(sumPw)}</th>
+            <th class="text-center">${formatNumber(sumTerisi)}</th>
+            <th class="text-center">${renderBadgeSelisih(sumSelisih)}</th>
+            <th class="text-center">${formatNumber(sumNon)}</th>
+            <th class="text-center">-</th>
+          </tr>
+        `;
+      }
 
     } else {
       // Sub-view: PER KECAMATAN
-      thead.innerHTML = `
-        <tr>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
-          <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">Jml SD</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
-          <th colspan="3" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
-          <th colspan="3" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
-          <th colspan="3" class="text-center" style="background:#fefce8;">Guru PAI</th>
-          <th colspan="3" class="text-center" style="background:#fdf2f8;">Guru PJOK</th>
-          <th colspan="3" class="text-center" style="background:#f5f3ff;">Guru Kristen</th>
-          <th colspan="3" class="text-center" style="background:#ecfeff;">Guru Katolik</th>
-          <th colspan="6" class="text-center" style="background:#f1f5f9;">TOTAL GURU SD</th>
-        </tr>
-        <tr>
-          <!-- KS -->
-          <th class="text-center">Bth</th><th class="text-center">Ada (ASN/PW)</th><th class="text-center">+/-</th>
-          <!-- Guru Kelas -->
-          <th class="text-center">Bth</th><th class="text-center">Ada (ASN/PW)</th><th class="text-center">+/-</th>
-          <!-- PAI -->
-          <th class="text-center">Bth</th><th class="text-center">Ada (ASN/PW)</th><th class="text-center">+/-</th>
-          <!-- PJOK -->
-          <th class="text-center">Bth</th><th class="text-center">Ada (ASN/PW)</th><th class="text-center">+/-</th>
-          <!-- Kristen -->
-          <th class="text-center">Bth</th><th class="text-center">Ada (ASN/PW)</th><th class="text-center">+/-</th>
-          <!-- Katolik -->
-          <th class="text-center">Bth</th><th class="text-center">Ada (ASN/PW)</th><th class="text-center">+/-</th>
-          <!-- Total -->
-          <th class="text-center" style="background:#e2e8f0;">Butuh</th>
-          <th class="text-center">PNS</th>
-          <th class="text-center">PPPK</th>
-          <th class="text-center">PW</th>
-          <th class="text-center" style="background:#fee2e2;">+/-</th>
-          <th class="text-center">Non-ASN</th>
-        </tr>
-      `;
-
       let list = rawData.kebutuhanSD.perKecamatan || [];
       let filtered = (filterKec === 'ALL') ? list : list.filter(k => k.kecamatan === filterKec);
 
       if (filterStatus !== 'ALL') {
         filtered = filtered.filter(k => {
-          if (filterStatus === 'KURANG' && k.total.selisih >= 0) return false;
-          if (filterStatus === 'PAS' && k.total.selisih !== 0) return false;
-          if (filterStatus === 'LEBIH' && k.total.selisih <= 0) return false;
+          let targetEval = k.total;
+          if (activeFormasiToggle !== 'ALL' && activeFormasiToggle !== 'MATRIX') {
+            const conf = formasiConfig[activeFormasiToggle];
+            if (conf && k[conf.key]) targetEval = k[conf.key];
+          }
+          if (filterStatus === 'KURANG' && targetEval.selisih >= 0) return false;
+          if (filterStatus === 'PAS' && targetEval.selisih !== 0) return false;
+          if (filterStatus === 'LEBIH' && targetEval.selisih <= 0) return false;
           return true;
         });
       }
 
-      let html = '';
-      let totSekolah = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totSelisih = 0, totNon = 0;
-
-      filtered.forEach((k, idx) => {
-        totSekolah += k.jmlSekolah;
-        totRombel += k.totalRombel;
-        totBth += k.total.butuh;
-        totPns += k.total.pns;
-        totPppk += k.total.pppk;
-        totPw += k.total.pw;
-        totSelisih += k.total.selisih;
-        totNon += k.total.nonAsn;
-
-        const renderKecFormasi = (f) => `
-          <td class="text-center">${formatNumber(f.butuh)}</td>
-          <td class="text-center">${formatNumber(f.pns + f.pppk + f.pw)}</td>
-          <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
-        `;
-
-        html += `
+      if (activeFormasiToggle === 'MATRIX') {
+        // Tampilan Matriks Kecamatan
+        thead.innerHTML = `
           <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
-            <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
-            <td class="text-center" style="font-weight:700;">${formatNumber(k.totalRombel)}</td>
-            
-            ${renderKecFormasi(k.ks)}
-            ${renderKecFormasi(k.guruKelas)}
-            ${renderKecFormasi(k.guruPai)}
-            ${renderKecFormasi(k.guruPjok)}
-            ${renderKecFormasi(k.guruKristen)}
-            ${renderKecFormasi(k.guruKatolik)}
-
-            <td class="text-center" style="font-weight:800; background:#f8fafc;">${formatNumber(k.total.butuh)}</td>
-            <td class="text-center"><span class="badge badge-pns">${formatNumber(k.total.pns)}</span></td>
-            <td class="text-center"><span class="badge badge-pppk">${formatNumber(k.total.pppk)}</span></td>
-            <td class="text-center"><span class="badge badge-pw">${formatNumber(k.total.pw)}</span></td>
-            <td class="text-center">${renderBadgeSelisih(k.total.selisih)}</td>
-            <td class="text-center"><span class="badge badge-nonasn">${formatNumber(k.total.nonAsn)}</span></td>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Jml SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+            <th colspan="3" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
+            <th colspan="3" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
+            <th colspan="3" class="text-center" style="background:#fefce8;">Guru PAI</th>
+            <th colspan="3" class="text-center" style="background:#fdf2f8;">Guru PJOK</th>
+            <th colspan="3" class="text-center" style="background:#f5f3ff;">Guru Kristen</th>
+            <th colspan="3" class="text-center" style="background:#ecfeff;">Guru Katolik</th>
+            <th colspan="6" class="text-center" style="background:#f1f5f9;">TOTAL GURU SD</th>
+          </tr>
+          <tr>
+            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
+            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
+            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
+            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
+            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
+            <th class="text-center">Bth</th><th class="text-center">Ada</th><th class="text-center">+/-</th>
+            <th class="text-center" style="background:#e2e8f0;">Butuh</th>
+            <th class="text-center">PNS</th>
+            <th class="text-center">PPPK</th>
+            <th class="text-center">PW</th>
+            <th class="text-center" style="background:#fee2e2;">+/-</th>
+            <th class="text-center">Non-ASN</th>
           </tr>
         `;
-      });
 
-      tbody.innerHTML = html || '<tr><td colspan="28" class="text-center" style="padding: 24px;">Tidak ada data kecamatan yang cocok.</td></tr>';
+        let html = '';
+        let totSekolah = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totSelisih = 0, totNon = 0;
 
-      tfoot.innerHTML = `
-        <tr>
-          <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
-          <th class="text-center">${formatNumber(totSekolah)}</th>
-          <th class="text-center">${formatNumber(totRombel)}</th>
-          <th colspan="18" class="text-center" style="color:#64748b;">- Akumulasi Seluruh Formasi Tertera di Kolom Total -</th>
-          <th class="text-center" style="font-size:0.95rem;">${formatNumber(totBth)}</th>
-          <th class="text-center">${formatNumber(totPns)}</th>
-          <th class="text-center">${formatNumber(totPppk)}</th>
-          <th class="text-center">${formatNumber(totPw)}</th>
-          <th class="text-center">${renderBadgeSelisih(totSelisih)}</th>
-          <th class="text-center">${formatNumber(totNon)}</th>
-        </tr>
-      `;
+        filtered.forEach((k, idx) => {
+          totSekolah += k.jmlSekolah;
+          totRombel += k.totalRombel;
+          totBth += k.total.butuh;
+          totPns += k.total.pns;
+          totPppk += k.total.pppk;
+          totPw += k.total.pw;
+          totSelisih += k.total.selisih;
+          totNon += k.total.nonAsn;
+
+          const renderKecFormasi = (f) => `
+            <td class="text-center">${formatNumber(f.butuh)}</td>
+            <td class="text-center">${formatNumber(f.pns + f.pppk + f.pw)}</td>
+            <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
+          `;
+
+          html += `
+            <tr>
+              <td class="text-center">${idx + 1}</td>
+              <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
+              <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
+              <td class="text-center" style="font-weight:700;">${formatNumber(k.totalRombel)}</td>
+              ${renderKecFormasi(k.ks)}
+              ${renderKecFormasi(k.guruKelas)}
+              ${renderKecFormasi(k.guruPai)}
+              ${renderKecFormasi(k.guruPjok)}
+              ${renderKecFormasi(k.guruKristen)}
+              ${renderKecFormasi(k.guruKatolik)}
+              <td class="text-center" style="font-weight:800; background:#f8fafc;">${formatNumber(k.total.butuh)}</td>
+              <td class="text-center"><span class="badge badge-pns">${formatNumber(k.total.pns)}</span></td>
+              <td class="text-center"><span class="badge badge-pppk">${formatNumber(k.total.pppk)}</span></td>
+              <td class="text-center"><span class="badge badge-pw">${formatNumber(k.total.pw)}</span></td>
+              <td class="text-center">${renderBadgeSelisih(k.total.selisih)}</td>
+              <td class="text-center"><span class="badge badge-nonasn">${formatNumber(k.total.nonAsn)}</span></td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html || '<tr><td colspan="28" class="text-center" style="padding: 24px;">Tidak ada data kecamatan yang cocok.</td></tr>';
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
+            <th class="text-center">${formatNumber(totSekolah)}</th>
+            <th class="text-center">${formatNumber(totRombel)}</th>
+            <th colspan="18" class="text-center" style="color:#64748b;">- Akumulasi Seluruh Formasi Tertera di Kolom Total -</th>
+            <th class="text-center">${formatNumber(totBth)}</th>
+            <th class="text-center">${formatNumber(totPns)}</th>
+            <th class="text-center">${formatNumber(totPppk)}</th>
+            <th class="text-center">${formatNumber(totPw)}</th>
+            <th class="text-center">${renderBadgeSelisih(totSelisih)}</th>
+            <th class="text-center">${formatNumber(totNon)}</th>
+          </tr>
+        `;
+
+      } else {
+        // Tampilan Ringkas Kecamatan (Fokus pada Formasi Terpilih)
+        const activeConf = formasiConfig[activeFormasiToggle] || formasiConfig.ALL;
+        const fKey = activeConf.key;
+
+        thead.innerHTML = `
+          <tr>
+            <th class="text-center" style="width: 50px;">No</th>
+            <th>Kecamatan</th>
+            <th class="text-center">Jumlah SD</th>
+            <th class="text-center">Total Rombel</th>
+            <th class="text-center" style="background:#e2e8f0;">Kebutuhan</th>
+            <th class="text-center">PNS</th>
+            <th class="text-center">PPPK</th>
+            <th class="text-center">PW</th>
+            <th class="text-center" style="background:#f1f5f9;">Terisi (ASN+PW)</th>
+            <th class="text-center" style="background:#fee2e2; font-weight:800;">+/- (Selisih)</th>
+            <th class="text-center">Non-ASN (Info)</th>
+            <th class="text-center">Status Formasi</th>
+          </tr>
+        `;
+
+        let html = '';
+        let totSekolah = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totTerisi = 0, totSelisih = 0, totNon = 0;
+
+        filtered.forEach((k, idx) => {
+          const f = k[fKey];
+          const terisi = f.pns + f.pppk + f.pw;
+
+          totSekolah += k.jmlSekolah;
+          totRombel += k.totalRombel;
+          totBth += f.butuh;
+          totPns += f.pns;
+          totPppk += f.pppk;
+          totPw += f.pw;
+          totTerisi += terisi;
+          totSelisih += f.selisih;
+          totNon += f.nonAsn;
+
+          let statusTag = `<span class="selisih-pas">✓ Pas</span>`;
+          if (f.selisih < 0) statusTag = `<span class="selisih-neg">Kurang ${Math.abs(f.selisih)}</span>`;
+          else if (f.selisih > 0) statusTag = `<span class="selisih-pos">Lebih ${f.selisih}</span>`;
+
+          html += `
+            <tr>
+              <td class="text-center">${idx + 1}</td>
+              <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
+              <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
+              <td class="text-center" style="font-weight:700;">${formatNumber(k.totalRombel)}</td>
+              <td class="text-center" style="font-weight:800; background:#f8fafc;">${formatNumber(f.butuh)}</td>
+              <td class="text-center"><span class="badge badge-pns">${formatNumber(f.pns)}</span></td>
+              <td class="text-center"><span class="badge badge-pppk">${formatNumber(f.pppk)}</span></td>
+              <td class="text-center"><span class="badge badge-pw">${formatNumber(f.pw)}</span></td>
+              <td class="text-center" style="font-weight:700;">${formatNumber(terisi)}</td>
+              <td class="text-center">${renderBadgeSelisih(f.selisih)}</td>
+              <td class="text-center"><span class="badge badge-nonasn">${formatNumber(f.nonAsn)}</span></td>
+              <td class="text-center">${statusTag}</td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html || `<tr><td colspan="12" class="text-center" style="padding: 24px;">Tidak ada data kecamatan untuk formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
+            <th class="text-center">${formatNumber(totSekolah)}</th>
+            <th class="text-center">${formatNumber(totRombel)}</th>
+            <th class="text-center" style="font-size:0.95rem;">${formatNumber(totBth)}</th>
+            <th class="text-center">${formatNumber(totPns)}</th>
+            <th class="text-center">${formatNumber(totPppk)}</th>
+            <th class="text-center">${formatNumber(totPw)}</th>
+            <th class="text-center">${formatNumber(totTerisi)}</th>
+            <th class="text-center">${renderBadgeSelisih(totSelisih)}</th>
+            <th class="text-center">${formatNumber(totNon)}</th>
+            <th class="text-center">-</th>
+          </tr>
+        `;
+      }
     }
   }
 
@@ -530,23 +749,28 @@
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
     const wrapFilterStatus = document.getElementById('wrapFilterStatusKebutuhan');
+    const wrapFilterJenjang = document.getElementById('wrapFilterJenjang');
 
     if (tabKey === 'kebutuhanSD') {
       document.getElementById('tabBtnKebutuhanSD').classList.add('active');
       document.getElementById('tabKebutuhanSD').classList.add('active');
       if (wrapFilterStatus) wrapFilterStatus.style.display = 'flex';
+      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'none'; // Khusus SD
     } else if (tabKey === 'kecamatan') {
       document.getElementById('tabBtnKecamatan').classList.add('active');
       document.getElementById('tabKecamatan').classList.add('active');
       if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
+      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'flex';
     } else if (tabKey === 'jenjang') {
       document.getElementById('tabBtnJenjang').classList.add('active');
       document.getElementById('tabJenjang').classList.add('active');
       if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
+      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'flex';
     } else if (tabKey === 'sekolah') {
       document.getElementById('tabBtnSekolah').classList.add('active');
       document.getElementById('tabSekolah').classList.add('active');
       if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
+      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'flex';
     }
   }
 
@@ -609,7 +833,7 @@
 
   function exportActiveTabToExcel() {
     let tableId = 'tableKebutuhanSD';
-    let fileName = 'Analisis_Kebutuhan_Guru_SD.xlsx';
+    let fileName = `Kebutuhan_Guru_SD_${activeFormasiToggle}.xlsx`;
 
     if (activeTab === 'kecamatan') {
       tableId = 'tableKecamatan';
