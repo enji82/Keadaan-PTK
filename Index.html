@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>Dashboard Rekapitulasi Keadaan PTK</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- SheetJS untuk Export Excel Client-side -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Stylesheet -->
+  <?!= include('Styles'); ?>
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p style="font-weight: 600; color: #334155;">Memuat & mengagregasi data PTK...</p>
+    <small style="color: #64748b; margin-top: 4px;">Mengambil data dari spreadsheet (DataUnit, SD, SMP)</small>
+  </div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="brand">
+        <div class="brand-logo">📊</div>
+        <div class="brand-text">
+          <h1>Dashboard Keadaan PTK</h1>
+          <p>Rekapitulasi Pendidik & Tenaga Kependidikan (SD & SMP)</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <span id="lastUpdatedBadge" style="font-size: 0.78rem; color: var(--text-muted); margin-right: 8px;"></span>
+        <button class="btn btn-secondary" onclick="refreshData(true)" title="Perbarui Data dari Spreadsheet">
+          🔄 Refresh Data
+        </button>
+        <button class="btn btn-success" onclick="exportActiveTabToExcel()" title="Export ke File Excel (.xlsx)">
+          📥 Unduh Excel
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Filter Toolbar -->
+    <div class="filters-card">
+      <div class="filters-group">
+        <div class="filter-item">
+          <label for="filterJenjang">Jenjang Pendidikan</label>
+          <select id="filterJenjang" class="form-select" onchange="applyFilters()">
+            <option value="ALL">Semua Jenjang (SD & SMP)</option>
+            <option value="SD">SD</option>
+            <option value="SMP">SMP</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="filterKecamatan">Wilayah Kecamatan</label>
+          <select id="filterKecamatan" class="form-select" onchange="applyFilters()">
+            <option value="ALL">Semua Kecamatan</option>
+            <!-- Opsi kecamatan diinjeksi via JS -->
+          </select>
+        </div>
+      </div>
+
+      <div class="filters-group">
+        <div class="filter-item" style="flex: 1;">
+          <label for="searchSekolah">Pencarian Satuan Pendidikan</label>
+          <input type="text" id="searchSekolah" class="form-input" placeholder="Cari nama sekolah atau NPSN..." oninput="applyFilters()" style="min-width: 260px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div class="kpi-grid">
+      <!-- Total PTK -->
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Total Keseluruhan PTK</span>
+          <div class="kpi-icon icon-blue">👥</div>
+        </div>
+        <div class="kpi-value" id="kpiTotalPTK">0</div>
+        <div class="kpi-subtitle" id="kpiSubSekolah">Mencakup 0 Satuan Pendidikan</div>
+      </div>
+
+      <!-- Guru / Pendidik -->
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Guru (Pendidik)</span>
+          <div class="kpi-icon icon-green">👨‍🏫</div>
+        </div>
+        <div class="kpi-value" id="kpiTotalGuru">0</div>
+        <div class="kpi-subtitle" id="kpiSubGuru">Guru Kelas, Mapel & BK</div>
+      </div>
+
+      <!-- Kepala Sekolah -->
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Kepala Sekolah</span>
+          <div class="kpi-icon icon-purple">🎓</div>
+        </div>
+        <div class="kpi-value" id="kpiTotalKS">0</div>
+        <div class="kpi-subtitle" id="kpiSubKS">Kepala Sekolah Aktif</div>
+      </div>
+
+      <!-- Tenaga Kependidikan -->
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Tenaga Kependidikan</span>
+          <div class="kpi-icon icon-amber">📑</div>
+        </div>
+        <div class="kpi-value" id="kpiTotalTendik">0</div>
+        <div class="kpi-subtitle" id="kpiSubTendik">Tenaga Administrasi, TU, dll.</div>
+      </div>
+
+      <!-- Komposisi Kepegawaian -->
+      <div class="kpi-card">
+        <div class="kpi-card-header">
+          <span class="kpi-title">Komposisi ASN</span>
+          <div class="kpi-icon icon-cyan">🏛️</div>
+        </div>
+        <div class="kpi-value" id="kpiPersenASN">0%</div>
+        <div class="kpi-subtitle" id="kpiSubASN">PNS: 0 | PPPK: 0 | Non-ASN: 0</div>
+      </div>
+    </div>
+
+    <!-- Tabs Navigasi 3 Level -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tabBtnKecamatan" onclick="switchTab('kecamatan')">
+        📍 1. Rekap Per Kecamatan
+      </button>
+      <button class="tab-btn" id="tabBtnJenjang" onclick="switchTab('jenjang')">
+        🏫 2. Rekap Per Jenjang
+      </button>
+      <button class="tab-btn" id="tabBtnSekolah" onclick="switchTab('sekolah')">
+        🏢 3. Rekap Per Sekolah
+      </button>
+    </div>
+
+    <!-- TAB 1: REKAP PER KECAMATAN -->
+    <div id="tabKecamatan" class="tab-pane active">
+      <div class="card-table">
+        <div class="card-header-bar">
+          <h2>Tabel Rekapitulasi PTK per Kecamatan</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Data agregat wilayah kecamatan</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="tableKecamatan">
+            <thead>
+              <tr>
+                <th class="text-center" rowspan="2" style="vertical-align: middle;">No</th>
+                <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+                <th class="text-center" colspan="3">Jumlah Sekolah</th>
+                <th class="text-center" colspan="3">Jabatan / Tugas</th>
+                <th class="text-center" colspan="3">Status Kepegawaian</th>
+                <th class="text-center" rowspan="2" style="vertical-align: middle; background-color: #f1f5f9;">Total PTK</th>
+              </tr>
+              <tr>
+                <th class="text-center">SD</th>
+                <th class="text-center">SMP</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Guru</th>
+                <th class="text-center">KS</th>
+                <th class="text-center">Tendik</th>
+                <th class="text-center">PNS</th>
+                <th class="text-center">PPPK</th>
+                <th class="text-center">Non-ASN</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyKecamatan">
+              <!-- Baris data diisi via JS -->
+            </tbody>
+            <tfoot id="tfootKecamatan">
+              <!-- Total diisi via JS -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: REKAP PER JENJANG -->
+    <div id="tabJenjang" class="tab-pane">
+      <div class="card-table">
+        <div class="card-header-bar">
+          <h2>Tabel Rekapitulasi Komparasi per Jenjang Pendidikan</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Komparasi SD vs SMP</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="tableJenjang">
+            <thead>
+              <tr>
+                <th class="text-center" rowspan="2" style="vertical-align: middle;">Jenjang</th>
+                <th class="text-center" rowspan="2" style="vertical-align: middle;">Jml Sekolah</th>
+                <th class="text-center" colspan="4">Guru (Pendidik)</th>
+                <th class="text-center" colspan="4">Tenaga Kependidikan (Tendik)</th>
+                <th class="text-center" colspan="4">Kepala Sekolah</th>
+                <th class="text-center" rowspan="2" style="vertical-align: middle; background-color: #f1f5f9;">Total PTK</th>
+              </tr>
+              <tr>
+                <th class="text-center">PNS</th>
+                <th class="text-center">PPPK</th>
+                <th class="text-center">Non-ASN</th>
+                <th class="text-center">Total Guru</th>
+                <th class="text-center">PNS</th>
+                <th class="text-center">PPPK</th>
+                <th class="text-center">Non-ASN</th>
+                <th class="text-center">Total Tendik</th>
+                <th class="text-center">PNS</th>
+                <th class="text-center">PPPK</th>
+                <th class="text-center">Non-ASN</th>
+                <th class="text-center">Total KS</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyJenjang">
+              <!-- Baris data diisi via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: REKAP PER SEKOLAH -->
+    <div id="tabSekolah" class="tab-pane">
+      <div class="card-table">
+        <div class="card-header-bar">
+          <div>
+            <h2>Tabel Rekapitulasi PTK per Satuan Pendidikan</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">Klik tombol <strong>Detail Pegawai</strong> pada salah satu baris untuk melihat nama-nama PTK</p>
+          </div>
+          <span id="labelTotalSekolahFiltered" style="font-size: 0.85rem; font-weight: 600; color: var(--primary);"></span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="tableSekolah">
+            <thead>
+              <tr>
+                <th class="text-center" style="width: 50px;">No</th>
+                <th>NPSN</th>
+                <th>Nama Sekolah / Unit Kerja</th>
+                <th>Jenjang</th>
+                <th>Kecamatan</th>
+                <th class="text-center">Guru</th>
+                <th class="text-center">KS</th>
+                <th class="text-center">Tendik</th>
+                <th class="text-center">PNS</th>
+                <th class="text-center">PPPK</th>
+                <th class="text-center">Non-ASN</th>
+                <th class="text-center" style="background-color: #f1f5f9;">Total PTK</th>
+                <th class="text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodySekolah">
+              <!-- Baris data diisi via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL DETAIL PTK SEKOLAH -->
+  <div id="detailModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalSchoolName">Detail PTK Sekolah</h3>
+          <p id="modalSchoolMeta" style="font-size: 0.8rem; color: var(--text-muted);"></p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalLoading" style="text-align: center; padding: 20px;">
+          <div class="spinner" style="margin: 0 auto 10px;"></div>
+          <p>Memuat daftar personil...</p>
+        </div>
+        <div class="table-responsive" id="modalTableWrap" style="display: none;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="text-center">No</th>
+                <th>Nama Pegawai</th>
+                <th>Tugas / Jabatan</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Jenjang</th>
+              </tr>
+            </thead>
+            <tbody id="modalTbody">
+              <!-- Detail diisi via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <?!= include('Scripts'); ?>
+</body>
+</html>

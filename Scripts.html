@@ -1,0 +1,394 @@
+<script>
+  // State Global
+  let rawData = null;
+  let activeTab = 'kecamatan';
+
+  // Inisialisasi Saat Dokumen Siap
+  document.addEventListener('DOMContentLoaded', () => {
+    loadDashboardData(false);
+  });
+
+  /**
+   * Panggil GAS untuk mengambil data agregasi
+   */
+  function loadDashboardData(forceRefresh) {
+    showLoading(true);
+    google.script.run
+      .withSuccessHandler(handleDataSuccess)
+      .withFailureHandler(handleDataError)
+      .getDashboardData(forceRefresh);
+  }
+
+  function refreshData(force) {
+    loadDashboardData(force);
+  }
+
+  function handleDataSuccess(data) {
+    rawData = data;
+    showLoading(false);
+
+    // Update Waktu Terakhir
+    if (data.lastUpdate) {
+      document.getElementById('lastUpdatedBadge').textContent = 'Pembaruan: ' + data.lastUpdate;
+    }
+
+    // Populate Dropdown Kecamatan
+    populateKecamatanOptions(data.kecamatanList || []);
+
+    // Render Semua Bagian
+    renderKPI(data.summary);
+    renderTabKecamatan(data.rekapKecamatan);
+    renderTabJenjang(data.rekapJenjang);
+    renderTabSekolah(data.rekapSekolah);
+  }
+
+  function handleDataError(err) {
+    showLoading(false);
+    alert('Gagal mengambil data dari Google Apps Script: ' + (err.message || err));
+  }
+
+  function showLoading(show) {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+      overlay.style.display = show ? 'flex' : 'none';
+    }
+  }
+
+  /**
+   * Populate Select Kecamatan
+   */
+  function populateKecamatanOptions(kecamatanList) {
+    const select = document.getElementById('filterKecamatan');
+    const curVal = select.value;
+    select.innerHTML = '<option value="ALL">Semua Kecamatan</option>';
+    
+    kecamatanList.forEach(kec => {
+      const opt = document.createElement('option');
+      opt.value = kec;
+      opt.textContent = kec;
+      select.appendChild(opt);
+    });
+
+    if (curVal && kecamatanList.includes(curVal)) {
+      select.value = curVal;
+    }
+  }
+
+  /**
+   * Render KPI Cards
+   */
+  function renderKPI(summary) {
+    if (!summary) return;
+    document.getElementById('kpiTotalPTK').textContent = formatNumber(summary.totalPTK);
+    document.getElementById('kpiSubSekolah').textContent = `Mencakup ${formatNumber(summary.totalSekolah)} Satuan Pendidikan (SD: ${summary.totalSekolahSD}, SMP: ${summary.totalSekolahSMP})`;
+
+    document.getElementById('kpiTotalGuru').textContent = formatNumber(summary.totalGuru);
+    document.getElementById('kpiTotalKS').textContent = formatNumber(summary.totalKS);
+    document.getElementById('kpiTotalTendik').textContent = formatNumber(summary.totalTendik);
+
+    document.getElementById('kpiPersenASN').textContent = `${summary.persenASN}%`;
+    document.getElementById('kpiSubASN').textContent = `PNS: ${formatNumber(summary.totalPNS)} | PPPK: ${formatNumber(summary.totalPPPK)} | Non-ASN: ${formatNumber(summary.totalNonASN)}`;
+  }
+
+  /**
+   * Render Tab 1: Rekap Per Kecamatan
+   */
+  function renderTabKecamatan(list) {
+    const tbody = document.getElementById('tbodyKecamatan');
+    const tfoot = document.getElementById('tfootKecamatan');
+    if (!list || !tbody) return;
+
+    // Filter jika kecamatan dipilih
+    const selectedKec = document.getElementById('filterKecamatan').value;
+    const filtered = (selectedKec === 'ALL') ? list : list.filter(k => k.kecamatan === selectedKec);
+
+    let html = '';
+    let totSekolahSD = 0, totSekolahSMP = 0, totSekolah = 0;
+    let totGuru = 0, totKS = 0, totTendik = 0;
+    let totPNS = 0, totPPPK = 0, totNonASN = 0, grandTotal = 0;
+
+    filtered.forEach((k, idx) => {
+      totSekolahSD += k.jmlSekolahSD;
+      totSekolahSMP += k.jmlSekolahSMP;
+      totSekolah += k.totalSekolah;
+      totGuru += k.guru;
+      totKS += k.ks;
+      totTendik += k.tendik;
+      totPNS += k.pns;
+      totPPPK += k.pppk;
+      totNonASN += k.nonAsn;
+      grandTotal += k.totalPTK;
+
+      html += `
+        <tr>
+          <td class="text-center">${idx + 1}</td>
+          <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
+          <td class="text-center">${formatNumber(k.jmlSekolahSD)}</td>
+          <td class="text-center">${formatNumber(k.jmlSekolahSMP)}</td>
+          <td class="text-center" style="font-weight:600;">${formatNumber(k.totalSekolah)}</td>
+          <td class="text-center">${formatNumber(k.guru)}</td>
+          <td class="text-center">${formatNumber(k.ks)}</td>
+          <td class="text-center">${formatNumber(k.tendik)}</td>
+          <td class="text-center"><span class="badge badge-pns">${formatNumber(k.pns)}</span></td>
+          <td class="text-center"><span class="badge badge-pppk">${formatNumber(k.pppk)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn">${formatNumber(k.nonAsn)}</span></td>
+          <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(k.totalPTK)}</td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="12" class="text-center" style="padding: 24px;">Tidak ada data ditemukan</td></tr>';
+
+    // Tfoot Total
+    tfoot.innerHTML = `
+      <tr>
+        <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
+        <th class="text-center">${formatNumber(totSekolahSD)}</th>
+        <th class="text-center">${formatNumber(totSekolahSMP)}</th>
+        <th class="text-center">${formatNumber(totSekolah)}</th>
+        <th class="text-center">${formatNumber(totGuru)}</th>
+        <th class="text-center">${formatNumber(totKS)}</th>
+        <th class="text-center">${formatNumber(totTendik)}</th>
+        <th class="text-center">${formatNumber(totPNS)}</th>
+        <th class="text-center">${formatNumber(totPPPK)}</th>
+        <th class="text-center">${formatNumber(totNonASN)}</th>
+        <th class="text-center" style="background-color: #e2e8f0; font-size: 1rem;">${formatNumber(grandTotal)}</th>
+      </tr>
+    `;
+  }
+
+  /**
+   * Render Tab 2: Rekap Per Jenjang
+   */
+  function renderTabJenjang(list) {
+    const tbody = document.getElementById('tbodyJenjang');
+    if (!list || !tbody) return;
+
+    let html = '';
+    list.forEach(j => {
+      const isTotal = j.jenjang.includes('TOTAL');
+      const rowStyle = isTotal ? 'style="font-weight: 700; background-color: #f1f5f9;"' : '';
+      const badgeJenjang = j.jenjang === 'SD' ? '<span class="badge badge-sd">SD</span>' : (j.jenjang === 'SMP' ? '<span class="badge badge-smp">SMP</span>' : `<strong>${j.jenjang}</strong>`);
+
+      html += `
+        <tr ${rowStyle}>
+          <td class="text-center">${badgeJenjang}</td>
+          <td class="text-center">${formatNumber(j.jmlSekolah)}</td>
+          
+          <!-- Guru -->
+          <td class="text-center">${formatNumber(j.guruPns)}</td>
+          <td class="text-center">${formatNumber(j.guruPppk)}</td>
+          <td class="text-center">${formatNumber(j.guruNonAsn)}</td>
+          <td class="text-center" style="font-weight: 700;">${formatNumber(j.guru)}</td>
+
+          <!-- Tendik -->
+          <td class="text-center">${formatNumber(j.tendikPns)}</td>
+          <td class="text-center">${formatNumber(j.tendikPppk)}</td>
+          <td class="text-center">${formatNumber(j.tendikNonAsn)}</td>
+          <td class="text-center" style="font-weight: 700;">${formatNumber(j.tendik)}</td>
+
+          <!-- KS -->
+          <td class="text-center">${formatNumber(j.ksPns)}</td>
+          <td class="text-center">${formatNumber(j.ksPppk)}</td>
+          <td class="text-center">${formatNumber(j.ksNonAsn)}</td>
+          <td class="text-center" style="font-weight: 700;">${formatNumber(j.ks)}</td>
+
+          <!-- Total PTK -->
+          <td class="text-center" style="font-size: 1rem; font-weight: 800; background-color: #e2e8f0;">${formatNumber(j.totalPTK)}</td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  /**
+   * Render Tab 3: Rekap Per Sekolah
+   */
+  function renderTabSekolah(list) {
+    const tbody = document.getElementById('tbodySekolah');
+    const labelCount = document.getElementById('labelTotalSekolahFiltered');
+    if (!list || !tbody) return;
+
+    const filterJenjang = document.getElementById('filterJenjang').value;
+    const filterKec = document.getElementById('filterKecamatan').value;
+    const searchVal = document.getElementById('searchSekolah').value.toLowerCase().trim();
+
+    const filtered = list.filter(sch => {
+      if (filterJenjang !== 'ALL' && sch.jenjang !== filterJenjang) return false;
+      if (filterKec !== 'ALL' && sch.kecamatan !== filterKec) return false;
+      if (searchVal) {
+        const nameMatch = sch.namaSekolah && sch.namaSekolah.toLowerCase().includes(searchVal);
+        const npsnMatch = sch.npsn && sch.npsn.toLowerCase().includes(searchVal);
+        if (!nameMatch && !npsnMatch) return false;
+      }
+      return true;
+    });
+
+    if (labelCount) {
+      labelCount.textContent = `Menampilkan ${formatNumber(filtered.length)} dari ${formatNumber(list.length)} Sekolah`;
+    }
+
+    let html = '';
+    filtered.forEach((sch, idx) => {
+      const badgeJenjang = sch.jenjang === 'SD' ? '<span class="badge badge-sd">SD</span>' : '<span class="badge badge-smp">SMP</span>';
+
+      html += `
+        <tr>
+          <td class="text-center">${idx + 1}</td>
+          <td><code>${escapeHtml(sch.npsn)}</code></td>
+          <td><strong>${escapeHtml(sch.namaSekolah)}</strong></td>
+          <td class="text-center">${badgeJenjang}</td>
+          <td>${escapeHtml(sch.kecamatan)}</td>
+          <td class="text-center">${formatNumber(sch.guruCount)}</td>
+          <td class="text-center">${formatNumber(sch.ksCount)}</td>
+          <td class="text-center">${formatNumber(sch.tendikCount)}</td>
+          <td class="text-center"><span class="badge badge-pns">${formatNumber(sch.pnsCount)}</span></td>
+          <td class="text-center"><span class="badge badge-pppk">${formatNumber(sch.pppkCount)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn">${formatNumber(sch.nonAsnCount)}</span></td>
+          <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(sch.ptkCount)}</td>
+          <td class="text-center">
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
+              👁️ Pegawai
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
+  }
+
+  /**
+   * Filter listener
+   */
+  function applyFilters() {
+    if (!rawData) return;
+    renderTabKecamatan(rawData.rekapKecamatan);
+    renderTabSekolah(rawData.rekapSekolah);
+  }
+
+  /**
+   * Pindah Tab
+   */
+  function switchTab(tabKey) {
+    activeTab = tabKey;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+    if (tabKey === 'kecamatan') {
+      document.getElementById('tabBtnKecamatan').classList.add('active');
+      document.getElementById('tabKecamatan').classList.add('active');
+    } else if (tabKey === 'jenjang') {
+      document.getElementById('tabBtnJenjang').classList.add('active');
+      document.getElementById('tabJenjang').classList.add('active');
+    } else if (tabKey === 'sekolah') {
+      document.getElementById('tabBtnSekolah').classList.add('active');
+      document.getElementById('tabSekolah').classList.add('active');
+    }
+  }
+
+  /**
+   * Modal Detail Pegawai
+   */
+  function viewSchoolDetail(npsn, namaSekolah) {
+    const modal = document.getElementById('detailModal');
+    const modalName = document.getElementById('modalSchoolName');
+    const modalMeta = document.getElementById('modalSchoolMeta');
+    const modalLoading = document.getElementById('modalLoading');
+    const modalTableWrap = document.getElementById('modalTableWrap');
+    const modalTbody = document.getElementById('modalTbody');
+
+    modalName.textContent = namaSekolah;
+    modalMeta.textContent = `NPSN: ${npsn}`;
+    modalLoading.style.display = 'block';
+    modalTableWrap.style.display = 'none';
+    modal.style.display = 'flex';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        modalLoading.style.display = 'none';
+        modalTableWrap.style.display = 'block';
+
+        let html = '';
+        if (res.pegawai && res.pegawai.length > 0) {
+          res.pegawai.forEach((p, idx) => {
+            let statusBadge = `<span class="badge badge-nonasn">${escapeHtml(p.statusNorm)}</span>`;
+            if (p.statusNorm === 'PNS') statusBadge = `<span class="badge badge-pns">PNS</span>`;
+            else if (p.statusNorm === 'PPPK') statusBadge = `<span class="badge badge-pppk">PPPK</span>`;
+
+            html += `
+              <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td><strong>${escapeHtml(p.nama)}</strong></td>
+                <td>${escapeHtml(p.tugasRaw || p.jenisNorm)}</td>
+                <td class="text-center">${statusBadge}</td>
+                <td class="text-center"><span class="badge ${p.jenjang === 'SD' ? 'badge-sd' : 'badge-smp'}">${p.jenjang}</span></td>
+              </tr>
+            `;
+          });
+        } else {
+          html = '<tr><td colspan="5" class="text-center" style="padding: 20px;">Tidak ada data pegawai terdaftar untuk sekolah ini.</td></tr>';
+        }
+        modalTbody.innerHTML = html;
+      })
+      .withFailureHandler(err => {
+        modalLoading.style.display = 'none';
+        alert('Gagal mengambil rincian pegawai: ' + err.message);
+      })
+      .getPTKDetailSekolah(npsn, namaSekolah);
+  }
+
+  function closeModal() {
+    document.getElementById('detailModal').style.display = 'none';
+  }
+
+  function closeModalOnBackdrop(e) {
+    if (e.target.id === 'detailModal') closeModal();
+  }
+
+  /**
+   * Export Active Tab to Excel
+   */
+  function exportActiveTabToExcel() {
+    let tableId = 'tableKecamatan';
+    let fileName = 'Rekap_PTK_Kecamatan.xlsx';
+
+    if (activeTab === 'jenjang') {
+      tableId = 'tableJenjang';
+      fileName = 'Rekap_PTK_Jenjang.xlsx';
+    } else if (activeTab === 'sekolah') {
+      tableId = 'tableSekolah';
+      fileName = 'Rekap_PTK_Per_Sekolah.xlsx';
+    }
+
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    // Convert HTML table ke SheetJS
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Rekap Data" });
+    XLSX.writeFile(wb, fileName);
+  }
+
+  /**
+   * Format & Sanitize Helpers
+   */
+  function formatNumber(num) {
+    return (num || 0).toLocaleString('id-ID');
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function escapeQuote(str) {
+    if (!str) return '';
+    return String(str).replace(/'/g, "\\'");
+  }
+</script>
