@@ -256,8 +256,9 @@
           <tr>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">Jml SD</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
             <th colspan="3" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
             <th colspan="3" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
             <th colspan="3" class="text-center" style="background:#fefce8;">Guru PAI</th>
@@ -283,10 +284,11 @@
         `;
 
         let html = '';
-        let totSekolah = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totSelisih = 0, totNon = 0;
+        let totSekolah = 0, totMurid = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totSelisih = 0, totNon = 0;
 
         list.forEach((k, idx) => {
           totSekolah += k.jmlSekolah;
+          totMurid += (k.totalMurid || 0);
           totRombel += k.totalRombel;
           totBth += k.total.butuh;
           totPns += k.total.pns;
@@ -306,6 +308,7 @@
               <td class="text-center">${idx + 1}</td>
               <td>${escapeHtml(k.kecamatan)}</td>
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
+              <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
               <td class="text-center">${formatNumber(k.totalRombel)}</td>
               ${renderKecFormasi(k.ks)}
               ${renderKecFormasi(k.guruKelas)}
@@ -323,11 +326,12 @@
           `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="28" class="text-center" style="padding: 24px;">Tidak ada data kecamatan.</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="29" class="text-center" style="padding: 24px;">Tidak ada data kecamatan.</td></tr>';
         tfoot.innerHTML = `
           <tr>
             <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
             <th class="text-center">${formatNumber(totSekolah)}</th>
+            <th class="text-center">${formatNumber(totMurid)}</th>
             <th class="text-center">${formatNumber(totRombel)}</th>
             <th colspan="18" class="text-center" style="color:#64748b;">- Akumulasi Seluruh Formasi Tertera di Kolom Total -</th>
             <th class="text-center">${formatNumber(totBth)}</th>
@@ -345,8 +349,9 @@
           <tr>
             <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">Jumlah SD</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">Total Rombel</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; background-color: #f1f5f9;">Kebutuhan</th>
             <th colspan="4" class="text-center" style="background-color: #f8fafc; border-bottom: 1px solid var(--border-color);">Keadaan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; background-color: #fdf2f2;">+/-</th>
@@ -361,13 +366,14 @@
         `;
 
         let html = '';
-        let totSekolah = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totTerisi = 0, totSelisih = 0, totNon = 0;
+        let totSekolah = 0, totMurid = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totTerisi = 0, totSelisih = 0, totNon = 0;
 
         list.forEach((k, idx) => {
           const f = k[fKey];
           const terisi = f.pns + f.pppk + f.pw;
 
           totSekolah += k.jmlSekolah;
+          totMurid += (k.totalMurid || 0);
           totRombel += k.totalRombel;
           totBth += f.butuh;
           totPns += f.pns;
@@ -382,6 +388,7 @@
               <td class="text-center">${idx + 1}</td>
               <td>${escapeHtml(k.kecamatan)}</td>
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
+              <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
               <td class="text-center">${formatNumber(k.totalRombel)}</td>
               <td class="text-center">${formatNumber(f.butuh)}</td>
               <td class="text-center">${formatNumber(f.pns)}</td>
@@ -394,11 +401,12 @@
           `;
         });
 
-        tbody.innerHTML = html || `<tr><td colspan="11" class="text-center" style="padding: 24px;">Tidak ada data kecamatan untuk formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="12" class="text-center" style="padding: 24px;">Tidak ada data kecamatan untuk formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
         tfoot.innerHTML = `
           <tr>
             <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
             <th class="text-center">${formatNumber(totSekolah)}</th>
+            <th class="text-center">${formatNumber(totMurid)}</th>
             <th class="text-center">${formatNumber(totRombel)}</th>
             <th class="text-center">${formatNumber(totBth)}</th>
             <th class="text-center">${formatNumber(totPns)}</th>
@@ -456,10 +464,10 @@
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
-            <th rowspan="2" style="vertical-align: middle;">NPSN</th>
             <th rowspan="2" style="vertical-align: middle;">Nama Sekolah</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
             <th colspan="6" class="text-center" style="background:#eff6ff;">Kepala Sekolah</th>
             <th colspan="6" class="text-center" style="background:#f0fdf4;">Guru Kelas</th>
             <th colspan="6" class="text-center" style="background:#fefce8;">Guru PAI</th>
@@ -486,10 +494,11 @@
         `;
 
         let html = '';
-        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0;
+        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0, sumMurid = 0;
 
         filtered.forEach((sd, idx) => {
           sumRombel += sd.rombel;
+          sumMurid += (sd.murid || 0);
           sumBth += sd.total.butuh;
           sumPns += sd.total.pns;
           sumPppk += sd.total.pppk;
@@ -510,10 +519,13 @@
           html += `
             <tr>
               <td class="text-center">${idx + 1}</td>
-              <td><code>${escapeHtml(sd.npsn)}</code></td>
-              <td>${escapeHtml(sd.namaSekolah)}</td>
+              <td>
+                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sd.namaSekolah)}</div>
+                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sd.npsn)}</div>
+              </td>
               <td>${escapeHtml(sd.kecamatan)}</td>
               <td class="text-center">${formatNumber(sd.rombel)}</td>
+              <td class="text-center">${formatNumber(sd.murid || 0)}</td>
               ${renderCols(sd.ks)}
               ${renderCols(sd.guruKelas)}
               ${renderCols(sd.guruPai)}
@@ -534,8 +546,9 @@
         tbody.innerHTML = html || '<tr><td colspan="48" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok.</td></tr>';
         tfoot.innerHTML = `
           <tr>
-            <th colspan="4" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
+            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
             <th class="text-center">${formatNumber(sumRombel)}</th>
+            <th class="text-center">${formatNumber(sumMurid)}</th>
             <th colspan="36" class="text-center" style="color:#64748b;">- Rincian Matriks Tertera pada Tabel -</th>
             <th class="text-center">${formatNumber(sumBth)}</th>
             <th class="text-center">${formatNumber(sumPns)}</th>
@@ -551,10 +564,10 @@
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
-            <th rowspan="2" style="vertical-align: middle;">NPSN</th>
             <th rowspan="2" style="vertical-align: middle;">Nama Sekolah</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; background-color: #f1f5f9;">Kebutuhan</th>
             <th colspan="4" class="text-center" style="background-color: #f8fafc; border-bottom: 1px solid var(--border-color);">Keadaan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; background-color: #fdf2f2;">+/-</th>
@@ -570,13 +583,14 @@
         `;
 
         let html = '';
-        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0;
+        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0, sumMurid = 0;
 
         filtered.forEach((sd, idx) => {
           const f = sd[fKey];
           const terisi = f.pns + f.pppk + f.pw;
           
           sumRombel += sd.rombel;
+          sumMurid += (sd.murid || 0);
           sumBth += f.butuh;
           sumPns += f.pns;
           sumPppk += f.pppk;
@@ -588,10 +602,13 @@
           html += `
             <tr>
               <td class="text-center">${idx + 1}</td>
-              <td><code>${escapeHtml(sd.npsn)}</code></td>
-              <td>${escapeHtml(sd.namaSekolah)}</td>
+              <td>
+                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sd.namaSekolah)}</div>
+                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sd.npsn)}</div>
+              </td>
               <td>${escapeHtml(sd.kecamatan)}</td>
               <td class="text-center">${formatNumber(sd.rombel)}</td>
+              <td class="text-center">${formatNumber(sd.murid || 0)}</td>
               <td class="text-center">${formatNumber(f.butuh)}</td>
               <td class="text-center">${formatNumber(f.pns)}</td>
               <td class="text-center">${formatNumber(f.pppk)}</td>
@@ -611,8 +628,9 @@
         tbody.innerHTML = html || `<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
         tfoot.innerHTML = `
           <tr>
-            <th colspan="4" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
+            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
             <th class="text-center">${formatNumber(sumRombel)}</th>
+            <th class="text-center">${formatNumber(sumMurid)}</th>
             <th class="text-center">${formatNumber(sumBth)}</th>
             <th class="text-center">${formatNumber(sumPns)}</th>
             <th class="text-center">${formatNumber(sumPppk)}</th>

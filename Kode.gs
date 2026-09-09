@@ -125,7 +125,7 @@ function hitungKebutuhanMapelSD(rombel) {
  */
 function getDashboardData(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const CACHE_KEY = 'REKAP_PTK_WITH_KEBUTUHAN_V2';
+  const CACHE_KEY = 'REKAP_PTK_WITH_KEBUTUHAN_V3';
   
   if (!forceRefresh) {
     const cached = cache.get(CACHE_KEY);
@@ -158,6 +158,13 @@ function getDashboardData(forceRefresh) {
 
   let rombelColIdx = unitHeader.indexOf('jml rombel');
   if (rombelColIdx === -1) rombelColIdx = 2; // Kolom C
+
+  let muridColIdx = unitHeader.findIndex(h => h.includes('murid') || h.includes('siswa') || h.includes('peserta didik'));
+  if (muridColIdx === -1) {
+    // Coba cari nama kolom umum murid
+    muridColIdx = unitHeader.indexOf('jml murid');
+    if (muridColIdx === -1) muridColIdx = unitHeader.indexOf('jml siswa');
+  }
 
   let butuhKristenColIdx = unitHeader.indexOf('kebutuhan guru pa kristen');
   if (butuhKristenColIdx === -1) butuhKristenColIdx = 11; // Kolom L
@@ -192,6 +199,7 @@ function getDashboardData(forceRefresh) {
     }
 
     const rombel = parseInt(row[rombelColIdx]) || 0;
+    const murid = muridColIdx !== -1 ? (parseInt(row[muridColIdx]) || 0) : 0;
     const butuhKristen = parseInt(row[butuhKristenColIdx]) || 0;
     const butuhKatolik = parseInt(row[butuhKatolikColIdx]) || 0;
     
@@ -202,6 +210,7 @@ function getDashboardData(forceRefresh) {
       kecamatan: kecamatan,
       jenjang: jenjang,
       rombel: rombel,
+      murid: murid,
       butuhKristen: butuhKristen,
       butuhKatolik: butuhKatolik,
       
@@ -328,6 +337,7 @@ function getDashboardData(forceRefresh) {
       namaSekolah: sd.namaSekolah,
       kecamatan: sd.kecamatan,
       rombel: sd.rombel,
+      murid: sd.murid || 0,
       
       // Rincian per formasi
       ks: { butuh: f.KS.butuh, pns: f.KS.pns, pppk: f.KS.pppk, pw: f.KS.pw, selisih: calcSelisih(f.KS), nonAsn: f.KS.nonAsn },
@@ -356,6 +366,7 @@ function getDashboardData(forceRefresh) {
       rekapKebutuhanSD_Kecamatan[kec] = {
         kecamatan: kec,
         jmlSekolah: 0,
+        totalMurid: 0,
         totalRombel: 0,
         ks: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0 },
         guruKelas: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0 },
@@ -369,6 +380,7 @@ function getDashboardData(forceRefresh) {
     
     const rk = rekapKebutuhanSD_Kecamatan[kec];
     rk.jmlSekolah++;
+    rk.totalMurid += (sd.murid || 0);
     rk.totalRombel += sd.rombel;
     
     const akumulasi = (target, src) => {
