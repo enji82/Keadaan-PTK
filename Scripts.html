@@ -630,11 +630,16 @@
   function renderBadgeSelisih(val) {
     if (val < 0) {
       return `<span style="color:#b91c1c;">${val}</span>`;
-    } else if (val === 0) {
-      return `<span>0</span>`;
+    } else if (val === 0 || !val) {
+      return `<span>-</span>`;
     } else {
       return `<span style="color:#0369a1;">+${val}</span>`;
     }
+  }
+
+  function formatNumber(num) {
+    if (num === 0 || num === '0' || !num) return '-';
+    return Number(num).toLocaleString('id-ID');
   }
 
   /**
@@ -912,9 +917,6 @@
     XLSX.writeFile(wb, fileName);
   }
 
-  function formatNumber(num) {
-    return (num || 0).toLocaleString('id-ID');
-  }
 
   function escapeHtml(str) {
     if (!str) return '';
