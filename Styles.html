@@ -38,14 +38,13 @@
     padding-bottom: 60px;
   }
 
-  /* Container */
   .container {
-    max-width: 1380px;
+    max-width: 1440px;
     margin: 0 auto;
     padding: 0 20px;
   }
 
-  /* Header Navbar */
+  /* Navbar */
   .navbar {
     background: #ffffff;
     border-bottom: 1px solid var(--border-color);
@@ -116,34 +115,14 @@
     text-decoration: none;
   }
 
-  .btn-primary {
-    background-color: var(--primary);
-    color: white;
-  }
+  .btn-primary { background-color: var(--primary); color: white; }
+  .btn-primary:hover { background-color: var(--primary-hover); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
 
-  .btn-primary:hover {
-    background-color: var(--primary-hover);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-  }
+  .btn-secondary { background-color: #ffffff; color: var(--text-main); border-color: var(--border-color); }
+  .btn-secondary:hover { background-color: #f1f5f9; border-color: #cbd5e1; }
 
-  .btn-secondary {
-    background-color: #ffffff;
-    color: var(--text-main);
-    border-color: var(--border-color);
-  }
-
-  .btn-secondary:hover {
-    background-color: #f1f5f9;
-    border-color: #cbd5e1;
-  }
-
-  .btn-success {
-    background-color: var(--success);
-    color: white;
-  }
-  .btn-success:hover {
-    background-color: #059669;
-  }
+  .btn-success { background-color: var(--success); color: white; }
+  .btn-success:hover { background-color: #059669; }
 
   /* Filters Toolbar */
   .filters-card {
@@ -188,7 +167,7 @@
     border-radius: 8px;
     background-color: #fff;
     color: var(--text-main);
-    min-width: 180px;
+    min-width: 170px;
     outline: none;
     transition: border-color 0.2s;
   }
@@ -201,16 +180,16 @@
   /* Summary KPI Cards */
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
-    margin-bottom: 26px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
   }
 
   .kpi-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 20px;
+    padding: 18px 20px;
     box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
@@ -226,14 +205,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
-  .kpi-title {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-  }
+  .kpi-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
 
   .kpi-icon {
     width: 36px;
@@ -250,21 +225,19 @@
   .icon-purple { background: #f3e8ff; color: #7e22ce; }
   .icon-amber { background: #fef3c7; color: #b45309; }
   .icon-cyan { background: #cffafe; color: #0e7490; }
+  .icon-rose { background: #ffe4e6; color: #be123c; }
 
   .kpi-value {
-    font-size: 1.85rem;
+    font-size: 1.75rem;
     font-weight: 800;
     color: var(--secondary);
     line-height: 1.2;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
-  .kpi-subtitle {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-  }
+  .kpi-subtitle { font-size: 0.76rem; color: var(--text-muted); }
 
-  /* Tabs Navigasi Rekap */
+  /* Tabs Navigasi */
   .tabs-nav {
     display: flex;
     border-bottom: 2px solid var(--border-color);
@@ -274,7 +247,7 @@
   }
 
   .tab-btn {
-    padding: 12px 20px;
+    padding: 12px 18px;
     font-size: 0.92rem;
     font-weight: 600;
     color: var(--text-muted);
@@ -290,23 +263,15 @@
     gap: 8px;
   }
 
-  .tab-btn:hover {
-    color: var(--primary);
-  }
-
-  .tab-btn.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-  }
+  .tab-btn:hover { color: var(--primary); }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
   .tab-pane {
     display: none;
     animation: fadeIn 0.3s ease;
   }
 
-  .tab-pane.active {
-    display: block;
-  }
+  .tab-pane.active { display: block; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
@@ -323,7 +288,7 @@
   }
 
   .card-header-bar {
-    padding: 18px 24px;
+    padding: 16px 22px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
@@ -332,11 +297,7 @@
     gap: 12px;
   }
 
-  .card-header-bar h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--secondary);
-  }
+  .card-header-bar h2 { font-size: 1.1rem; font-weight: 700; color: var(--secondary); }
 
   .table-responsive {
     width: 100%;
@@ -346,7 +307,7 @@
   table.data-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.875rem;
+    font-size: 0.86rem;
     text-align: left;
   }
 
@@ -354,37 +315,37 @@
     background-color: #f8fafc;
     color: #475569;
     font-weight: 700;
-    padding: 12px 16px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid #edf2f7;
     white-space: nowrap;
   }
 
   table.data-table td {
-    padding: 12px 16px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid #f1f5f9;
     color: var(--text-main);
   }
 
-  table.data-table tbody tr:hover {
-    background-color: #f8fafc;
-  }
+  table.data-table tbody tr:hover { background-color: #f8fafc; }
 
   table.data-table tfoot th {
     background-color: #f1f5f9;
     font-weight: 800;
     color: #0f172a;
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-top: 2px solid var(--border-color);
   }
 
   .text-center { text-align: center !important; }
   .text-right { text-align: right !important; }
 
-  /* Badges */
+  /* Badges Status & Selisih */
   .badge {
     display: inline-block;
-    padding: 3px 8px;
-    border-radius: 6px;
+    padding: 2px 7px;
+    border-radius: 5px;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -393,11 +354,40 @@
 
   .badge-pns { background: #dbeafe; color: #1e40af; }
   .badge-pppk { background: #dcfce7; color: #166534; }
+  .badge-pw { background: #e0e7ff; color: #3730a3; }
   .badge-nonasn { background: #fef3c7; color: #92400e; }
   .badge-sd { background: #fee2e2; color: #991b1b; }
   .badge-smp { background: #e0e7ff; color: #3730a3; }
 
-  /* Loading Overlay */
+  /* Badge Selisih (+/-) */
+  .selisih-neg {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .selisih-pas {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .selisih-pos {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  /* Loading & Modal */
   .loading-overlay {
     position: fixed;
     top: 0;
@@ -411,24 +401,20 @@
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    transition: opacity 0.3s ease;
   }
 
   .spinner {
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
     border: 4px solid #e2e8f0;
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Modal */
   .modal-backdrop {
     display: none;
     position: fixed;
@@ -452,26 +438,14 @@
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
-    animation: modalIn 0.25s ease-out;
-  }
-
-  @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
   }
 
   .modal-header {
-    padding: 18px 24px;
+    padding: 16px 22px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-
-  .modal-header h3 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--secondary);
   }
 
   .modal-close {
@@ -482,15 +456,6 @@
     color: var(--text-muted);
   }
 
-  .modal-body {
-    padding: 20px 24px;
-    overflow-y: auto;
-  }
-
-  .modal-footer {
-    padding: 14px 24px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-  }
+  .modal-body { padding: 18px 22px; overflow-y: auto; }
+  .modal-footer { padding: 12px 22px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; }
 </style>
