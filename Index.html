@@ -59,7 +59,7 @@
 
         <div class="filter-item">
           <label for="filterKecamatan">Wilayah Kecamatan</label>
-          <select id="filterKecamatan" class="form-select" onchange="applyFilters()">
+          <select id="filterKecamatan" class="form-select" onchange="onFilterKecamatanChange()">
             <option value="ALL">Semua Kecamatan</option>
           </select>
         </div>
@@ -175,10 +175,17 @@
       <!-- TABEL KEBUTUHAN GURU SD DENGAN TOGGLE / FILTER JENIS PTK -->
       <div class="card-table">
         <div class="card-header-bar">
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            <h2>Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <h2>Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
+              <!-- Breadcrumb Indikator View -->
+              <div class="breadcrumb-wrap" id="breadcrumbWrap">
+                <span class="breadcrumb-current" id="breadcrumbTitle">📍 Tingkat Kecamatan (Diurutkan dari Kekurangan Terbanyak)</span>
+              </div>
+            </div>
+
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">PILIH TAMPILAN JENIS PTK:</span>
+              <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH JENIS PTK:</span>
               <div class="toggle-bar">
                 <button class="toggle-btn active" id="btnTog_ALL" onclick="setFormasiToggle('ALL')">Semua (Total)</button>
                 <button class="toggle-btn" id="btnTog_KS" onclick="setFormasiToggle('KS')">Kepala Sekolah</button>
@@ -193,9 +200,9 @@
           </div>
 
           <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="subViewKebutuhanSD" class="form-select" onchange="renderTabKebutuhanSD()" style="font-weight: 600; min-width: 170px;">
-              <option value="SEKOLAH">Tampilkan Per Sekolah</option>
-              <option value="KECAMATAN">Tampilkan Per Kecamatan</option>
+            <select id="subViewKebutuhanSD" class="form-select" onchange="onSubViewChange()" style="font-weight: 600; min-width: 190px;">
+              <option value="KECAMATAN" selected>📍 Tampilkan Per Kecamatan</option>
+              <option value="SEKOLAH">🏫 Tampilkan Per Sekolah</option>
             </select>
           </div>
         </div>
@@ -218,7 +225,6 @@
 
     <!-- ==================== TAB 2: REKAP KECAMATAN ==================== -->
     <div id="tabKecamatan" class="tab-pane">
-      <!-- KPI Umum -->
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-card-header"><span class="kpi-title">Total Keseluruhan PTK</span><div class="kpi-icon icon-blue">👥</div></div>

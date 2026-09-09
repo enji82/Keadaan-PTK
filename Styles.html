@@ -152,7 +152,7 @@
     border-radius: 8px;
     background-color: #fff;
     color: var(--text-main);
-    min-width: 160px;
+    min-width: 170px;
     outline: none;
     transition: border-color 0.2s;
   }
@@ -161,7 +161,7 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
   }
 
-  /* KPI Grid Umum */
+  /* KPI Grid */
   .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -169,7 +169,7 @@
     margin-bottom: 20px;
   }
 
-  /* KPI Grid Khusus Kebutuhan Formasi SD (6 Card Jenis Guru) */
+  /* KPI Grid Khusus Kebutuhan Formasi SD */
   .kpi-formasi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -221,6 +221,27 @@
     margin-bottom: 4px;
   }
   .kpi-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Breadcrumb Navigation untuk Drilldown */
+  .breadcrumb-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    background: #f1f5f9;
+    padding: 8px 14px;
+    border-radius: 8px;
+    width: fit-content;
+  }
+  .breadcrumb-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .breadcrumb-link:hover { text-decoration: underline; }
+  .breadcrumb-current { font-weight: 700; color: var(--secondary); }
 
   /* Pill Toggle Button Bar untuk Formasi */
   .toggle-bar {
@@ -338,6 +359,15 @@
 
   .text-center { text-align: center !important; }
   .text-right { text-align: right !important; }
+
+  /* Clickable Row / Item */
+  .clickable-row {
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .clickable-row:hover {
+    background-color: #eff6ff !important;
+  }
 
   /* Badges */
   .badge {
