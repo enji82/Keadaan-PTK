@@ -302,9 +302,9 @@
           `;
 
           html += `
-            <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik nama kecamatan untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
+            <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
               <td class="text-center">${idx + 1}</td>
-              <td><strong>${escapeHtml(k.kecamatan)}</strong> <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">👉</span></td>
+              <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
               <td class="text-center" style="font-weight:700;">${formatNumber(k.totalRombel)}</td>
               ${renderKecFormasi(k.ks)}
@@ -382,7 +382,7 @@
           html += `
             <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
               <td class="text-center">${idx + 1}</td>
-              <td><strong>${escapeHtml(k.kecamatan)}</strong> <span style="font-size:0.75rem; color:var(--primary); font-weight:600;">👉</span></td>
+              <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
               <td class="text-center" style="font-weight:700;">${formatNumber(k.totalRombel)}</td>
               <td class="text-center" style="font-weight:800; background:#f8fafc;">${formatNumber(f.butuh)}</td>
