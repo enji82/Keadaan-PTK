@@ -92,12 +92,12 @@
     if (!kebutuhanSD || !kebutuhanSD.perSekolah) return;
 
     const totals = {
-      ks: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
-      gk: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
-      pai: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
-      pjok: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
-      kristen: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 },
-      katolik: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0 }
+      ks: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+      gk: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+      pai: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+      pjok: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+      kristen: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+      katolik: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
     };
 
     kebutuhanSD.perSekolah.forEach(sd => {
@@ -106,6 +106,8 @@
         target.terisi += (src.pns + src.pppk + src.pw);
         target.selisih += src.selisih;
         target.nonAsn += src.nonAsn;
+        target.nonAsnOld += (src.nonAsnOld || 0);
+        target.nonAsnNew += (src.nonAsnNew || 0);
       };
 
       acc(totals.ks, sd.ks);
@@ -123,7 +125,7 @@
         valElem.innerHTML = renderBadgeSelisihLarge(item.selisih);
       }
       if (detElem) {
-        detElem.textContent = `Butuh: ${formatNumber(item.butuh)} | Terisi: ${formatNumber(item.terisi)} | Non: ${formatNumber(item.nonAsn)}`;
+        detElem.textContent = `Butuh: ${formatNumber(item.butuh)} | Terisi: ${formatNumber(item.terisi)} | Non: ${formatNumber(item.nonAsnOld)} (<) / ${formatNumber(item.nonAsnNew)} (>)`;
       }
     };
 
@@ -265,7 +267,7 @@
             <th colspan="3" class="text-center mat-pjok">Guru PJOK</th>
             <th colspan="3" class="text-center mat-kri">Guru Kristen</th>
             <th colspan="3" class="text-center mat-kat">Guru Katolik</th>
-            <th colspan="6" class="text-center mat-tot">TOTAL GURU SD</th>
+            <th colspan="7" class="text-center mat-tot">TOTAL GURU SD</th>
           </tr>
           <tr>
             <th class="text-center mat-ks">Bth</th><th class="text-center mat-ks">Ada</th><th class="text-center mat-ks">+/-</th>
@@ -279,12 +281,13 @@
             <th class="text-center mat-tot">PPPK</th>
             <th class="text-center mat-tot">PW</th>
             <th class="text-center mat-tot-sel">+/-</th>
-            <th class="text-center mat-tot">Non-ASN</th>
+            <th class="text-center mat-tot" style="line-height:1.2;">Non-ASN<br>&lt; 3-8-23</th>
+            <th class="text-center mat-tot" style="line-height:1.2;">Non-ASN<br>&gt; 3-8-23</th>
           </tr>
         `;
 
         let html = '';
-        let totSekolah = 0, totMurid = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totSelisih = 0, totNon = 0;
+        let totSekolah = 0, totMurid = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totSelisih = 0, totNonOld = 0, totNonNew = 0;
 
         list.forEach((k, idx) => {
           totSekolah += k.jmlSekolah;
@@ -295,7 +298,8 @@
           totPppk += k.total.pppk;
           totPw += k.total.pw;
           totSelisih += k.total.selisih;
-          totNon += k.total.nonAsn;
+          totNonOld += (k.total.nonAsnOld || 0);
+          totNonNew += (k.total.nonAsnNew || 0);
 
           const renderKecFormasi = (f, cls) => `
             <td class="text-center ${cls}">${formatNumber(f.butuh)}</td>
@@ -321,12 +325,13 @@
               <td class="text-center mat-tot">${formatNumber(k.total.pppk)}</td>
               <td class="text-center mat-tot">${formatNumber(k.total.pw)}</td>
               <td class="text-center mat-tot-sel">${renderBadgeSelisih(k.total.selisih)}</td>
-              <td class="text-center mat-tot">${formatNumber(k.total.nonAsn)}</td>
+              <td class="text-center mat-tot">${formatNumber(k.total.nonAsnOld)}</td>
+              <td class="text-center mat-tot">${formatNumber(k.total.nonAsnNew)}</td>
             </tr>
           `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="29" class="text-center" style="padding: 24px;">Tidak ada data kecamatan.</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="30" class="text-center" style="padding: 24px;">Tidak ada data kecamatan.</td></tr>';
         tfoot.innerHTML = `
           <tr>
             <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
@@ -339,7 +344,8 @@
             <th class="text-center mat-tot">${formatNumber(totPppk)}</th>
             <th class="text-center mat-tot">${formatNumber(totPw)}</th>
             <th class="text-center mat-tot-sel">${renderBadgeSelisih(totSelisih)}</th>
-            <th class="text-center mat-tot">${formatNumber(totNon)}</th>
+            <th class="text-center mat-tot">${formatNumber(totNonOld)}</th>
+            <th class="text-center mat-tot">${formatNumber(totNonNew)}</th>
           </tr>
         `;
 
@@ -355,7 +361,8 @@
             <th rowspan="2" class="text-center col-kebutuhan" style="vertical-align: middle;">Kebutuhan</th>
             <th colspan="4" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Keadaan</th>
             <th rowspan="2" class="text-center col-selisih" style="vertical-align: middle;">+/-</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">Non-ASN</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
           </tr>
           <tr>
             <th class="text-center col-keadaan">PNS</th>
@@ -366,7 +373,7 @@
         `;
 
         let html = '';
-        let totSekolah = 0, totMurid = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totTerisi = 0, totSelisih = 0, totNon = 0;
+        let totSekolah = 0, totMurid = 0, totRombel = 0, totBth = 0, totPns = 0, totPppk = 0, totPw = 0, totTerisi = 0, totSelisih = 0, totNonOld = 0, totNonNew = 0;
 
         list.forEach((k, idx) => {
           const f = k[fKey];
@@ -381,7 +388,8 @@
           totPw += f.pw;
           totTerisi += terisi;
           totSelisih += f.selisih;
-          totNon += f.nonAsn;
+          totNonOld += (f.nonAsnOld || 0);
+          totNonNew += (f.nonAsnNew || 0);
 
           html += `
             <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
@@ -396,12 +404,13 @@
               <td class="text-center col-keadaan">${formatNumber(f.pw)}</td>
               <td class="text-center col-keadaan-total">${formatNumber(terisi)}</td>
               <td class="text-center col-selisih">${renderBadgeSelisih(f.selisih)}</td>
-              <td class="text-center col-nonasn">${formatNumber(f.nonAsn)}</td>
+              <td class="text-center col-nonasn">${formatNumber(f.nonAsnOld)}</td>
+              <td class="text-center col-nonasn">${formatNumber(f.nonAsnNew)}</td>
             </tr>
           `;
         });
 
-        tbody.innerHTML = html || `<tr><td colspan="12" class="text-center" style="padding: 24px;">Tidak ada data kecamatan untuk formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada data kecamatan untuk formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
         tfoot.innerHTML = `
           <tr>
             <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
@@ -414,7 +423,8 @@
             <th class="text-center col-keadaan">${formatNumber(totPw)}</th>
             <th class="text-center col-keadaan-total">${formatNumber(totTerisi)}</th>
             <th class="text-center col-selisih">${renderBadgeSelisih(totSelisih)}</th>
-            <th class="text-center col-nonasn">${formatNumber(totNon)}</th>
+            <th class="text-center col-nonasn">${formatNumber(totNonOld)}</th>
+            <th class="text-center col-nonasn">${formatNumber(totNonNew)}</th>
           </tr>
         `;
       }
@@ -474,7 +484,7 @@
             <th colspan="6" class="text-center mat-pjok">Guru PJOK</th>
             <th colspan="6" class="text-center mat-kri">Guru Kristen</th>
             <th colspan="6" class="text-center mat-kat">Guru Katolik</th>
-            <th colspan="7" class="text-center mat-tot">TOTAL GURU SD</th>
+            <th colspan="8" class="text-center mat-tot">TOTAL GURU SD</th>
           </tr>
           <tr>
             <th class="text-center mat-ks">Bth</th><th class="text-center mat-ks">PNS</th><th class="text-center mat-ks">PPPK</th><th class="text-center mat-ks">PW</th><th class="text-center mat-ks">+/-</th><th class="text-center mat-ks">Non</th>
@@ -489,12 +499,13 @@
             <th class="text-center mat-tot">PW</th>
             <th class="text-center mat-tot">Terisi</th>
             <th class="text-center mat-tot-sel">+/-</th>
-            <th class="text-center mat-tot">Non-ASN</th>
+            <th class="text-center mat-tot" style="line-height:1.2;">Non-ASN<br>&lt; 3-8-23</th>
+            <th class="text-center mat-tot" style="line-height:1.2;">Non-ASN<br>&gt; 3-8-23</th>
           </tr>
         `;
 
         let html = '';
-        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0, sumMurid = 0;
+        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNonOld = 0, sumNonNew = 0, sumRombel = 0, sumMurid = 0;
 
         filtered.forEach((sd, idx) => {
           sumRombel += sd.rombel;
@@ -505,7 +516,8 @@
           sumPw += sd.total.pw;
           sumTerisi += sd.total.pengurang;
           sumSelisih += sd.total.selisih;
-          sumNon += sd.total.nonAsn;
+          sumNonOld += (sd.total.nonAsnOld || 0);
+          sumNonNew += (sd.total.nonAsnNew || 0);
 
           const renderCols = (f, cls) => `
             <td class="text-center ${cls}">${formatNumber(f.butuh)}</td>
@@ -538,12 +550,13 @@
               <td class="text-center mat-tot">${formatNumber(sd.total.pw)}</td>
               <td class="text-center mat-tot">${formatNumber(sd.total.pengurang)}</td>
               <td class="text-center mat-tot-sel">${renderBadgeSelisih(sd.total.selisih)}</td>
-              <td class="text-center mat-tot">${formatNumber(sd.total.nonAsn)}</td>
+              <td class="text-center mat-tot">${formatNumber(sd.total.nonAsnOld)}</td>
+              <td class="text-center mat-tot">${formatNumber(sd.total.nonAsnNew)}</td>
             </tr>
           `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="48" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok.</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="49" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok.</td></tr>';
         tfoot.innerHTML = `
           <tr>
             <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
@@ -556,7 +569,8 @@
             <th class="text-center mat-tot">${formatNumber(sumPw)}</th>
             <th class="text-center mat-tot">${formatNumber(sumTerisi)}</th>
             <th class="text-center mat-tot-sel">${renderBadgeSelisih(sumSelisih)}</th>
-            <th class="text-center mat-tot">${formatNumber(sumNon)}</th>
+            <th class="text-center mat-tot">${formatNumber(sumNonOld)}</th>
+            <th class="text-center mat-tot">${formatNumber(sumNonNew)}</th>
           </tr>
         `;
 
@@ -571,7 +585,8 @@
             <th rowspan="2" class="text-center col-kebutuhan" style="vertical-align: middle;">Kebutuhan</th>
             <th colspan="4" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Keadaan</th>
             <th rowspan="2" class="text-center col-selisih" style="vertical-align: middle;">+/-</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">Non-ASN</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
           </tr>
           <tr>
@@ -583,7 +598,7 @@
         `;
 
         let html = '';
-        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNon = 0, sumRombel = 0, sumMurid = 0;
+        let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNonOld = 0, sumNonNew = 0, sumRombel = 0, sumMurid = 0;
 
         filtered.forEach((sd, idx) => {
           const f = sd[fKey];
@@ -597,7 +612,8 @@
           sumPw += f.pw;
           sumTerisi += terisi;
           sumSelisih += f.selisih;
-          sumNon += f.nonAsn;
+          sumNonOld += (f.nonAsnOld || 0);
+          sumNonNew += (f.nonAsnNew || 0);
 
           html += `
             <tr>
@@ -615,7 +631,8 @@
               <td class="text-center col-keadaan">${formatNumber(f.pw)}</td>
               <td class="text-center col-keadaan-total">${formatNumber(terisi)}</td>
               <td class="text-center col-selisih">${renderBadgeSelisih(f.selisih)}</td>
-              <td class="text-center col-nonasn">${formatNumber(f.nonAsn)}</td>
+              <td class="text-center col-nonasn">${formatNumber(f.nonAsnOld)}</td>
+              <td class="text-center col-nonasn">${formatNumber(f.nonAsnNew)}</td>
               <td class="text-center">
                 <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sd.npsn)}', '${escapeQuote(sd.namaSekolah)}')">
                   👁️ Pegawai
@@ -625,7 +642,7 @@
           `;
         });
 
-        tbody.innerHTML = html || `<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
         tfoot.innerHTML = `
           <tr>
             <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
@@ -637,7 +654,8 @@
             <th class="text-center col-keadaan">${formatNumber(sumPw)}</th>
             <th class="text-center col-keadaan-total">${formatNumber(sumTerisi)}</th>
             <th class="text-center col-selisih">${renderBadgeSelisih(sumSelisih)}</th>
-            <th class="text-center col-nonasn">${formatNumber(sumNon)}</th>
+            <th class="text-center col-nonasn">${formatNumber(sumNonOld)}</th>
+            <th class="text-center col-nonasn">${formatNumber(sumNonNew)}</th>
             <th class="text-center">-</th>
           </tr>
         `;
@@ -674,7 +692,7 @@
     let html = '';
     let totSekolahSD = 0, totSekolahSMP = 0, totSekolah = 0;
     let totGuru = 0, totKS = 0, totTendik = 0;
-    let totPNS = 0, totPPPK = 0, totPW = 0, totNonASN = 0, grandTotal = 0;
+    let totPNS = 0, totPPPK = 0, totPW = 0, totNonOld = 0, totNonNew = 0, grandTotal = 0;
 
     filtered.forEach((k, idx) => {
       totSekolahSD += k.jmlSekolahSD;
@@ -686,7 +704,8 @@
       totPNS += k.pns;
       totPPPK += k.pppk;
       totPW += k.pw;
-      totNonASN += k.nonAsn;
+      totNonOld += (k.nonAsnOld || 0);
+      totNonNew += (k.nonAsnNew || 0);
       grandTotal += k.totalPTK;
 
       html += `
@@ -702,13 +721,14 @@
           <td class="text-center"><span class="badge badge-pns">${formatNumber(k.pns)}</span></td>
           <td class="text-center"><span class="badge badge-pppk">${formatNumber(k.pppk)}</span></td>
           <td class="text-center"><span class="badge badge-pw">${formatNumber(k.pw)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn">${formatNumber(k.nonAsn)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn-old">${formatNumber(k.nonAsnOld)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn-new">${formatNumber(k.nonAsnNew)}</span></td>
           <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(k.totalPTK)}</td>
         </tr>
       `;
     });
 
-    tbody.innerHTML = html || '<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada data ditemukan</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada data ditemukan</td></tr>';
 
     tfoot.innerHTML = `
       <tr>
@@ -722,7 +742,8 @@
         <th class="text-center">${formatNumber(totPNS)}</th>
         <th class="text-center">${formatNumber(totPPPK)}</th>
         <th class="text-center">${formatNumber(totPW)}</th>
-        <th class="text-center">${formatNumber(totNonASN)}</th>
+        <th class="text-center">${formatNumber(totNonOld)}</th>
+        <th class="text-center">${formatNumber(totNonNew)}</th>
         <th class="text-center" style="background-color: #e2e8f0; font-size: 1rem;">${formatNumber(grandTotal)}</th>
       </tr>
     `;
@@ -748,7 +769,8 @@
           <td class="text-center"><span class="badge badge-pns">${formatNumber(j.pns)}</span></td>
           <td class="text-center"><span class="badge badge-pppk">${formatNumber(j.pppk)}</span></td>
           <td class="text-center"><span class="badge badge-pw">${formatNumber(j.pw)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn">${formatNumber(j.nonAsn)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn-old">${formatNumber(j.nonAsnOld)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn-new">${formatNumber(j.nonAsnNew)}</span></td>
           <td class="text-center" style="font-weight:700;">${formatNumber(j.guru)}</td>
           <td class="text-center" style="font-weight:700;">${formatNumber(j.ks)}</td>
           <td class="text-center" style="font-weight:700;">${formatNumber(j.tendik)}</td>
@@ -804,7 +826,8 @@
           <td class="text-center"><span class="badge badge-pns">${formatNumber(sch.pnsCount)}</span></td>
           <td class="text-center"><span class="badge badge-pppk">${formatNumber(sch.pppkCount)}</span></td>
           <td class="text-center"><span class="badge badge-pw">${formatNumber(sch.pwCount)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn">${formatNumber(sch.nonAsnCount)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn-old">${formatNumber(sch.nonAsnOldCount)}</span></td>
+          <td class="text-center"><span class="badge badge-nonasn-new">${formatNumber(sch.nonAsnNewCount)}</span></td>
           <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(sch.ptkCount)}</td>
           <td class="text-center">
             <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
@@ -815,7 +838,7 @@
       `;
     });
 
-    tbody.innerHTML = html || '<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="15" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
   }
 
   function applyFilters() {
@@ -879,9 +902,18 @@
         if (res.pegawai && res.pegawai.length > 0) {
           res.pegawai.forEach((p, idx) => {
             let statusBadge = `<span class="badge badge-nonasn">${escapeHtml(p.statusNorm)}</span>`;
-            if (p.statusNorm === 'PNS') statusBadge = `<span class="badge badge-pns">PNS</span>`;
-            else if (p.statusNorm === 'PPPK') statusBadge = `<span class="badge badge-pppk">PPPK</span>`;
-            else if (p.statusNorm === 'PW') statusBadge = `<span class="badge badge-pw">PW</span>`;
+            if (p.statusNorm === 'PNS') {
+              statusBadge = `<span class="badge badge-pns">PNS</span>`;
+            } else if (p.statusNorm === 'PPPK') {
+              statusBadge = `<span class="badge badge-pppk">PPPK</span>`;
+            } else if (p.statusNorm === 'PW') {
+              statusBadge = `<span class="badge badge-pw">PW</span>`;
+            } else if (p.statusNorm === 'NON ASN') {
+              const badgeClass = p.tmtCategory === 'OLD' ? 'badge-nonasn-old' : 'badge-nonasn-new';
+              const labelCategory = p.tmtCategory === 'OLD' ? '< 3-8-23' : '> 3-8-23';
+              const tmtInfo = p.tmtFormatted ? ` (${p.tmtFormatted})` : '';
+              statusBadge = `<span class="badge ${badgeClass}" title="TMT: ${p.tmtFormatted || '-'}">Non-ASN ${labelCategory}${tmtInfo}</span>`;
+            }
 
             html += `
               <tr>
