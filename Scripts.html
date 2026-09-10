@@ -951,13 +951,13 @@
             html += `
               <tr>
                 <td class="text-center">${idx + 1}</td>
-                <td>
+                <td class="modal-col-nama">
                   <div style="font-weight: 600; color: var(--secondary);">${escapeHtml(p.nama)}</div>
                   <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px; font-family: monospace;">${nipLabel}</div>
                 </td>
-                <td>${escapeHtml(p.tugas || '-')}</td>
-                <td class="text-center">${statusBadge}</td>
-                <td class="text-center" style="font-weight: 500; color: #334155;">${escapeHtml(p.pangkatGol || '-')}</td>
+                <td class="modal-col-tugas">${escapeHtml(p.tugas || '-')}</td>
+                <td class="text-center modal-col-status">${statusBadge}</td>
+                <td class="text-center modal-col-pangkat" style="font-weight: 500; color: #334155;">${escapeHtml(p.pangkatGol || '-')}</td>
               </tr>
             `;
           });

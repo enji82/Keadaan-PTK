@@ -513,23 +513,114 @@
     width: 100%;
     height: 100%;
     background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(2px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    box-sizing: border-box;
   }
   .modal-dialog {
     background: #fff;
     border-radius: var(--radius-lg);
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
   }
-  .modal-header { padding: 16px 22px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-  .modal-close { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
-  .modal-body { padding: 18px 22px; overflow-y: auto; }
-  .modal-footer { padding: 12px 22px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; }
+  .modal-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: color 0.15s, background 0.15s;
+  }
+  .modal-close:hover {
+    color: var(--secondary);
+    background: #f1f5f9;
+  }
+  .modal-body {
+    padding: 16px 22px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-footer {
+    padding: 12px 22px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    background: #f8fafc;
+  }
+
+  /* Khusus Tabel di dalam Modal PTK */
+  #modalTableWrap {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #modalTableWrap table {
+    margin-bottom: 0;
+    width: 100%;
+  }
+  #modalTableWrap thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8fafc;
+    z-index: 2;
+    box-shadow: inset 0 -1px 0 var(--border-color);
+  }
+  .modal-col-status {
+    white-space: nowrap !important;
+  }
+  .modal-col-pangkat {
+    white-space: nowrap !important;
+    min-width: 150px;
+  }
+  .modal-col-tugas {
+    min-width: 140px;
+    white-space: normal;
+  }
+  .modal-col-nama {
+    min-width: 200px;
+  }
+
+  /* Penyesuaian Responsif untuk Layar Sempit (Tablet / HP < 768px) */
+  @media (max-width: 768px) {
+    .modal-backdrop {
+      padding: 8px;
+    }
+    .modal-dialog {
+      max-height: 94vh;
+      border-radius: 10px;
+    }
+    .modal-header {
+      padding: 12px 16px;
+    }
+    .modal-header h3 {
+      font-size: 1.05rem;
+    }
+    .modal-body {
+      padding: 12px 14px;
+    }
+    .modal-footer {
+      padding: 10px 14px;
+    }
+  }
 </style>
