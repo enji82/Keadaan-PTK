@@ -36,8 +36,8 @@
     populateKecamatanOptions(data.kecamatanList || []);
 
     // Render Semua Bagian
-    renderKPIUmum(data.summarySD || data.summary);
-    renderCardsFormasiSD(data.kebutuhanSD);
+    renderKPIUmum();
+    renderCardsFormasiSD();
     renderTabKebutuhanSD();
     renderTabKeadaanSD();
   }
@@ -72,17 +72,74 @@
   }
 
   /**
-   * Render KPI Cards Umum (Tab 2: Keadaan PTK SD) - 2 Baris Card
+   * Helper: Dapatkan ringkasan Keadaan PTK SD berdasarkan filter kecamatan
    */
-  function renderKPIUmum(summary) {
+  function getFilteredSummaryKeadaan() {
+    if (!rawData) return null;
+    const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
+    
+    // Jika Semua Kecamatan, gunakan summarySD bawaan
+    if (filterKec === 'ALL') {
+      return rawData.summarySD || rawData.summary;
+    }
+
+    // Jika filter spesifik per kecamatan, agregasi dari sekolah-sekolah di kecamatan tersebut
+    const sekolahList = (rawData.rekapSekolahSD || []).filter(s => s.kecamatan === filterKec);
+    
+    const res = {
+      totalSekolah: sekolahList.length,
+      totalPTK: 0,
+      totalKS: 0,
+      totalGuru: 0,
+      totalTendik: 0,
+      totalCPNS: 0,
+      totalPNS: 0,
+      totalPPPK: 0,
+      totalPW: 0,
+      totalNonASN: 0,
+      totalNonAsnOld: 0,
+      totalNonAsnNew: 0,
+      kecamatan: filterKec
+    };
+
+    sekolahList.forEach(s => {
+      res.totalPTK += (s.ptkCount || 0);
+      res.totalKS += (s.ksCount || 0);
+      res.totalGuru += (s.guruCount || 0);
+      res.totalTendik += (s.tendikCount || 0);
+      res.totalCPNS += (s.cpnsCount || 0);
+      res.totalPNS += (s.pnsCount || 0);
+      res.totalPPPK += (s.pppkCount || 0);
+      res.totalPW += (s.pwCount || 0);
+      res.totalNonASN += (s.nonAsnCount || 0);
+      res.totalNonAsnOld += (s.nonAsnOldCount || 0);
+      res.totalNonAsnNew += (s.nonAsnNewCount || 0);
+    });
+
+    return res;
+  }
+
+  /**
+   * Render KPI Cards Umum (Tab 2: Keadaan PTK SD) - 2 Baris Card (Mengikuti Filter Utama)
+   */
+  function renderKPIUmum() {
+    const summary = getFilteredSummaryKeadaan();
     if (!summary) return;
+
+    const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
 
     // Baris 1: Total PTK SD, Kepala SD, Guru SD, Tenaga Kependidikan
     const elTotal = document.getElementById('kpiKeadaanTotalPTK');
     if (elTotal) elTotal.textContent = formatNumber(summary.totalPTK);
 
     const elSubSekolah = document.getElementById('kpiKeadaanSubSekolah');
-    if (elSubSekolah) elSubSekolah.textContent = `Mencakup ${formatNumber(summary.totalSekolah)} SD`;
+    if (elSubSekolah) {
+      if (filterKec === 'ALL') {
+        elSubSekolah.textContent = `Mencakup ${formatNumber(summary.totalSekolah)} SD`;
+      } else {
+        elSubSekolah.textContent = `Kec. ${filterKec} (${formatNumber(summary.totalSekolah)} SD)`;
+      }
+    }
 
     const elKS = document.getElementById('kpiKeadaanTotalKS');
     if (elKS) elKS.textContent = formatNumber(summary.totalKS);
@@ -117,10 +174,12 @@
   }
 
   /**
-   * Render 6 Card Kebutuhan Guru SD per Jenis PTK
+   * Render 6 Card Kebutuhan Guru SD per Jenis PTK (Mengikuti Filter Utama)
    */
-  function renderCardsFormasiSD(kebutuhanSD) {
-    if (!kebutuhanSD || !kebutuhanSD.perSekolah) return;
+  function renderCardsFormasiSD() {
+    if (!rawData || !rawData.kebutuhanSD || !rawData.kebutuhanSD.perSekolah) return;
+
+    const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
 
     const totals = {
       ks: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
@@ -131,12 +190,17 @@
       katolik: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
     };
 
-    kebutuhanSD.perSekolah.forEach(sd => {
+    const sekolahList = (filterKec === 'ALL')
+      ? rawData.kebutuhanSD.perSekolah
+      : rawData.kebutuhanSD.perSekolah.filter(sd => sd.kecamatan === filterKec);
+
+    sekolahList.forEach(sd => {
       const acc = (target, src) => {
-        target.butuh += src.butuh;
-        target.terisi += ((src.cpns || 0) + src.pns + src.pppk + src.pw);
-        target.selisih += src.selisih;
-        target.nonAsn += src.nonAsn;
+        if (!src) return;
+        target.butuh += (src.butuh || 0);
+        target.terisi += (((src.cpns || 0) + (src.pns || 0) + (src.pppk || 0) + (src.pw || 0)));
+        target.selisih += (src.selisih || 0);
+        target.nonAsn += (src.nonAsn || 0);
         target.nonAsnOld += (src.nonAsnOld || 0);
         target.nonAsnNew += (src.nonAsnNew || 0);
       };
@@ -210,6 +274,8 @@
     selKec.value = kecamatanName;
     currentKebutuhanMode = 'SEKOLAH';
     currentKeadaanMode = 'SEKOLAH';
+    renderCardsFormasiSD();
+    renderKPIUmum();
     renderTabKebutuhanSD();
   }
 
@@ -221,6 +287,8 @@
     selKec.value = 'ALL';
     currentKebutuhanMode = 'KECAMATAN';
     currentKeadaanMode = 'KECAMATAN';
+    renderCardsFormasiSD();
+    renderKPIUmum();
     renderTabKebutuhanSD();
   }
 
@@ -751,6 +819,8 @@
     const selKec = document.getElementById('filterKecamatan');
     selKec.value = kecamatanName;
     currentKeadaanMode = 'SEKOLAH';
+    renderCardsFormasiSD();
+    renderKPIUmum();
     renderTabKeadaanSD();
   }
 
@@ -758,6 +828,8 @@
     const selKec = document.getElementById('filterKecamatan');
     selKec.value = 'ALL';
     currentKeadaanMode = 'KECAMATAN';
+    renderCardsFormasiSD();
+    renderKPIUmum();
     renderTabKeadaanSD();
   }
 
@@ -1170,6 +1242,8 @@
 
   function applyFilters() {
     if (!rawData) return;
+    renderCardsFormasiSD();
+    renderKPIUmum();
     renderTabKebutuhanSD();
     renderTabKeadaanSD();
   }
