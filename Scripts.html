@@ -485,6 +485,7 @@
             <th colspan="6" class="text-center mat-kri">Guru Kristen</th>
             <th colspan="6" class="text-center mat-kat">Guru Katolik</th>
             <th colspan="8" class="text-center mat-tot">TOTAL GURU SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
           </tr>
           <tr>
             <th class="text-center mat-ks">Bth</th><th class="text-center mat-ks">PNS</th><th class="text-center mat-ks">PPPK</th><th class="text-center mat-ks">PW</th><th class="text-center mat-ks">+/-</th><th class="text-center mat-ks">Non</th>
@@ -552,11 +553,16 @@
               <td class="text-center mat-tot-sel">${renderBadgeSelisih(sd.total.selisih)}</td>
               <td class="text-center mat-tot">${formatNumber(sd.total.nonAsnOld)}</td>
               <td class="text-center mat-tot">${formatNumber(sd.total.nonAsnNew)}</td>
+              <td class="text-center">
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sd.npsn)}', '${escapeQuote(sd.namaSekolah)}')">
+                  👁️ PTK
+                </button>
+              </td>
             </tr>
           `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="49" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok.</td></tr>';
+        tbody.innerHTML = html || '<tr><td colspan="50" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok.</td></tr>';
         tfoot.innerHTML = `
           <tr>
             <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
@@ -571,6 +577,7 @@
             <th class="text-center mat-tot-sel">${renderBadgeSelisih(sumSelisih)}</th>
             <th class="text-center mat-tot">${formatNumber(sumNonOld)}</th>
             <th class="text-center mat-tot">${formatNumber(sumNonNew)}</th>
+            <th class="text-center">-</th>
           </tr>
         `;
 
@@ -635,7 +642,7 @@
               <td class="text-center col-nonasn">${formatNumber(f.nonAsnNew)}</td>
               <td class="text-center">
                 <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sd.npsn)}', '${escapeQuote(sd.namaSekolah)}')">
-                  👁️ Pegawai
+                  👁️ PTK
                 </button>
               </td>
             </tr>
@@ -833,7 +840,7 @@
           <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(sch.ptkCount)}</td>
           <td class="text-center">
             <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
-              👁️ Pegawai
+              👁️ PTK
             </button>
           </td>
         </tr>
