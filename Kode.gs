@@ -175,21 +175,28 @@ function mapTugasGranular(rawTugas) {
 /**
  * Helper membuat objek counter tugas granular yang terisi nol.
  */
+/**
+ * Helper membuat satu slot breakdown status kepegawaian per tugas.
+ */
+function emptyTugasSlot() {
+  return { cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsnOld: 0, nonAsnNew: 0, total: 0 };
+}
+
 function emptyTugasCount() {
   return {
-    KS: 0,
-    GURU_KELAS: 0,
-    GURU_PJOK: 0,
-    GURU_PAI: 0,
-    GURU_KRISTEN: 0,
-    GURU_KATOLIK: 0,
-    GURU_INGGRIS: 0,
-    GURU_LAIN: 0,
-    OP_LAYANAN: 0,
-    PENGELOLA_LAYANAN: 0,
-    PENATA_LAYANAN: 0,
-    PENGELOLA_UMUM: 0,
-    TENDIK_LAIN: 0
+    KS:                emptyTugasSlot(),
+    GURU_KELAS:        emptyTugasSlot(),
+    GURU_PJOK:         emptyTugasSlot(),
+    GURU_PAI:          emptyTugasSlot(),
+    GURU_KRISTEN:      emptyTugasSlot(),
+    GURU_KATOLIK:      emptyTugasSlot(),
+    GURU_INGGRIS:      emptyTugasSlot(),
+    GURU_LAIN:         emptyTugasSlot(),
+    OP_LAYANAN:        emptyTugasSlot(),
+    PENGELOLA_LAYANAN: emptyTugasSlot(),
+    PENATA_LAYANAN:    emptyTugasSlot(),
+    PENGELOLA_UMUM:    emptyTugasSlot(),
+    TENDIK_LAIN:       emptyTugasSlot()
   };
 }
 
@@ -216,7 +223,7 @@ function hitungKebutuhanMapelSD(rombel) {
  */
 function getDashboardData(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const CACHE_KEY = 'REKAP_PTK_WITH_KEBUTUHAN_V4';
+  const CACHE_KEY = 'REKAP_PTK_WITH_KEBUTUHAN_V5';
   
   if (!forceRefresh) {
     const cached = cache.get(CACHE_KEY);
@@ -437,10 +444,19 @@ function getDashboardData(forceRefresh) {
       }
     }
 
-    // Hitung counter tugas granular
+    // Hitung counter tugas granular (dengan breakdown status kepegawaian)
     const tugasKey = mapTugasGranular(ptk.tugasRaw);
-    if (tugasKey && sch.tugasCount) {
-      sch.tugasCount[tugasKey] = (sch.tugasCount[tugasKey] || 0) + 1;
+    if (tugasKey && sch.tugasCount && sch.tugasCount[tugasKey]) {
+      const slot = sch.tugasCount[tugasKey];
+      slot.total++;
+      if (ptk.statusNorm === 'CPNS')       slot.cpns++;
+      else if (ptk.statusNorm === 'PNS')   slot.pns++;
+      else if (ptk.statusNorm === 'PPPK')  slot.pppk++;
+      else if (ptk.statusNorm === 'PW')    slot.pw++;
+      else {
+        if (ptk.tmtCategory === 'OLD') slot.nonAsnOld++;
+        else                           slot.nonAsnNew++;
+      }
     }
   });
 
@@ -624,10 +640,19 @@ function getDashboardData(forceRefresh) {
     rk.nonAsn += sch.nonAsnCount;
     rk.nonAsnOld += (sch.nonAsnOldCount || 0);
     rk.nonAsnNew += (sch.nonAsnNewCount || 0);
-    // Agregasi tugasCount granular ke rekap kecamatan
+    // Agregasi tugasCount granular ke rekap kecamatan (breakdown per status)
     if (sch.tugasCount) {
       Object.keys(sch.tugasCount).forEach(key => {
-        rk.tugasCount[key] = (rk.tugasCount[key] || 0) + (sch.tugasCount[key] || 0);
+        if (!rk.tugasCount[key]) rk.tugasCount[key] = emptyTugasSlot();
+        const src = sch.tugasCount[key];
+        const dst = rk.tugasCount[key];
+        dst.cpns      += (src.cpns      || 0);
+        dst.pns       += (src.pns       || 0);
+        dst.pppk      += (src.pppk      || 0);
+        dst.pw        += (src.pw        || 0);
+        dst.nonAsnOld += (src.nonAsnOld || 0);
+        dst.nonAsnNew += (src.nonAsnNew || 0);
+        dst.total     += (src.total     || 0);
       });
     }
   });
