@@ -72,33 +72,48 @@
   }
 
   /**
-   * Render KPI Cards Umum (Tab 2: Keadaan PTK SD)
+   * Render KPI Cards Umum (Tab 2: Keadaan PTK SD) - 2 Baris Card
    */
   function renderKPIUmum(summary) {
     if (!summary) return;
+
+    // Baris 1: Total PTK SD, Kepala SD, Guru SD, Tenaga Kependidikan
     const elTotal = document.getElementById('kpiKeadaanTotalPTK');
     if (elTotal) elTotal.textContent = formatNumber(summary.totalPTK);
 
     const elSubSekolah = document.getElementById('kpiKeadaanSubSekolah');
     if (elSubSekolah) elSubSekolah.textContent = `Mencakup ${formatNumber(summary.totalSekolah)} SD`;
 
-    const elGuru = document.getElementById('kpiKeadaanTotalGuru');
-    if (elGuru) elGuru.textContent = formatNumber(summary.totalGuru);
-
     const elKS = document.getElementById('kpiKeadaanTotalKS');
     if (elKS) elKS.textContent = formatNumber(summary.totalKS);
+
+    const elGuru = document.getElementById('kpiKeadaanTotalGuru');
+    if (elGuru) elGuru.textContent = formatNumber(summary.totalGuru);
 
     const elTendik = document.getElementById('kpiKeadaanTotalTendik');
     if (elTendik) elTendik.textContent = formatNumber(summary.totalTendik);
 
-    const elPersen = document.getElementById('kpiKeadaanPersenASN');
-    if (elPersen) elPersen.textContent = `${summary.persenASN}%`;
+    // Baris 2: CPNS, PNS, PPPK, PPPK PW, NON ASN (rincian < & > 3-8-2023)
+    const elCPNS = document.getElementById('kpiKeadaanTotalCPNS');
+    if (elCPNS) elCPNS.textContent = formatNumber(summary.totalCPNS || 0);
 
-    const cpnsSub = (summary.totalCPNS && summary.totalCPNS > 0) ? `CPNS: ${formatNumber(summary.totalCPNS)} | ` : '';
-    const elSubASN = document.getElementById('kpiKeadaanSubASN');
-    if (elSubASN) {
-      elSubASN.textContent = `${cpnsSub}PNS: ${formatNumber(summary.totalPNS)} | PPPK: ${formatNumber(summary.totalPPPK)} | PW: ${formatNumber(summary.totalPW)}`;
-    }
+    const elPNS = document.getElementById('kpiKeadaanTotalPNS');
+    if (elPNS) elPNS.textContent = formatNumber(summary.totalPNS || 0);
+
+    const elPPPK = document.getElementById('kpiKeadaanTotalPPPK');
+    if (elPPPK) elPPPK.textContent = formatNumber(summary.totalPPPK || 0);
+
+    const elPW = document.getElementById('kpiKeadaanTotalPW');
+    if (elPW) elPW.textContent = formatNumber(summary.totalPW || 0);
+
+    const elNonASN = document.getElementById('kpiKeadaanTotalNonASN');
+    if (elNonASN) elNonASN.textContent = formatNumber(summary.totalNonASN || 0);
+
+    const elNonOld = document.getElementById('kpiKeadaanNonAsnOld');
+    if (elNonOld) elNonOld.textContent = `< 3-8-2023: ${formatNumber(summary.totalNonAsnOld || 0)}`;
+
+    const elNonNew = document.getElementById('kpiKeadaanNonAsnNew');
+    if (elNonNew) elNonNew.textContent = `> 3-8-2023: ${formatNumber(summary.totalNonAsnNew || 0)}`;
   }
 
   /**

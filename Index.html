@@ -206,32 +206,60 @@
 
     <!-- ==================== TAB 2: KEADAAN PTK SD ==================== -->
     <div id="tabKeadaanSD" class="tab-pane">
-      <!-- SECTION CARD RINGKASAN KEADAAN PTK SD -->
-      <div class="kpi-grid">
+      <!-- SECTION CARD RINGKASAN KEADAAN PTK SD (2 BARIS) -->
+      <!-- Baris 1: Total PTK SD, Kepala SD, Guru SD, Tenaga Kependidikan -->
+      <div class="kpi-grid-4">
         <div class="kpi-card">
           <div class="kpi-card-header"><span class="kpi-title">Total PTK SD</span><div class="kpi-icon icon-blue">👥</div></div>
           <div class="kpi-value" id="kpiKeadaanTotalPTK">0</div>
           <div class="kpi-subtitle" id="kpiKeadaanSubSekolah">Mencakup 0 SD</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Guru SD (Pendidik)</span><div class="kpi-icon icon-green">👨‍🏫</div></div>
-          <div class="kpi-value" id="kpiKeadaanTotalGuru">0</div>
-          <div class="kpi-subtitle" id="kpiKeadaanSubGuru">Guru Kelas, Mapel & Agama</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Kepala Sekolah SD</span><div class="kpi-icon icon-purple">🎓</div></div>
+          <div class="kpi-card-header"><span class="kpi-title">Kepala SD</span><div class="kpi-icon icon-purple">🎓</div></div>
           <div class="kpi-value" id="kpiKeadaanTotalKS">0</div>
           <div class="kpi-subtitle" id="kpiKeadaanSubKS">Kepala Sekolah Definitif/Aktif</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">Guru SD</span><div class="kpi-icon icon-green">👨‍🏫</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalGuru">0</div>
+          <div class="kpi-subtitle" id="kpiKeadaanSubGuru">Guru Kelas, Mapel & Agama</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card-header"><span class="kpi-title">Tenaga Kependidikan</span><div class="kpi-icon icon-amber">📑</div></div>
           <div class="kpi-value" id="kpiKeadaanTotalTendik">0</div>
           <div class="kpi-subtitle" id="kpiKeadaanSubTendik">Operator, Penjaga & TU</div>
         </div>
+      </div>
+
+      <!-- Baris 2: CPNS, PNS, PPPK, PPPK PW, NON ASN (dengan rincian < 3-8-2023 & > 3-8-2023) -->
+      <div class="kpi-grid-5">
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Komposisi ASN / PW</span><div class="kpi-icon icon-cyan">🏛️</div></div>
-          <div class="kpi-value" id="kpiKeadaanPersenASN">0%</div>
-          <div class="kpi-subtitle" id="kpiKeadaanSubASN">CPNS: 0 | PNS: 0 | PPPK: 0 | PW: 0</div>
+          <div class="kpi-card-header"><span class="kpi-title">CPNS</span><div class="kpi-icon icon-blue">📋</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalCPNS">0</div>
+          <div class="kpi-subtitle">Calon Pegawai Negeri Sipil</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">PNS</span><div class="kpi-icon icon-cyan">🏛️</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalPNS">0</div>
+          <div class="kpi-subtitle">Pegawai Negeri Sipil</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">PPPK</span><div class="kpi-icon icon-green">💼</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalPPPK">0</div>
+          <div class="kpi-subtitle">PPPK Reguler</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">PPPK PW</span><div class="kpi-icon icon-purple">🤝</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalPW">0</div>
+          <div class="kpi-subtitle">PPPK Paruh Waktu</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card-header"><span class="kpi-title">NON ASN</span><div class="kpi-icon icon-rose">⏳</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalNonASN">0</div>
+          <div class="kpi-subdetail-tags">
+            <span class="kpi-tag-old" id="kpiKeadaanNonAsnOld" title="TMT sebelum 3-8-2023">&lt; 3-8-2023: 0</span>
+            <span class="kpi-tag-new" id="kpiKeadaanNonAsnNew" title="TMT setelah 3-8-2023">&gt; 3-8-2023: 0</span>
+          </div>
         </div>
       </div>
 
