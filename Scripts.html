@@ -878,13 +878,13 @@
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
-            <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
+            <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas</th>
             <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
             <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
           </tr>
           <tr>
-            <th class="text-center" style="background-color: #f8fafc;">Guru</th>
             <th class="text-center" style="background-color: #f8fafc;">KS</th>
+            <th class="text-center" style="background-color: #f8fafc;">Guru</th>
             <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
             <th class="text-center col-keadaan">CPNS</th>
             <th class="text-center col-keadaan">PNS</th>
@@ -922,8 +922,8 @@
               <td class="text-center">${formatNumber(k.totalSekolah)}</td>
               <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
               <td class="text-center">${formatNumber(k.totalRombel || 0)}</td>
-              <td class="text-center">${formatNumber(k.guru)}</td>
               <td class="text-center">${formatNumber(k.ks)}</td>
+              <td class="text-center">${formatNumber(k.guru)}</td>
               <td class="text-center">${formatNumber(k.tendik)}</td>
               <td class="text-center col-keadaan">${formatNumber(k.cpns || 0)}</td>
               <td class="text-center col-keadaan">${formatNumber(k.pns)}</td>
@@ -944,8 +944,8 @@
             <th class="text-center">${formatNumber(totSekolah)}</th>
             <th class="text-center">${formatNumber(totMurid)}</th>
             <th class="text-center">${formatNumber(totRombel)}</th>
-            <th class="text-center">${formatNumber(totGuru)}</th>
             <th class="text-center">${formatNumber(totKS)}</th>
+            <th class="text-center">${formatNumber(totGuru)}</th>
             <th class="text-center">${formatNumber(totTendik)}</th>
             <th class="text-center col-keadaan">${formatNumber(totCpns)}</th>
             <th class="text-center col-keadaan">${formatNumber(totPns)}</th>
@@ -1061,14 +1061,14 @@
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
-            <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
+            <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas</th>
             <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
             <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
           </tr>
           <tr>
-            <th class="text-center" style="background-color: #f8fafc;">Guru</th>
             <th class="text-center" style="background-color: #f8fafc;">KS</th>
+            <th class="text-center" style="background-color: #f8fafc;">Guru</th>
             <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
             <th class="text-center col-keadaan">CPNS</th>
             <th class="text-center col-keadaan">PNS</th>
@@ -1108,8 +1108,8 @@
               <td>${escapeHtml(sch.kecamatan)}</td>
               <td class="text-center">${formatNumber(sch.rombel || 0)}</td>
               <td class="text-center">${formatNumber(sch.murid || 0)}</td>
-              <td class="text-center">${formatNumber(sch.guruCount)}</td>
               <td class="text-center">${formatNumber(sch.ksCount)}</td>
+              <td class="text-center">${formatNumber(sch.guruCount)}</td>
               <td class="text-center">${formatNumber(sch.tendikCount)}</td>
               <td class="text-center col-keadaan">${formatNumber(sch.cpnsCount || 0)}</td>
               <td class="text-center col-keadaan">${formatNumber(sch.pnsCount)}</td>
@@ -1134,8 +1134,8 @@
             <th colspan="3" class="text-center">TOTAL KESELURUHAN (${list.length} SD)</th>
             <th class="text-center">${formatNumber(sumRombel)}</th>
             <th class="text-center">${formatNumber(sumMurid)}</th>
-            <th class="text-center">${formatNumber(sumGuru)}</th>
             <th class="text-center">${formatNumber(sumKS)}</th>
+            <th class="text-center">${formatNumber(sumGuru)}</th>
             <th class="text-center">${formatNumber(sumTendik)}</th>
             <th class="text-center col-keadaan">${formatNumber(sumCpns)}</th>
             <th class="text-center col-keadaan">${formatNumber(sumPns)}</th>
