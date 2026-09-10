@@ -381,10 +381,6 @@
     line-height: 1.35;
   }
 
-  table.data-table tbody tr:hover {
-    background-color: #f8fafc;
-  }
-
   table.data-table tfoot th {
     background-color: #f8fafc;
     font-weight: 400; /* disamakan dengan isi baris td agar rapi dan seragam */
@@ -398,60 +394,59 @@
 
   /* Pewarnaan Khusus Zona Kolom Kebutuhan, Keadaan, dan +/- */
   th.col-kebutuhan, td.col-kebutuhan {
-    background-color: #dbeafe !important; /* Soft Blue yang jelas terlihat */
-    color: #1e3a8a !important;
+    background-color: #dbeafe; /* Soft Blue */
+    color: #1e3a8a;
   }
   th.col-kebutuhan {
-    font-weight: 700 !important;
+    font-weight: 700;
   }
 
   th.col-keadaan, td.col-keadaan {
-    background-color: #f1f5f9 !important; /* Soft Slate Gray */
-    color: #1e293b !important;
+    background-color: #f1f5f9; /* Soft Slate Gray */
+    color: #1e293b;
   }
   th.col-keadaan-total, td.col-keadaan-total {
-    background-color: #e2e8f0 !important; /* Slate yang sedikit lebih tegas untuk Jumlah */
-    color: #0f172a !important;
+    background-color: #e2e8f0; /* Slate tegas untuk Jumlah */
+    color: #0f172a;
     font-weight: 600;
   }
 
   th.col-selisih, td.col-selisih {
-    background-color: #ffe4e6 !important; /* Soft Rose/Pink yang jelas terlihat */
-    color: #9f1239 !important;
+    background-color: #ffe4e6; /* Soft Rose/Pink */
+    color: #9f1239;
   }
   th.col-selisih {
-    font-weight: 700 !important;
+    font-weight: 700;
   }
 
   td.col-nonasn {
-    background-color: #f8fafc !important;
-    color: #64748b !important;
+    background-color: #f8fafc;
+    color: #64748b;
   }
 
   /* Pewarnaan Kolom Matriks Semua Formasi */
-  th.mat-ks, td.mat-ks { background-color: #eff6ff !important; }
-  th.mat-kel, td.mat-kel { background-color: #f0fdf4 !important; }
-  th.mat-pai, td.mat-pai { background-color: #fefce8 !important; }
-  th.mat-pjok, td.mat-pjok { background-color: #fdf2f8 !important; }
-  th.mat-kri, td.mat-kri { background-color: #f5f3ff !important; }
-  th.mat-kat, td.mat-kat { background-color: #ecfeff !important; }
-  th.mat-tot, td.mat-tot { background-color: #f1f5f9 !important; }
-  th.mat-tot-bth, td.mat-tot-bth { background-color: #e2e8f0 !important; font-weight: 600; }
-  th.mat-tot-sel, td.mat-tot-sel { background-color: #fee2e2 !important; font-weight: 600; }
+  th.mat-ks, td.mat-ks { background-color: #eff6ff; }
+  th.mat-kel, td.mat-kel { background-color: #f0fdf4; }
+  th.mat-pai, td.mat-pai { background-color: #fefce8; }
+  th.mat-pjok, td.mat-pjok { background-color: #fdf2f8; }
+  th.mat-kri, td.mat-kri { background-color: #f5f3ff; }
+  th.mat-kat, td.mat-kat { background-color: #ecfeff; }
+  th.mat-tot, td.mat-tot { background-color: #f1f5f9; }
+  th.mat-tot-bth, td.mat-tot-bth { background-color: #e2e8f0; font-weight: 600; }
+  th.mat-tot-sel, td.mat-tot-sel { background-color: #fee2e2; font-weight: 600; }
 
   .text-center { text-align: center !important; }
   .text-right { text-align: right !important; }
 
-  .text-center { text-align: center !important; }
-  .text-right { text-align: right !important; }
+  /* Hover Baris Seragam dari Kolom Pertama sampai Terakhir */
+  table.data-table tbody tr:hover td,
+  table.data-table tbody tr.clickable-row:hover td {
+    background-color: #e0f2fe !important; /* Soft sky-blue hover yang elegan & jelas dari ujung ke ujung */
+  }
 
   /* Clickable Row / Item */
   .clickable-row {
     cursor: pointer;
-    transition: background-color 0.15s;
-  }
-  .clickable-row:hover {
-    background-color: #eff6ff !important;
   }
 
   /* Badges */
