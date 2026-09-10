@@ -716,33 +716,71 @@
     box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
   }
 
-  .pensiun-kpi-grid {
+  /* 4 KPI Cards Grid Pensiun */
+  .pensiun-kpi-grid-4 {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    .pensiun-kpi-grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 640px) {
-    .pensiun-kpi-grid {
+    .pensiun-kpi-grid-4 {
       grid-template-columns: 1fr;
     }
   }
 
-  .pensiun-card-year {
+  .pensiun-card-total {
     border-left: 4px solid var(--primary);
   }
 
-  .pensiun-card-month {
-    border-left: 4px solid var(--accent);
+  .pensiun-card-ks {
+    border-left: 4px solid #7e22ce;
+  }
+
+  .pensiun-card-guru {
+    border-left: 4px solid #15803d;
+  }
+
+  .pensiun-card-tendik {
+    border-left: 4px solid #b45309;
   }
 
   .text-primary {
     color: var(--primary) !important;
   }
 
+  .text-purple {
+    color: #7e22ce !important;
+  }
+
+  .text-green {
+    color: #15803d !important;
+  }
+
   .text-amber {
-    color: #d97706 !important;
+    color: #b45309 !important;
+  }
+
+  .pensiun-status-breakdown {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 5px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pensiun-status-breakdown span {
+    display: inline-block;
   }
 
   /* Timeline Bar Chart */
@@ -760,7 +798,7 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 24px;
     border-bottom: 1px solid #f1f5f9;
     padding-bottom: 12px;
@@ -774,12 +812,51 @@
     margin: 0;
   }
 
+  .pensiun-chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  .dot-pns {
+    background: #dc2626; /* Red for PNS */
+  }
+
+  .dot-pppk {
+    background: #16a34a; /* Green for PPPK */
+  }
+
+  .dot-pw {
+    background: #9333ea; /* Purple for PPPK PW */
+  }
+
+  .dot-nonasn {
+    background: #d97706; /* Amber for Non ASN */
+  }
+
   .pensiun-chart-body {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 8px;
-    height: 180px;
+    height: 185px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border-color);
     position: relative;
@@ -801,9 +878,9 @@
     transform: translateY(-2px);
   }
 
-  .pensiun-bar-col.selected .pensiun-bar {
-    background: var(--primary-hover) !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  .pensiun-bar-col.selected .pensiun-bar-track {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+    border-color: var(--primary);
   }
 
   .pensiun-bar-col.selected .pensiun-bar-label {
@@ -815,7 +892,8 @@
     font-size: 0.76rem;
     font-weight: 700;
     margin-bottom: 4px;
-    color: var(--primary);
+    color: var(--secondary);
+    min-height: 16px;
   }
 
   .pensiun-bar-track {
@@ -824,17 +902,35 @@
     height: 140px;
     background: #f1f5f9;
     border-radius: 6px 6px 0 0;
+    border: 1px solid transparent;
     display: flex;
-    align-items: flex-end;
+    flex-direction: column-reverse; /* Stacked from bottom to top */
+    align-items: stretch;
     overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
 
-  .pensiun-bar {
+  /* Stacked Bar Segments */
+  .pensiun-bar-segment {
     width: 100%;
-    background: var(--primary);
-    border-radius: 5px 5px 0 0;
-    min-height: 0px;
+    min-height: 0;
     transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .segment-pns {
+    background: #dc2626; /* PNS */
+  }
+
+  .segment-pppk {
+    background: #16a34a; /* PPPK */
+  }
+
+  .segment-pw {
+    background: #9333ea; /* PPPK PW */
+  }
+
+  .segment-nonasn {
+    background: #d97706; /* Non ASN */
   }
 
   .pensiun-bar-label {

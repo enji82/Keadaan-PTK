@@ -326,26 +326,61 @@
         </div>
       </div>
 
-      <!-- 2 BUAH KPI CARD RINGKASAN PENSIUN -->
-      <div class="pensiun-kpi-grid">
+      <!-- 4 BUAH KPI CARD RINGKASAN PENSIUN (RINCIAN: KS, GURU, TENDIK DENGAN PNS | PPPK | PPPK PW | NON ASN) -->
+      <div class="kpi-grid-4 pensiun-kpi-grid-4">
         <!-- Card 1: Pensiun Tahun Ini / Terpilih -->
-        <div class="kpi-card pensiun-card-year">
+        <div class="kpi-card pensiun-card-total">
           <div class="kpi-card-header">
             <span class="kpi-title" id="kpiPensiunYearTitle">PENSIUN TAHUN 2026</span>
             <div class="kpi-icon icon-blue">📅</div>
           </div>
           <div class="kpi-value text-primary" id="kpiPensiunYearCount">0</div>
-          <div class="kpi-subtitle" id="kpiPensiunYearDetail">Guru/KS: 0 | Tendik: 0</div>
+          <div class="kpi-subtitle" id="kpiPensiunYearDetail">KS: 0 | Guru: 0 | Tendik: 0</div>
         </div>
 
-        <!-- Card 2: Pensiun Bulan Berjalan / Terpilih -->
-        <div class="kpi-card pensiun-card-month">
+        <!-- Card 2: Kepala SD -->
+        <div class="kpi-card pensiun-card-ks">
           <div class="kpi-card-header">
-            <span class="kpi-title" id="kpiPensiunMonthTitle">PENSIUN BULAN OKTOBER 2026</span>
-            <div class="kpi-icon icon-amber">⚠️</div>
+            <span class="kpi-title">KEPALA SD</span>
+            <div class="kpi-icon icon-purple">🎓</div>
           </div>
-          <div class="kpi-value text-amber" id="kpiPensiunMonthCount">0</div>
-          <div class="kpi-subtitle" id="kpiPensiunMonthDetail">Guru/KS: 0 | Tendik: 0</div>
+          <div class="kpi-value text-purple" id="kpiPensiunKsCount">0</div>
+          <div class="kpi-subtitle pensiun-status-breakdown" id="kpiPensiunKsDetail">
+            <span title="PNS">PNS: 0</span> • 
+            <span title="PPPK Penuh Waktu">PPPK: 0</span> • 
+            <span title="PPPK Paruh Waktu">PW: 0</span> • 
+            <span title="Non ASN">Non ASN: 0</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Guru SD -->
+        <div class="kpi-card pensiun-card-guru">
+          <div class="kpi-card-header">
+            <span class="kpi-title">GURU SD</span>
+            <div class="kpi-icon icon-green">👨‍🏫</div>
+          </div>
+          <div class="kpi-value text-green" id="kpiPensiunGuruCount">0</div>
+          <div class="kpi-subtitle pensiun-status-breakdown" id="kpiPensiunGuruDetail">
+            <span title="PNS">PNS: 0</span> • 
+            <span title="PPPK Penuh Waktu">PPPK: 0</span> • 
+            <span title="PPPK Paruh Waktu">PW: 0</span> • 
+            <span title="Non ASN">Non ASN: 0</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Tenaga Kependidikan (Tendik) -->
+        <div class="kpi-card pensiun-card-tendik">
+          <div class="kpi-card-header">
+            <span class="kpi-title">TENDIK</span>
+            <div class="kpi-icon icon-amber">📑</div>
+          </div>
+          <div class="kpi-value text-amber" id="kpiPensiunTendikCount">0</div>
+          <div class="kpi-subtitle pensiun-status-breakdown" id="kpiPensiunTendikDetail">
+            <span title="PNS">PNS: 0</span> • 
+            <span title="PPPK Penuh Waktu">PPPK: 0</span> • 
+            <span title="PPPK Paruh Waktu">PW: 0</span> • 
+            <span title="Non ASN">Non ASN: 0</span>
+          </div>
         </div>
       </div>
 
@@ -356,7 +391,13 @@
             <span style="font-size: 1.1rem; color: var(--primary);">📊</span>
             <h3 id="pensiunChartTitle">TIMELINE PENSIUN PER BULAN (2026)</h3>
           </div>
-          <span style="font-size: 0.78rem; color: var(--text-muted);">Klik batang bulan untuk memfilter daftar nama di bawah</span>
+          <!-- Legend Warna 4 Kriteria Status Kepegawaian / Kategori -->
+          <div class="pensiun-chart-legend" id="pensiunChartLegend">
+            <div class="legend-item"><span class="legend-dot dot-pns"></span> PNS</div>
+            <div class="legend-item"><span class="legend-dot dot-pppk"></span> PPPK</div>
+            <div class="legend-item"><span class="legend-dot dot-pw"></span> PPPK PW</div>
+            <div class="legend-item"><span class="legend-dot dot-nonasn"></span> Non ASN</div>
+          </div>
         </div>
         <div class="pensiun-chart-body" id="pensiunChartBars">
           <!-- 12 Bar Bulan dirender via JS -->

@@ -251,10 +251,31 @@ function parseBirthDateAndRetirement(rawTglLahir, rawNip, rawTugas) {
   const birthYear = birthDate.getFullYear();
   const birthMonth = birthDate.getMonth(); // 0 - 11
 
-  // 3. Tentukan BUP (Batas Usia Pensiun)
+  // 3. Tentukan BUP (Batas Usia Pensiun) & Kategori Peran (KS, GURU, TENDIK)
   const t = String(rawTugas || '').toUpperCase();
-  const isGuruKs = t.includes('GURU') || t.includes('KEPALA') || t.includes('KS') || t.includes('PENDIDIK');
-  const bup = isGuruKs ? 60 : 58;
+  let roleCategory = 'TENDIK';
+  let bup = 58;
+
+  if (t.includes('KEPALA SEKOLAH') || t.includes('KS') || t === 'KASEK') {
+    roleCategory = 'KS';
+    bup = 60;
+  } else if (
+    t.includes('GURU') || 
+    t.includes('PENDIDIK') || 
+    t.includes('PENGAJAR') ||
+    t.includes('WALI KELAS') ||
+    t.includes('PAI') ||
+    t.includes('PJOK') ||
+    t.includes('MAPEL')
+  ) {
+    roleCategory = 'GURU';
+    bup = 60;
+  } else {
+    roleCategory = 'TENDIK';
+    bup = 58;
+  }
+
+  const isGuruKs = (roleCategory === 'KS' || roleCategory === 'GURU');
 
   // 4. Hitung TMT Pensiun: Tanggal 1 bulan berikutnya setelah mencapai usia BUP
   // Contoh: Lahir 12 Oktober 1966 + 60 thn = 12 Oktober 2026 -> Pensiun 1 November 2026
@@ -281,6 +302,7 @@ function parseBirthDateAndRetirement(rawTglLahir, rawNip, rawTugas) {
       bulan: pensiunMonth + 1, // 1 - 12
       bulanNama: bulanNama,
       tmtPensiun: tmtPensiun,
+      roleCategory: roleCategory, // 'KS', 'GURU', 'TENDIK'
       isGuruKs: isGuruKs
     }
   };
@@ -309,7 +331,7 @@ function hitungKebutuhanMapelSD(rombel) {
  */
 function getDashboardData(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const CACHE_KEY = 'REKAP_PTK_WITH_PENSIUN_V6';
+  const CACHE_KEY = 'REKAP_PTK_WITH_PENSIUN_V7';
   
   if (!forceRefresh) {
     const cached = cache.get(CACHE_KEY);
@@ -816,9 +838,9 @@ function getDashboardData(forceRefresh) {
       perSekolah: rekapKebutuhanSD_Sekolah.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
       perKecamatan: Object.values(rekapKebutuhanSD_Kecamatan).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan))
     },
-    // Data Khusus Proyeksi Pensiun SD (Hanya ASN: PNS, PPPK, CPNS)
+    // Data Khusus Proyeksi Pensiun SD (Seluruh Status: PNS, PPPK, PW, Non-ASN)
     pensiunSD: ptkSDList
-      .filter(p => p.pensiunInfo && (p.statusNorm === 'PNS' || p.statusNorm === 'PPPK' || p.statusNorm === 'CPNS'))
+      .filter(p => p.pensiunInfo)
       .map(p => ({
         nama: p.nama,
         nip: p.nip,
@@ -832,6 +854,7 @@ function getDashboardData(forceRefresh) {
         pensiunBulan: p.pensiunInfo.bulan, // 1 - 12
         pensiunBulanNama: p.pensiunInfo.bulanNama,
         pensiunTmt: p.pensiunInfo.tmtPensiun,
+        roleCategory: p.pensiunInfo.roleCategory, // 'KS', 'GURU', 'TENDIK'
         isGuruKs: p.pensiunInfo.isGuruKs
       })),
     lastUpdate: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMM yyyy HH:mm:ss')

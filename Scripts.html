@@ -1553,48 +1553,74 @@
     // 2. Filter Data Berdasarkan Tahun Terpilih
     const yearList = list.filter(p => p.pensiunTahun === selectedPensiunYear);
 
-    // Hitung Breakdown Tahun Terpilih
-    const yearGuruKs = yearList.filter(p => p.isGuruKs).length;
-    const yearTendik = yearList.length - yearGuruKs;
+    // Helper hitung breakdown status (PNS, PPPK, PW, Non-ASN)
+    const createStatusBreakdown = () => ({ pns: 0, pppk: 0, pw: 0, nonAsn: 0, total: 0 });
+    const statKS = createStatusBreakdown();
+    const statGuru = createStatusBreakdown();
+    const statTendik = createStatusBreakdown();
 
-    // Update KPI Card 1 (Tahun)
+    yearList.forEach(p => {
+      // Tentukan kelompok peran
+      let cat = p.roleCategory;
+      if (!cat) {
+        cat = p.isGuruKs ? 'GURU' : 'TENDIK';
+      }
+
+      let target = statTendik;
+      if (cat === 'KS') target = statKS;
+      else if (cat === 'GURU') target = statGuru;
+
+      target.total++;
+      const s = p.status || 'Non-ASN';
+      if (s === 'PNS' || s === 'CPNS') target.pns++;
+      else if (s === 'PPPK') target.pppk++;
+      else if (s === 'PW') target.pw++;
+      else target.nonAsn++;
+    });
+
+    // Helper format teks breakdown PNS | PPPK | PPPK PW | Non ASN
+    const formatBreakdownText = (st) => {
+      return `<span title="PNS">PNS: <strong>${formatNumber(st.pns)}</strong></span> • ` +
+             `<span title="PPPK Penuh Waktu">PPPK: <strong>${formatNumber(st.pppk)}</strong></span> • ` +
+             `<span title="PPPK Paruh Waktu">PW: <strong>${formatNumber(st.pw)}</strong></span> • ` +
+             `<span title="Non ASN">Non ASN: <strong>${formatNumber(st.nonAsn)}</strong></span>`;
+    };
+
+    // Card 1: Total Pensiun Tahun XXXX
     const elYearTitle = document.getElementById('kpiPensiunYearTitle');
     const elYearCount = document.getElementById('kpiPensiunYearCount');
     const elYearDetail = document.getElementById('kpiPensiunYearDetail');
     if (elYearTitle) elYearTitle.textContent = `PENSIUN TAHUN ${selectedPensiunYear}`;
     if (elYearCount) elYearCount.textContent = formatNumber(yearList.length);
-    if (elYearDetail) elYearDetail.textContent = `Guru/KS: ${formatNumber(yearGuruKs)} | Tendik: ${formatNumber(yearTendik)}`;
+    if (elYearDetail) elYearDetail.textContent = `KS: ${formatNumber(statKS.total)} | Guru: ${formatNumber(statGuru.total)} | Tendik: ${formatNumber(statTendik.total)}`;
 
-    // 3. Tentukan Bulan untuk KPI Card 2
-    // Jika ada bulan yang dipilih dari bar chart, gunakan bulan tersebut.
-    // Jika tidak, jika tahun terpilih == tahun ini, gunakan bulan berjalan saat ini. Jika tahun lain, gunakan bulan pertama yang ada pensiun atau Januari.
-    const now = new Date();
-    const currentMonthNum = now.getMonth() + 1; // 1-12
-    const targetMonth = selectedPensiunMonth !== null ? selectedPensiunMonth : (selectedPensiunYear === now.getFullYear() ? currentMonthNum : 1);
+    // Card 2: Kepala SD
+    const elKsCount = document.getElementById('kpiPensiunKsCount');
+    const elKsDetail = document.getElementById('kpiPensiunKsDetail');
+    if (elKsCount) elKsCount.textContent = formatNumber(statKS.total);
+    if (elKsDetail) elKsDetail.innerHTML = formatBreakdownText(statKS);
 
+    // Card 3: Guru SD
+    const elGuruCount = document.getElementById('kpiPensiunGuruCount');
+    const elGuruDetail = document.getElementById('kpiPensiunGuruDetail');
+    if (elGuruCount) elGuruCount.textContent = formatNumber(statGuru.total);
+    if (elGuruDetail) elGuruDetail.innerHTML = formatBreakdownText(statGuru);
+
+    // Card 4: Tendik
+    const elTendikCount = document.getElementById('kpiPensiunTendikCount');
+    const elTendikDetail = document.getElementById('kpiPensiunTendikDetail');
+    if (elTendikCount) elTendikCount.textContent = formatNumber(statTendik.total);
+    if (elTendikDetail) elTendikDetail.innerHTML = formatBreakdownText(statTendik);
+
+    // 3. Render Timeline Bar Chart Bulanan (Dibagi 4 Kriteria & Dibedakan Warna)
+    renderPensiunBarChart(yearList);
+
+    // 4. Render Tabel Daftar Nama Pensiun
     const bulanIndo = [
       '', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI',
       'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'
     ];
 
-    const monthList = yearList.filter(p => p.pensiunBulan === targetMonth);
-    const monthGuruKs = monthList.filter(p => p.isGuruKs).length;
-    const monthTendik = monthList.length - monthGuruKs;
-
-    // Update KPI Card 2 (Bulan)
-    const elMonthTitle = document.getElementById('kpiPensiunMonthTitle');
-    const elMonthCount = document.getElementById('kpiPensiunMonthCount');
-    const elMonthDetail = document.getElementById('kpiPensiunMonthDetail');
-    if (elMonthTitle) elMonthTitle.textContent = `PENSIUN BULAN ${bulanIndo[targetMonth]} ${selectedPensiunYear}`;
-    if (elMonthCount) elMonthCount.textContent = formatNumber(monthList.length);
-    if (elMonthDetail) elMonthDetail.textContent = `Guru/KS: ${formatNumber(monthGuruKs)} | Tendik: ${formatNumber(monthTendik)}`;
-
-    // 4. Render Timeline Bar Chart Bulanan
-    renderPensiunBarChart(yearList);
-
-    // 5. Render Tabel Daftar Nama Pensiun
-    // Jika user mengklik bar bulan tertentu, filter daftar nama ke bulan tersebut.
-    // Jika tidak ada bar bulan yang diklik, tampilkan seluruh personil yang pensiun di tahun terpilih.
     const tableList = selectedPensiunMonth !== null 
       ? yearList.filter(p => p.pensiunBulan === selectedPensiunMonth)
       : yearList;
@@ -1635,7 +1661,7 @@
   }
 
   /**
-   * Render Bar Chart Bulanan (Jan - Des)
+   * Render Bar Chart Bulanan (Jan - Des) dengan Stacked Bars 4 Kriteria (PNS, PPPK, PPPK PW, Non-ASN)
    */
   function renderPensiunBarChart(yearList) {
     const container = document.getElementById('pensiunChartBars');
@@ -1645,28 +1671,57 @@
 
     const bulanShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     
-    // Hitung per bulan (1 - 12)
-    const counts = new Array(13).fill(0);
+    // Hitung per bulan (1 - 12) dengan rincian 4 kriteria: pns, pppk, pw, nonAsn
+    const monthlyData = [];
+    for (let m = 0; m <= 12; m++) {
+      monthlyData.push({ pns: 0, pppk: 0, pw: 0, nonAsn: 0, total: 0 });
+    }
+
     yearList.forEach(p => {
-      if (p.pensiunBulan >= 1 && p.pensiunBulan <= 12) {
-        counts[p.pensiunBulan]++;
+      const m = p.pensiunBulan;
+      if (m >= 1 && m <= 12) {
+        const slot = monthlyData[m];
+        slot.total++;
+        const s = p.status || 'Non-ASN';
+        if (s === 'PNS' || s === 'CPNS') slot.pns++;
+        else if (s === 'PPPK') slot.pppk++;
+        else if (s === 'PW') slot.pw++;
+        else slot.nonAsn++;
       }
     });
 
-    const maxCount = Math.max(...counts.slice(1), 1);
+    const maxTotal = Math.max(...monthlyData.slice(1).map(d => d.total), 1);
 
     let html = '';
     for (let m = 1; m <= 12; m++) {
-      const count = counts[m];
+      const d = monthlyData[m];
       const isSel = (selectedPensiunMonth === m);
-      const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
-      const barHeight = count > 0 ? Math.max(pct, 12) : 0;
+      
+      // Hitung tinggi proporsional total & per segmen (terhadap maxTotal)
+      const trackHeight = 140; // tinggi maksimal px pada track bar
+      const totalBarHeightPx = d.total > 0 ? Math.max((d.total / maxTotal) * trackHeight, 14) : 0;
+      
+      // Proporsi masing-masing kriteria di dalam bar
+      const pnsPct = d.total > 0 ? (d.pns / d.total) * 100 : 0;
+      const pppkPct = d.total > 0 ? (d.pppk / d.total) * 100 : 0;
+      const pwPct = d.total > 0 ? (d.pw / d.total) * 100 : 0;
+      const nonAsnPct = d.total > 0 ? (d.nonAsn / d.total) * 100 : 0;
+
+      // Tooltip informatif saat hover
+      const tooltip = `${bulanShort[m-1]} ${selectedPensiunYear} (Total: ${d.total})\n• PNS: ${d.pns}\n• PPPK: ${d.pppk}\n• PPPK PW: ${d.pw}\n• Non ASN: ${d.nonAsn}`;
 
       html += `
-        <div class="pensiun-bar-col ${isSel ? 'selected' : ''}" onclick="selectPensiunMonth(${m})" title="${bulanShort[m-1]} ${selectedPensiunYear}: ${count} Orang (Klik untuk filter)">
-          <div class="pensiun-bar-value">${count > 0 ? count : ''}</div>
+        <div class="pensiun-bar-col ${isSel ? 'selected' : ''}" onclick="selectPensiunMonth(${m})" title="${tooltip}">
+          <div class="pensiun-bar-value">${d.total > 0 ? d.total : ''}</div>
           <div class="pensiun-bar-track">
-            <div class="pensiun-bar" style="height: ${barHeight}%;"></div>
+            ${d.total > 0 ? `
+              <div class="pensiun-bar-wrapper" style="height: ${totalBarHeightPx}px; width: 100%; display: flex; flex-direction: column-reverse; overflow: hidden; border-radius: 5px 5px 0 0;">
+                ${d.pns > 0 ? `<div class="pensiun-bar-segment segment-pns" style="height: ${pnsPct}%;" title="PNS: ${d.pns}"></div>` : ''}
+                ${d.pppk > 0 ? `<div class="pensiun-bar-segment segment-pppk" style="height: ${pppkPct}%;" title="PPPK: ${d.pppk}"></div>` : ''}
+                ${d.pw > 0 ? `<div class="pensiun-bar-segment segment-pw" style="height: ${pwPct}%;" title="PPPK PW: ${d.pw}"></div>` : ''}
+                ${d.nonAsn > 0 ? `<div class="pensiun-bar-segment segment-nonasn" style="height: ${nonAsnPct}%;" title="Non ASN: ${d.nonAsn}"></div>` : ''}
+              </div>
+            ` : ''}
           </div>
           <div class="pensiun-bar-label">${bulanShort[m-1]}</div>
         </div>
@@ -1702,9 +1757,17 @@
 
     let html = '';
     list.forEach((p, idx) => {
-      const statusBadge = p.status === 'PNS' 
-        ? '<span class="badge" style="background:#fee2e2; color:#991b1b; font-weight:700;">PNS</span>'
-        : `<span class="badge" style="background:#dcfce7; color:#166534; font-weight:700;">${escapeHtml(p.status)}</span>`;
+      let statusBadge = '';
+      const s = p.status || 'Non-ASN';
+      if (s === 'PNS' || s === 'CPNS') {
+        statusBadge = `<span class="badge" style="background:#fee2e2; color:#991b1b; font-weight:700;">${escapeHtml(s)}</span>`;
+      } else if (s === 'PPPK') {
+        statusBadge = '<span class="badge" style="background:#dcfce7; color:#166534; font-weight:700;">PPPK</span>';
+      } else if (s === 'PW') {
+        statusBadge = '<span class="badge" style="background:#f3e8ff; color:#7e22ce; font-weight:700;">PPPK PW</span>';
+      } else {
+        statusBadge = '<span class="badge" style="background:#fef3c7; color:#92400e; font-weight:700;">Non ASN</span>';
+      }
 
       html += `
         <tr>
