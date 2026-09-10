@@ -222,7 +222,10 @@ function getDashboardData(forceRefresh) {
   
   for (let i = 1; i < unitValues.length; i++) {
     const row = unitValues[i];
-    const npsn = String(row[npsnColIdx] || '').trim();
+    let rawNpsn = String(row[npsnColIdx] || '').trim();
+    if (rawNpsn.includes('.')) rawNpsn = rawNpsn.split('.')[0];
+    const cleanNpsn = rawNpsn.replace(/[^0-9]/g, '');
+    const npsn = cleanNpsn || rawNpsn;
     const namaSekolah = String(row[unitKerjaColIdx] || '').trim();
     let kecamatan = String(row[kecColIdx] || '').trim();
     
@@ -700,26 +703,22 @@ function getPTKDetailSekolah(npsn, namaSekolah) {
 
     const targetName = String(namaSekolah || '').trim().toUpperCase();
     const cleanTargetName = cleanSchoolNameForMatch(targetName);
-    
+    const hasValidNpsn = (targetNpsnDigits && targetNpsnDigits.length >= 6);
+
     const filtered = allPTK.filter(item => {
       const itemNpsnDigits = String(item.npsn || '').replace(/[^0-9]/g, '');
       
-      // 1. Cocokkan berdasarkan digit NPSN jika valid (misal 8 digit)
-      if (targetNpsnDigits && targetNpsnDigits.length >= 6 && itemNpsnDigits) {
-        if (itemNpsnDigits === targetNpsnDigits) return true;
+      // JIKA target memiliki NPSN valid (misal 8 digit),
+      // WAJIB cocokkan HANYA berdasarkan NPSN agar tidak tercampur dengan sekolah lain yang bernama mirip!
+      if (hasValidNpsn) {
+        return itemNpsnDigits === targetNpsnDigits;
       }
       
-      // 2. Cocokkan string NPSN mentah jika bukan '-'
-      if (targetNpsnRaw && targetNpsnRaw !== '-' && item.npsn) {
-        if (item.npsn === targetNpsnRaw) return true;
-      }
-      
-      // 3. Cocokkan berdasarkan unitKerja persis
+      // JIKA TIDAK MEMILIKI NPSN (misal '-' atau kosong), baru fallback ke nama sekolah
       if (targetName && item.unitKerja) {
         const itemUnitUpper = item.unitKerja.toUpperCase().trim();
         if (itemUnitUpper === targetName) return true;
         
-        // 4. Cocokkan nama sekolah yang sudah dinormalisasi (SDN GRABAG 1 vs SD NEGERI GRABAG 1)
         if (cleanTargetName && cleanSchoolNameForMatch(itemUnitUpper) === cleanTargetName) {
           return true;
         }
