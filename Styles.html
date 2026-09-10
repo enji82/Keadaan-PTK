@@ -364,6 +364,21 @@
     font-size: 0.825rem;
     font-weight: 400;
     line-height: 1.4;
+    white-space: nowrap; /* Kolom angka/status/wilayah otomatis ringkas menyesuaikan isi */
+  }
+
+  /* Kolom Nama Sekolah Dinamis & Proporsional */
+  table.data-table th.th-sekolah,
+  table.data-table td.col-sekolah {
+    white-space: normal !important; /* Memungkinkan teks nama sekolah tertata rapi */
+    min-width: 260px; /* Batas minimum nyaman agar nama sekolah tidak melipat ke 3 baris */
+    max-width: 380px;
+    word-break: break-word;
+  }
+
+  table.data-table td.col-sekolah div:first-child {
+    font-size: 0.84rem;
+    line-height: 1.35;
   }
 
   table.data-table tbody tr:hover {

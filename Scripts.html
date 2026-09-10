@@ -474,7 +474,7 @@
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
-            <th rowspan="2" style="vertical-align: middle;">Nama Sekolah</th>
+            <th rowspan="2" class="th-sekolah" style="vertical-align: middle;">Nama Sekolah</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
@@ -531,7 +531,7 @@
           html += `
             <tr>
               <td class="text-center">${idx + 1}</td>
-              <td>
+              <td class="col-sekolah">
                 <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sd.namaSekolah)}</div>
                 <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sd.npsn)}</div>
               </td>
@@ -578,7 +578,7 @@
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
-            <th rowspan="2" style="vertical-align: middle;">Nama Sekolah</th>
+            <th rowspan="2" class="th-sekolah" style="vertical-align: middle;">Nama Sekolah</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
@@ -618,7 +618,7 @@
           html += `
             <tr>
               <td class="text-center">${idx + 1}</td>
-              <td>
+              <td class="col-sekolah">
                 <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sd.namaSekolah)}</div>
                 <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sd.npsn)}</div>
               </td>
@@ -816,8 +816,10 @@
       html += `
         <tr>
           <td class="text-center">${idx + 1}</td>
-          <td><code>${escapeHtml(sch.npsn)}</code></td>
-          <td><strong>${escapeHtml(sch.namaSekolah)}</strong></td>
+          <td class="col-sekolah">
+            <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
+            <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
+          </td>
           <td class="text-center">${badgeJenjang}</td>
           <td>${escapeHtml(sch.kecamatan)}</td>
           <td class="text-center">${formatNumber(sch.guruCount)}</td>
@@ -838,7 +840,7 @@
       `;
     });
 
-    tbody.innerHTML = html || '<tr><td colspan="15" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
   }
 
   function applyFilters() {
