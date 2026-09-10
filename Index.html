@@ -51,9 +51,9 @@
         <div class="filter-item" id="wrapFilterJenjang">
           <label for="filterJenjang">Jenjang Pendidikan</label>
           <select id="filterJenjang" class="form-select" onchange="applyFilters()">
-            <option value="ALL">Semua Jenjang (SD & SMP)</option>
-            <option value="SD">SD</option>
+            <option value="SD" selected>SD</option>
             <option value="SMP">SMP</option>
+            <option value="ALL">Semua Jenjang</option>
           </select>
         </div>
 
@@ -73,13 +73,6 @@
             <option value="PAS">Hanya yang Pas (0)</option>
             <option value="LEBIH">Hanya yang Lebih Guru (&gt; 0)</option>
           </select>
-        </div>
-      </div>
-
-      <div class="filters-group">
-        <div class="filter-item" style="flex: 1;">
-          <label for="searchSekolah">Pencarian Satuan Pendidikan</label>
-          <input type="text" id="searchSekolah" class="form-input" placeholder="Cari nama sekolah atau NPSN..." oninput="applyFilters()" style="min-width: 250px;">
         </div>
       </div>
     </div>

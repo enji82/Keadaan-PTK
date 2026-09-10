@@ -202,7 +202,8 @@
 
     const filterKec = document.getElementById('filterKecamatan').value;
     const filterStatus = document.getElementById('filterStatusKebutuhan').value;
-    const searchVal = document.getElementById('searchSekolah').value.toLowerCase().trim();
+    const searchEl = document.getElementById('searchSekolah');
+    const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
 
     // Kamus Label Formasi
     const formasiConfig = {
@@ -799,7 +800,8 @@
 
     const filterJenjang = document.getElementById('filterJenjang').value;
     const filterKec = document.getElementById('filterKecamatan').value;
-    const searchVal = document.getElementById('searchSekolah').value.toLowerCase().trim();
+    const searchEl = document.getElementById('searchSekolah');
+    const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
 
     const filtered = list.filter(sch => {
       if (filterJenjang !== 'ALL' && sch.jenjang !== filterJenjang) return false;
