@@ -1803,7 +1803,28 @@
     const mainTitle = `PROYEKSI PENSIUN SD NEGERI TAHUN ${selectedPensiunYear} - WILAYAH ${filterKec.toUpperCase()}`;
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
-    const ws = XLSX.utils.table_to_sheet(table, { origin: "A4", raw: false });
+    // Clone tabel agar dapat memanipulasi format cell sebelum diekspor
+    const clone = table.cloneNode(true);
+
+    const ws = XLSX.utils.table_to_sheet(clone, { origin: "A4", raw: false });
+
+    // Format kolom C (NIP) secara eksplisit sebagai teks string ('s') agar tidak menjadi scientific notation (misal 1.9661E+17)
+    // Range worksheet dimulai dari baris 4 (header) s/d data terakhir
+    if (ws['!ref']) {
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      // Kolom C adalah index 2 (A=0, B=1, C=2)
+      for (let R = 4; R <= range.e.r; ++R) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: 2 });
+        const cell = ws[cellAddress];
+        if (cell && cell.v !== undefined && cell.v !== null) {
+          const strVal = String(cell.v).trim();
+          cell.t = 's'; // tipe string teks
+          cell.v = strVal;
+          cell.w = strVal;
+          cell.z = '@'; // format text
+        }
+      }
+    }
 
     XLSX.utils.sheet_add_aoa(ws, [
       [mainTitle],
