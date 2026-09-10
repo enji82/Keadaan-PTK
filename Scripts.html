@@ -964,7 +964,7 @@
   }
 
   /**
-   * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru SD
+   * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru SD dengan Judul Tabel Dinamis
    */
   function exportTableKebutuhanSDToExcel() {
     const table = document.getElementById('tableKebutuhanSD');
@@ -972,26 +972,59 @@
 
     const filterKec = document.getElementById('filterKecamatan').value;
     const formasiLabelMap = {
-      'ALL': 'Semua_Guru_SD',
-      'KS': 'Kepala_Sekolah',
-      'GURU_KELAS': 'Guru_Kelas',
-      'GURU_PAI': 'Guru_PAI',
-      'GURU_PJOK': 'Guru_PJOK',
-      'GURU_KRISTEN': 'Guru_PA_Kristen',
-      'GURU_KATOLIK': 'Guru_PA_Katolik',
-      'MATRIX': 'Matriks_Semua'
+      'ALL': 'Semua Guru SD (Total)',
+      'KS': 'Kepala Sekolah',
+      'GURU_KELAS': 'Guru Kelas',
+      'GURU_PAI': 'Guru PAI',
+      'GURU_PJOK': 'Guru PJOK',
+      'GURU_KRISTEN': 'Guru PA Kristen',
+      'GURU_KATOLIK': 'Guru PA Katolik',
+      'MATRIX': 'Matriks Semua Formasi'
     };
-    const fLabel = formasiLabelMap[activeFormasiToggle] || activeFormasiToggle;
+    const fTitle = formasiLabelMap[activeFormasiToggle] || activeFormasiToggle;
+    const isSekolahMode = (currentKebutuhanMode === 'SEKOLAH' && filterKec !== 'ALL');
 
-    let fileName = '';
-    if (currentKebutuhanMode === 'SEKOLAH' && filterKec !== 'ALL') {
-      fileName = `Kebutuhan_Guru_SD_${fLabel}_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`;
-    } else {
-      fileName = `Kebutuhan_Guru_SD_${fLabel}_Per_Kecamatan.xlsx`;
+    // Buat Judul Dokumen Excel
+    const mainTitle = isSekolahMode 
+      ? `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU SD (${fTitle.toUpperCase()}) - KECAMATAN ${filterKec.toUpperCase()}`
+      : `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU SD (${fTitle.toUpperCase()}) - REKAP PER KECAMATAN`;
+    
+    const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+
+    // Salin tabel ke elemen virtual untuk dibersihkan (misal hapus tombol Aksi PTK)
+    const cloneTable = table.cloneNode(true);
+    if (isSekolahMode) {
+      // Hapus kolom terakhir (kolom Aksi) pada thead, tbody, dan tfoot
+      const allRows = cloneTable.querySelectorAll('tr');
+      allRows.forEach(row => {
+        const lastCell = row.lastElementChild;
+        if (lastCell && (lastCell.tagName === 'TH' || lastCell.tagName === 'TD')) {
+          const text = lastCell.textContent.trim();
+          if (text.includes('Aksi') || text.includes('PTK') || text === '-') {
+            lastCell.remove();
+          }
+        }
+      });
     }
 
-    const sheetName = (currentKebutuhanMode === 'SEKOLAH' && filterKec !== 'ALL') ? filterKec.substring(0, 30) : "Kebutuhan SD";
-    const wb = XLSX.utils.table_to_book(table, { sheet: sheetName });
+    // Buat worksheet dari tabel HTML mulai dari baris ke-4 (origin: A4)
+    const ws = XLSX.utils.table_to_sheet(cloneTable, { origin: "A4" });
+
+    // Tambahkan Judul di baris paling atas (A1 dan A2)
+    XLSX.utils.sheet_add_aoa(ws, [
+      [mainTitle],
+      [subTitle],
+      [] // baris kosong pemisah
+    ], { origin: "A1" });
+
+    const fFileSlug = fTitle.replace(/[^A-Za-z0-9]/g, '_');
+    const fileName = isSekolahMode 
+      ? `Kebutuhan_Guru_SD_${fFileSlug}_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`
+      : `Kebutuhan_Guru_SD_${fFileSlug}_Per_Kecamatan.xlsx`;
+
+    const sheetName = isSekolahMode ? filterKec.substring(0, 30) : "Kebutuhan Guru SD";
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
     XLSX.writeFile(wb, fileName);
   }
 
@@ -1002,20 +1035,33 @@
     }
 
     let tableId = 'tableKecamatan';
+    let mainTitle = 'REKAPITULASI PTK PER KECAMATAN';
     let fileName = 'Rekap_PTK_Kecamatan.xlsx';
 
     if (activeTab === 'jenjang') {
       tableId = 'tableJenjang';
+      mainTitle = 'REKAPITULASI PTK PER JENJANG PENDIDIKAN';
       fileName = 'Rekap_PTK_Jenjang.xlsx';
     } else if (activeTab === 'sekolah') {
       tableId = 'tableSekolah';
+      mainTitle = 'REKAPITULASI PTK PER SEKOLAH';
       fileName = 'Rekap_PTK_Per_Sekolah.xlsx';
     }
 
     const table = document.getElementById(tableId);
     if (!table) return;
 
-    const wb = XLSX.utils.table_to_book(table, { sheet: "Data" });
+    const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+    const ws = XLSX.utils.table_to_sheet(table, { origin: "A4" });
+
+    XLSX.utils.sheet_add_aoa(ws, [
+      [mainTitle],
+      [subTitle],
+      []
+    ], { origin: "A1" });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap Data");
     XLSX.writeFile(wb, fileName);
   }
 
