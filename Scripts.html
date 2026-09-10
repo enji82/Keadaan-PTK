@@ -587,7 +587,6 @@
             <th rowspan="2" class="text-center col-selisih" style="vertical-align: middle;">+/-</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
           </tr>
           <tr>
             <th class="text-center col-keadaan">PNS</th>
@@ -633,16 +632,11 @@
               <td class="text-center col-selisih">${renderBadgeSelisih(f.selisih)}</td>
               <td class="text-center col-nonasn">${formatNumber(f.nonAsnOld)}</td>
               <td class="text-center col-nonasn">${formatNumber(f.nonAsnNew)}</td>
-              <td class="text-center">
-                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sd.npsn)}', '${escapeQuote(sd.namaSekolah)}')">
-                  👁️ Pegawai
-                </button>
-              </td>
             </tr>
           `;
         });
 
-        tbody.innerHTML = html || `<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
         tfoot.innerHTML = `
           <tr>
             <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
@@ -656,7 +650,6 @@
             <th class="text-center col-selisih">${renderBadgeSelisih(sumSelisih)}</th>
             <th class="text-center col-nonasn">${formatNumber(sumNonOld)}</th>
             <th class="text-center col-nonasn">${formatNumber(sumNonNew)}</th>
-            <th class="text-center">-</th>
           </tr>
         `;
       }
@@ -831,16 +824,11 @@
           <td class="text-center"><span class="badge badge-nonasn-old">${formatNumber(sch.nonAsnOldCount)}</span></td>
           <td class="text-center"><span class="badge badge-nonasn-new">${formatNumber(sch.nonAsnNewCount)}</span></td>
           <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(sch.ptkCount)}</td>
-          <td class="text-center">
-            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
-              👁️ Pegawai
-            </button>
-          </td>
         </tr>
       `;
     });
 
-    tbody.innerHTML = html || '<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="13" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
   }
 
   function applyFilters() {

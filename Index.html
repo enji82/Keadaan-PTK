@@ -87,16 +87,16 @@
     <!-- TABS NAVIGASI UTAMA -->
     <div class="tabs-nav">
       <button class="tab-btn active" id="tabBtnKebutuhanSD" onclick="switchTab('kebutuhanSD')">
-        🎯 1. Kebutuhan Guru SD (Formasi)
+        1. Kebutuhan Guru SD
       </button>
       <button class="tab-btn" id="tabBtnKecamatan" onclick="switchTab('kecamatan')">
-        📍 2. Rekap Per Kecamatan
+        2. Rekap Per Kecamatan
       </button>
       <button class="tab-btn" id="tabBtnJenjang" onclick="switchTab('jenjang')">
-        🏫 3. Rekap Per Jenjang
+        3. Rekap Per Jenjang
       </button>
       <button class="tab-btn" id="tabBtnSekolah" onclick="switchTab('sekolah')">
-        🏢 4. Rekap Per Sekolah
+        4. Rekap Per Sekolah
       </button>
     </div>
 
@@ -327,7 +327,6 @@
         <div class="card-header-bar">
           <div>
             <h2>Tabel Rekapitulasi PTK per Satuan Pendidikan</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Klik tombol <strong>Detail Pegawai</strong> pada salah satu baris untuk melihat nama-nama personil</p>
           </div>
           <span id="labelTotalSekolahFiltered" style="font-size: 0.85rem; font-weight: 600; color: var(--primary);"></span>
         </div>
@@ -348,7 +347,6 @@
                 <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
                 <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
                 <th class="text-center" style="background-color: #f1f5f9;">Total PTK</th>
-                <th class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody id="tbodySekolah"></tbody>
