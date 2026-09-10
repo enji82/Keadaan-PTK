@@ -671,5 +671,234 @@
     .modal-footer {
       padding: 10px 14px;
     }
+  /* ==========================================================================
+     STYLING TAB 3: PROYEKSI PENSIUN SD
+     ========================================================================== */
+  .pensiun-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .pensiun-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pensiun-title-indicator {
+    width: 5px;
+    height: 22px;
+    background: #881337;
+    border-radius: 3px;
+  }
+
+  .pensiun-title-wrap h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #881337;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .pensiun-year-switcher {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .pensiun-year-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pensiun-year-btn:hover {
+    color: #881337;
+    background: rgba(136, 19, 55, 0.06);
+  }
+
+  .pensiun-year-btn.active {
+    background: #881337;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  .pensiun-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 640px) {
+    .pensiun-kpi-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pensiun-card-year {
+    border-left: 4px solid #be123c;
+  }
+
+  .pensiun-card-month {
+    border-left: 4px solid #d97706;
+  }
+
+  .text-rose {
+    color: #be123c !important;
+  }
+
+  .text-amber {
+    color: #d97706 !important;
+  }
+
+  /* Timeline Bar Chart */
+  .pensiun-chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+  }
+
+  .pensiun-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px;
+  }
+
+  .pensiun-chart-header h3 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #881337;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .pensiun-chart-body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+    height: 180px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+  }
+
+  .pensiun-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s;
+  }
+
+  .pensiun-bar-col:hover {
+    transform: translateY(-2px);
+  }
+
+  .pensiun-bar-col.selected .pensiun-bar {
+    background: #4c0519 !important;
+    box-shadow: 0 0 0 3px rgba(136, 19, 55, 0.25);
+  }
+
+  .pensiun-bar-col.selected .pensiun-bar-label {
+    font-weight: 800;
+    color: #881337;
+  }
+
+  .pensiun-bar-value {
+    font-size: 0.76rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #881337;
+  }
+
+  .pensiun-bar-track {
+    width: 100%;
+    max-width: 44px;
+    height: 140px;
+    background: #f8fafc;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+
+  .pensiun-bar {
+    width: 100%;
+    background: #881337;
+    border-radius: 5px 5px 0 0;
+    min-height: 0px;
+    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .pensiun-bar-label {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* Accordion Button & Table */
+  .pensiun-toggle-btn {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #881337;
+    color: #881337;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    transition: all 0.2s ease;
+  }
+
+  .pensiun-toggle-btn:hover {
+    background: #fff1f2;
+  }
+
+  .pensiun-table thead th {
+    background-color: #fef3c7 !important;
+    color: #78350f !important;
+    border-bottom: 2px solid #fde68a !important;
+    font-weight: 700;
+    font-size: 0.77rem;
+    letter-spacing: 0.02em;
+  }
+
+  .pensiun-table tbody tr:hover td {
+    background-color: #fff1f2 !important;
   }
 </style>

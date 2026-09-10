@@ -9,6 +9,12 @@
   let activeKeadaanRoleToggle = 'ALL'; // 'ALL','KS','GURU_KELAS','GURU_PJOK','GURU_PAI','GURU_KRISTEN','GURU_KATOLIK','GURU_INGGRIS','GURU_LAIN','OP_LAYANAN','PENGELOLA_LAYANAN','PENATA_LAYANAN','PENGELOLA_UMUM','TENDIK_LAIN'
   let currentKeadaanMode = 'KECAMATAN'; // 'KECAMATAN' atau 'SEKOLAH'
 
+  // State Khusus Tab 3: Proyeksi Pensiun SD
+  let currentYear = new Date().getFullYear();
+  let selectedPensiunYear = currentYear; // Default: Tahun ini
+  let selectedPensiunMonth = null; // null = semua bulan di tahun terpilih, 1..12 = bulan tertentu
+  let isPensiunTableVisible = true;
+
   document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData(false);
   });
@@ -40,6 +46,7 @@
     renderCardsFormasiSD();
     renderTabKebutuhanSD();
     renderTabKeadaanSD();
+    renderTabPensiunSD();
   }
 
   function handleDataError(err) {
@@ -1246,6 +1253,7 @@
     renderKPIUmum();
     renderTabKebutuhanSD();
     renderTabKeadaanSD();
+    renderTabPensiunSD();
   }
 
   function switchTab(tabKey) {
@@ -1269,6 +1277,13 @@
       if (pane) pane.classList.add('active');
       if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
       renderTabKeadaanSD();
+    } else if (tabKey === 'pensiunSD') {
+      const btn = document.getElementById('tabBtnPensiunSD');
+      const pane = document.getElementById('tabPensiunSD');
+      if (btn) btn.classList.add('active');
+      if (pane) pane.classList.add('active');
+      if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
+      renderTabPensiunSD();
     }
   }
 
@@ -1477,7 +1492,255 @@
       exportTableKebutuhanSDToExcel();
     } else if (activeTab === 'keadaanSD') {
       exportTableKeadaanSDToExcel();
+    } else if (activeTab === 'pensiunSD') {
+      exportTablePensiunSDToExcel();
     }
+  }
+
+  /* ==========================================================================
+     FUNGSI TAB 3: PROYEKSI PENSIUN SD
+     ========================================================================== */
+
+  /**
+   * Mengubah pilihan tahun pensiun
+   */
+  function setPensiunYear(year) {
+    selectedPensiunYear = parseInt(year);
+    selectedPensiunMonth = null; // Reset filter bulan saat tahun diganti
+    renderTabPensiunSD();
+  }
+
+  /**
+   * Mengubah filter bulan pensiun saat bar bulan diklik
+   */
+  function selectPensiunMonth(month) {
+    if (selectedPensiunMonth === month) {
+      selectedPensiunMonth = null; // Toggle off jika diklik ulang
+    } else {
+      selectedPensiunMonth = month;
+    }
+    renderTabPensiunSD();
+  }
+
+  /**
+   * Toggle Accordion Tabel Pensiun
+   */
+  function togglePensiunTable() {
+    isPensiunTableVisible = !isPensiunTableVisible;
+    const wrap = document.getElementById('wrapPensiunTable');
+    const label = document.getElementById('labelTogglePensiunTable');
+    if (wrap) wrap.style.display = isPensiunTableVisible ? 'block' : 'none';
+    if (label) label.textContent = isPensiunTableVisible ? 'Sembunyikan Daftar Nama Pensiun' : 'Tampilkan Daftar Nama Pensiun';
+  }
+
+  /**
+   * Render Utama Tab 3: Proyeksi Pensiun SD
+   */
+  function renderTabPensiunSD() {
+    if (!rawData) return;
+
+    const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
+    let list = (rawData.pensiunSD || []).slice();
+
+    // Filter Wilayah Kecamatan (Filter Utama)
+    if (filterKec !== 'ALL') {
+      list = list.filter(p => p.kecamatan === filterKec);
+    }
+
+    // 1. Render Tombol Pilihan Tahun (Dinamis Rentang 5 Tahun: Tahun Ini s/d +4 Tahun)
+    renderPensiunYearButtons();
+
+    // 2. Filter Data Berdasarkan Tahun Terpilih
+    const yearList = list.filter(p => p.pensiunTahun === selectedPensiunYear);
+
+    // Hitung Breakdown Tahun Terpilih
+    const yearGuruKs = yearList.filter(p => p.isGuruKs).length;
+    const yearTendik = yearList.length - yearGuruKs;
+
+    // Update KPI Card 1 (Tahun)
+    const elYearTitle = document.getElementById('kpiPensiunYearTitle');
+    const elYearCount = document.getElementById('kpiPensiunYearCount');
+    const elYearDetail = document.getElementById('kpiPensiunYearDetail');
+    if (elYearTitle) elYearTitle.textContent = `PENSIUN TAHUN ${selectedPensiunYear}`;
+    if (elYearCount) elYearCount.textContent = formatNumber(yearList.length);
+    if (elYearDetail) elYearDetail.textContent = `Guru/KS: ${formatNumber(yearGuruKs)} | Tendik: ${formatNumber(yearTendik)}`;
+
+    // 3. Tentukan Bulan untuk KPI Card 2
+    // Jika ada bulan yang dipilih dari bar chart, gunakan bulan tersebut.
+    // Jika tidak, jika tahun terpilih == tahun ini, gunakan bulan berjalan saat ini. Jika tahun lain, gunakan bulan pertama yang ada pensiun atau Januari.
+    const now = new Date();
+    const currentMonthNum = now.getMonth() + 1; // 1-12
+    const targetMonth = selectedPensiunMonth !== null ? selectedPensiunMonth : (selectedPensiunYear === now.getFullYear() ? currentMonthNum : 1);
+
+    const bulanIndo = [
+      '', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI',
+      'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'
+    ];
+
+    const monthList = yearList.filter(p => p.pensiunBulan === targetMonth);
+    const monthGuruKs = monthList.filter(p => p.isGuruKs).length;
+    const monthTendik = monthList.length - monthGuruKs;
+
+    // Update KPI Card 2 (Bulan)
+    const elMonthTitle = document.getElementById('kpiPensiunMonthTitle');
+    const elMonthCount = document.getElementById('kpiPensiunMonthCount');
+    const elMonthDetail = document.getElementById('kpiPensiunMonthDetail');
+    if (elMonthTitle) elMonthTitle.textContent = `PENSIUN BULAN ${bulanIndo[targetMonth]} ${selectedPensiunYear}`;
+    if (elMonthCount) elMonthCount.textContent = formatNumber(monthList.length);
+    if (elMonthDetail) elMonthDetail.textContent = `Guru/KS: ${formatNumber(monthGuruKs)} | Tendik: ${formatNumber(monthTendik)}`;
+
+    // 4. Render Timeline Bar Chart Bulanan
+    renderPensiunBarChart(yearList);
+
+    // 5. Render Tabel Daftar Nama Pensiun
+    // Jika user mengklik bar bulan tertentu, filter daftar nama ke bulan tersebut.
+    // Jika tidak ada bar bulan yang diklik, tampilkan seluruh personil yang pensiun di tahun terpilih.
+    const tableList = selectedPensiunMonth !== null 
+      ? yearList.filter(p => p.pensiunBulan === selectedPensiunMonth)
+      : yearList;
+
+    renderPensiunTable(tableList);
+  }
+
+  /**
+   * Render Tombol Rentang 5 Tahun Pensiun Secara Dinamis
+   */
+  function renderPensiunYearButtons() {
+    const container = document.getElementById('pensiunYearButtons');
+    if (!container) return;
+
+    const baseYear = new Date().getFullYear();
+    const years = [baseYear, baseYear + 1, baseYear + 2, baseYear + 3, baseYear + 4];
+
+    let html = '';
+    years.forEach((yr, idx) => {
+      const isAct = yr === selectedPensiunYear;
+      let label = yr.toString();
+      if (idx === 0) label = `Tahun Ini (${yr})`;
+      else if (idx === 1) label = `Tahun Depan (${yr})`;
+
+      html += `<button class="pensiun-year-btn ${isAct ? 'active' : ''}" onclick="setPensiunYear(${yr})">${label}</button>`;
+    });
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Render Bar Chart Bulanan (Jan - Des)
+   */
+  function renderPensiunBarChart(yearList) {
+    const container = document.getElementById('pensiunChartBars');
+    const titleEl = document.getElementById('pensiunChartTitle');
+    if (titleEl) titleEl.textContent = `TIMELINE PENSIUN PER BULAN (${selectedPensiunYear})`;
+    if (!container) return;
+
+    const bulanShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    
+    // Hitung per bulan (1 - 12)
+    const counts = new Array(13).fill(0);
+    yearList.forEach(p => {
+      if (p.pensiunBulan >= 1 && p.pensiunBulan <= 12) {
+        counts[p.pensiunBulan]++;
+      }
+    });
+
+    const maxCount = Math.max(...counts.slice(1), 1);
+
+    let html = '';
+    for (let m = 1; m <= 12; m++) {
+      const count = counts[m];
+      const isSel = (selectedPensiunMonth === m);
+      const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
+      const barHeight = count > 0 ? Math.max(pct, 12) : 0;
+
+      html += `
+        <div class="pensiun-bar-col ${isSel ? 'selected' : ''}" onclick="selectPensiunMonth(${m})" title="${bulanShort[m-1]} ${selectedPensiunYear}: ${count} Orang (Klik untuk filter)">
+          <div class="pensiun-bar-value">${count > 0 ? count : ''}</div>
+          <div class="pensiun-bar-track">
+            <div class="pensiun-bar" style="height: ${barHeight}%;"></div>
+          </div>
+          <div class="pensiun-bar-label">${bulanShort[m-1]}</div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Render Tabel Daftar Nama Pensiun
+   */
+  function renderPensiunTable(list) {
+    const tbody = document.getElementById('tbodyPensiunList');
+    if (!tbody) return;
+
+    if (!list || list.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="text-center" style="padding: 24px; color: var(--text-muted);">
+            Tidak ada proyeksi pensiun ASN pada periode/filter ini.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    // Urutkan berdasarkan bulan pensiun, lalu nama
+    list.sort((a, b) => {
+      if (a.pensiunBulan !== b.pensiunBulan) return a.pensiunBulan - b.pensiunBulan;
+      return a.nama.localeCompare(b.nama);
+    });
+
+    let html = '';
+    list.forEach((p, idx) => {
+      const statusBadge = p.status === 'PNS' 
+        ? '<span class="badge" style="background:#fee2e2; color:#991b1b; font-weight:700;">PNS</span>'
+        : `<span class="badge" style="background:#dcfce7; color:#166534; font-weight:700;">${escapeHtml(p.status)}</span>`;
+
+      html += `
+        <tr>
+          <td class="text-center" style="font-weight: 600;">${idx + 1}</td>
+          <td style="font-weight: 700; color: var(--secondary);">${escapeHtml(p.nama)}</td>
+          <td style="font-family: monospace; font-size: 0.85rem;">${escapeHtml(p.nip)}</td>
+          <td>${escapeHtml(p.unitKerja)}</td>
+          <td>${escapeHtml(p.jabatan)}</td>
+          <td class="text-center">${statusBadge}</td>
+          <td class="text-center">${escapeHtml(p.tglLahir)}</td>
+          <td class="text-center" style="font-weight: 700;">${p.bup}</td>
+          <td class="text-center" style="font-weight: 700; color: #881337;">${escapeHtml(p.pensiunTmt)}</td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  /**
+   * Ekspor Tabel Proyeksi Pensiun ke Excel
+   */
+  function exportTablePensiunSDToExcel() {
+    const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
+    const table = document.querySelector('.pensiun-table');
+    if (!table) {
+      alert('Tabel proyeksi pensiun tidak ditemukan.');
+      return;
+    }
+
+    const mainTitle = `PROYEKSI PENSIUN SD NEGERI TAHUN ${selectedPensiunYear} - WILAYAH ${filterKec.toUpperCase()}`;
+    const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+
+    const ws = XLSX.utils.table_to_sheet(table, { origin: "A4", raw: false });
+
+    XLSX.utils.sheet_add_aoa(ws, [
+      [mainTitle],
+      [subTitle],
+      []
+    ], { origin: "A1" });
+
+    const fileName = `Proyeksi_Pensiun_SD_${selectedPensiunYear}_${filterKec.replace(/\s+/g, '_')}.xlsx`;
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pensiun SD");
+    XLSX.writeFile(wb, fileName);
   }
 
 

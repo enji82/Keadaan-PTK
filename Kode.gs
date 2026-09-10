@@ -201,6 +201,92 @@ function emptyTugasCount() {
 }
 
 /**
+ * Helper menghitung Tanggal Lahir, BUP, dan TMT Pensiun ASN
+ * - Tanggal lahir diambil dari Kolom H (jika ada), atau fallback 8 digit awal NIP
+ * - BUP: Guru & Kepala Sekolah = 60 tahun, Tendik/Lainnya = 58 tahun
+ * - Pensiun: Tanggal 1 bulan berikutnya setelah mencapai BUP
+ */
+function parseBirthDateAndRetirement(rawTglLahir, rawNip, rawTugas) {
+  let birthDate = null;
+
+  // 1. Coba baca dari Kolom H (rawTglLahir)
+  if (rawTglLahir instanceof Date && !isNaN(rawTglLahir.getTime())) {
+    birthDate = rawTglLahir;
+  } else if (rawTglLahir) {
+    const s = String(rawTglLahir).trim();
+    if (s) {
+      // Cek format DD/MM/YYYY atau DD-MM-YYYY
+      const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (dmy) {
+        birthDate = new Date(parseInt(dmy[3]), parseInt(dmy[2]) - 1, parseInt(dmy[1]));
+      } else {
+        // Cek format YYYY-MM-DD
+        const ymd = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+        if (ymd) {
+          birthDate = new Date(parseInt(ymd[1]), parseInt(ymd[2]) - 1, parseInt(ymd[3]));
+        } else {
+          const parsed = new Date(s);
+          if (!isNaN(parsed.getTime())) birthDate = parsed;
+        }
+      }
+    }
+  }
+
+  // 2. Fallback: Ekstrak dari 8 digit awal NIP jika valid (YYYYMMDD)
+  if (!birthDate && rawNip) {
+    const sNip = String(rawNip).replace(/[^0-9]/g, '');
+    if (sNip.length >= 8) {
+      const year = parseInt(sNip.substring(0, 4));
+      const month = parseInt(sNip.substring(4, 6)) - 1;
+      const day = parseInt(sNip.substring(6, 8));
+      if (year >= 1940 && year <= 2010 && month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+        birthDate = new Date(year, month, day);
+      }
+    }
+  }
+
+  if (!birthDate || isNaN(birthDate.getTime())) return null;
+
+  const tglLahirFormatted = Utilities.formatDate(birthDate, 'Asia/Jakarta', 'dd/MM/yyyy');
+  const birthYear = birthDate.getFullYear();
+  const birthMonth = birthDate.getMonth(); // 0 - 11
+
+  // 3. Tentukan BUP (Batas Usia Pensiun)
+  const t = String(rawTugas || '').toUpperCase();
+  const isGuruKs = t.includes('GURU') || t.includes('KEPALA') || t.includes('KS') || t.includes('PENDIDIK');
+  const bup = isGuruKs ? 60 : 58;
+
+  // 4. Hitung TMT Pensiun: Tanggal 1 bulan berikutnya setelah mencapai usia BUP
+  // Contoh: Lahir 12 Oktober 1966 + 60 thn = 12 Oktober 2026 -> Pensiun 1 November 2026
+  let pensiunYear = birthYear + bup;
+  let pensiunMonth = birthMonth + 1; // 0-based month + 1
+  if (pensiunMonth > 11) {
+    pensiunMonth = 0;
+    pensiunYear += 1;
+  }
+
+  const bulanIndo = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+
+  const bulanNama = bulanIndo[pensiunMonth];
+  const tmtPensiun = `1 ${bulanNama} ${pensiunYear}`;
+
+  return {
+    tglLahirFormatted: tglLahirFormatted,
+    pensiun: {
+      bup: bup,
+      tahun: pensiunYear,
+      bulan: pensiunMonth + 1, // 1 - 12
+      bulanNama: bulanNama,
+      tmtPensiun: tmtPensiun,
+      isGuruKs: isGuruKs
+    }
+  };
+}
+
+/**
  * Rumus Kebutuhan Guru PAI & PJOK SD Berdasarkan Rombel
  * 1-10 rombel: 1
  * 11-16 rombel: 2
@@ -223,7 +309,7 @@ function hitungKebutuhanMapelSD(rombel) {
  */
 function getDashboardData(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const CACHE_KEY = 'REKAP_PTK_WITH_KEBUTUHAN_V5';
+  const CACHE_KEY = 'REKAP_PTK_WITH_PENSIUN_V6';
   
   if (!forceRefresh) {
     const cached = cache.get(CACHE_KEY);
@@ -730,6 +816,24 @@ function getDashboardData(forceRefresh) {
       perSekolah: rekapKebutuhanSD_Sekolah.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
       perKecamatan: Object.values(rekapKebutuhanSD_Kecamatan).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan))
     },
+    // Data Khusus Proyeksi Pensiun SD (Hanya ASN: PNS, PPPK, CPNS)
+    pensiunSD: ptkSDList
+      .filter(p => p.pensiunInfo && (p.statusNorm === 'PNS' || p.statusNorm === 'PPPK' || p.statusNorm === 'CPNS'))
+      .map(p => ({
+        nama: p.nama,
+        nip: p.nip,
+        unitKerja: p.unitKerja,
+        kecamatan: p.kecamatan,
+        jabatan: p.tugasRaw || p.jenisNorm || '-',
+        status: p.statusNorm,
+        tglLahir: p.tglLahirFormatted,
+        bup: p.pensiunInfo.bup,
+        pensiunTahun: p.pensiunInfo.tahun,
+        pensiunBulan: p.pensiunInfo.bulan, // 1 - 12
+        pensiunBulanNama: p.pensiunInfo.bulanNama,
+        pensiunTmt: p.pensiunInfo.tmtPensiun,
+        isGuruKs: p.pensiunInfo.isGuruKs
+      })),
     lastUpdate: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMM yyyy HH:mm:ss')
   };
 
@@ -769,6 +873,10 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
   // Kolom F adalah Pangkat / Golongan (0-based: F=5)
   let golIdx = header.findIndex(h => h === 'gol' || h.includes('golongan') || h.includes('pangkat') || h.includes('pangkat/gol'));
   if (golIdx === -1) golIdx = 5; // Kolom F fallback
+
+  // Kolom H adalah Tanggal Lahir (0-based: H=7)
+  let tglLahirIdx = header.findIndex(h => h.includes('lahir') || h.includes('tgl lahir') || h.includes('tanggal lahir'));
+  if (tglLahirIdx === -1) tglLahirIdx = 7; // Kolom H fallback
   
   let statusIdx = header.findIndex(h => h === 'status' || h.includes('status kepegawaian') || h.includes('kepegawaian'));
   if (statusIdx === -1) statusIdx = header.findIndex(h => h.includes('status'));
@@ -838,6 +946,10 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
 
     const pangkatGolClean = rawGol ? String(rawGol).trim() : '-';
 
+    // Tanggal Lahir & Hitung Pensiun
+    const rawTglLahir = row[tglLahirIdx];
+    const birthInfo = parseBirthDateAndRetirement(rawTglLahir, rawNip, rawTugas);
+
     ptkList.push({
       nama: nama,
       nip: nipClean,
@@ -852,6 +964,8 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
       tmtFormatted: tmtFormatted,
       tugasRaw: rawTugas,
       jenisNorm: normalizeJenisPTK(rawTugas),
+      tglLahirFormatted: birthInfo ? birthInfo.tglLahirFormatted : '-',
+      pensiunInfo: birthInfo ? birthInfo.pensiun : null,
       jenjang: defaultJenjang
     });
   }

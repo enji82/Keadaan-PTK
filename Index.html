@@ -85,6 +85,9 @@
       <button class="tab-btn" id="tabBtnKeadaanSD" onclick="switchTab('keadaanSD')">
         2. Keadaan PTK SD
       </button>
+      <button class="tab-btn" id="tabBtnPensiunSD" onclick="switchTab('pensiunSD')">
+        3. Proyeksi Pensiun
+      </button>
     </div>
 
     <!-- ==================== TAB 1: KEBUTUHAN GURU SD ==================== -->
@@ -310,6 +313,89 @@
               <!-- Total diisi via JS -->
             </tfoot>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: PROYEKSI PENSIUN SD ==================== -->
+    <div id="tabPensiunSD" class="tab-pane">
+      <!-- HEADER BAR PROYEKSI PENSIUN -->
+      <div class="pensiun-topbar">
+        <div class="pensiun-title-wrap">
+          <div class="pensiun-title-indicator"></div>
+          <h2>PROYEKSI PENSIUN SD NEGERI</h2>
+        </div>
+        <!-- Switch / Pilihan Tahun Pensiun (Dinamis 5 Tahun) -->
+        <div class="pensiun-year-switcher" id="pensiunYearButtons">
+          <!-- Diisi via JS: Tahun Ini, Tahun Depan, +3 thn, dst. -->
+        </div>
+      </div>
+
+      <!-- 2 BUAH KPI CARD RINGKASAN PENSIUN -->
+      <div class="pensiun-kpi-grid">
+        <!-- Card 1: Pensiun Tahun Ini / Terpilih (Rose/Merah) -->
+        <div class="kpi-card pensiun-card-year">
+          <div class="kpi-card-header">
+            <span class="kpi-title" id="kpiPensiunYearTitle">PENSIUN TAHUN 2026</span>
+            <div class="kpi-icon icon-rose">📅</div>
+          </div>
+          <div class="kpi-value text-rose" id="kpiPensiunYearCount">0</div>
+          <div class="kpi-subtitle" id="kpiPensiunYearDetail">Guru/KS: 0 | Tendik: 0</div>
+        </div>
+
+        <!-- Card 2: Pensiun Bulan Berjalan / Terpilih (Amber/Warning) -->
+        <div class="kpi-card pensiun-card-month">
+          <div class="kpi-card-header">
+            <span class="kpi-title" id="kpiPensiunMonthTitle">PENSIUN BULAN OKTOBER 2026</span>
+            <div class="kpi-icon icon-amber">⚠️</div>
+          </div>
+          <div class="kpi-value text-amber" id="kpiPensiunMonthCount">0</div>
+          <div class="kpi-subtitle" id="kpiPensiunMonthDetail">Guru/KS: 0 | Tendik: 0</div>
+        </div>
+      </div>
+
+      <!-- TIMELINE PENSIUN PER BULAN (BAR CHART) -->
+      <div class="pensiun-chart-card">
+        <div class="pensiun-chart-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.1rem; color: #881337;">📊</span>
+            <h3 id="pensiunChartTitle">TIMELINE PENSIUN PER BULAN (2026)</h3>
+          </div>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">Klik batang bulan untuk memfilter daftar nama di bawah</span>
+        </div>
+        <div class="pensiun-chart-body" id="pensiunChartBars">
+          <!-- 12 Bar Bulan dirender via JS -->
+        </div>
+      </div>
+
+      <!-- ACCORDION / TOGGLE DAFTAR NAMA PENSIUN -->
+      <div class="pensiun-table-section">
+        <button class="pensiun-toggle-btn" id="btnTogglePensiunTable" onclick="togglePensiunTable()">
+          <span>📋</span>
+          <span id="labelTogglePensiunTable">Sembunyikan Daftar Nama Pensiun</span>
+        </button>
+
+        <div class="card-table pensiun-table-card" id="wrapPensiunTable">
+          <div class="table-responsive">
+            <table class="data-table pensiun-table">
+              <thead>
+                <tr>
+                  <th class="text-center" style="width: 50px;">NO</th>
+                  <th>NAMA LENGKAP</th>
+                  <th>NIP</th>
+                  <th>UNIT KERJA</th>
+                  <th>JABATAN</th>
+                  <th class="text-center">STATUS</th>
+                  <th class="text-center">TGL LAHIR</th>
+                  <th class="text-center">BUP</th>
+                  <th class="text-center">PENSIUN</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPensiunList">
+                <!-- Baris data diisi via JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
