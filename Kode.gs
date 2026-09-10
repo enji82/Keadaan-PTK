@@ -331,7 +331,7 @@ function hitungKebutuhanMapelSD(rombel) {
  */
 function getDashboardData(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const CACHE_KEY = 'REKAP_PTK_WITH_PENSIUN_V7';
+  const CACHE_KEY = 'REKAP_PTK_WITH_PENSIUN_V8';
   
   if (!forceRefresh) {
     const cached = cache.get(CACHE_KEY);
