@@ -78,6 +78,8 @@ function normalizeStatusKepegawaian(rawStatus) {
   
   if (val.includes('PARUH WAKTU') || val.includes(' PW') || val === 'PW') {
     return 'PW';
+  } else if (val.includes('CPNS') || val === 'CPNS') {
+    return 'CPNS';
   } else if (val.includes('PNS') && !val.includes('PPPK') && !val.includes('NON')) {
     return 'PNS';
   } else if (val.includes('PPPK') || val.includes('P3K')) {
@@ -268,6 +270,7 @@ function getDashboardData(forceRefresh) {
       ksCount: 0,
       tendikCount: 0,
       pnsCount: 0,
+      cpnsCount: 0,
       pppkCount: 0,
       pwCount: 0,
       nonAsnCount: 0,
@@ -276,12 +279,12 @@ function getDashboardData(forceRefresh) {
 
       // Komposisi Khusus Guru SD (Kebutuhan & Ketersediaan)
       formasiSD: {
-        KS: { butuh: (jenjang === 'SD' ? 1 : 0), pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_KELAS: { butuh: (jenjang === 'SD' ? rombel : 0), pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_PAI: { butuh: (jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0), pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_PJOK: { butuh: (jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0), pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_KRISTEN: { butuh: (jenjang === 'SD' ? butuhKristen : 0), pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_KATOLIK: { butuh: (jenjang === 'SD' ? butuhKatolik : 0), pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
+        KS: { butuh: (jenjang === 'SD' ? 1 : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        GURU_KELAS: { butuh: (jenjang === 'SD' ? rombel : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        GURU_PAI: { butuh: (jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        GURU_PJOK: { butuh: (jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        GURU_KRISTEN: { butuh: (jenjang === 'SD' ? butuhKristen : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        GURU_KATOLIK: { butuh: (jenjang === 'SD' ? butuhKatolik : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
       }
     };
   }
@@ -314,6 +317,7 @@ function getDashboardData(forceRefresh) {
         guruCount: 0,
         ksCount: 0,
         tendikCount: 0,
+        cpnsCount: 0,
         pnsCount: 0,
         pppkCount: 0,
         pwCount: 0,
@@ -321,12 +325,12 @@ function getDashboardData(forceRefresh) {
         nonAsnOldCount: 0,
         nonAsnNewCount: 0,
         formasiSD: {
-          KS: { butuh: (ptk.jenjang === 'SD' ? 1 : 0), pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_KELAS: { butuh: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_PAI: { butuh: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_PJOK: { butuh: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_KRISTEN: { butuh: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_KATOLIK: { butuh: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
+          KS: { butuh: (ptk.jenjang === 'SD' ? 1 : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+          GURU_KELAS: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+          GURU_PAI: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+          GURU_PJOK: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+          GURU_KRISTEN: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+          GURU_KATOLIK: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
         }
       };
     }
@@ -335,7 +339,9 @@ function getDashboardData(forceRefresh) {
     sch.ptkCount++;
     
     // Status kepegawaian
-    if (ptk.statusNorm === 'PNS') {
+    if (ptk.statusNorm === 'CPNS') {
+      sch.cpnsCount++;
+    } else if (ptk.statusNorm === 'PNS') {
       sch.pnsCount++;
     } else if (ptk.statusNorm === 'PPPK') {
       sch.pppkCount++;
@@ -364,7 +370,9 @@ function getDashboardData(forceRefresh) {
       const formasi = mapFormasiGuruSD(ptk.tugasRaw);
       if (formasi && sch.formasiSD[formasi]) {
         const targetFormasi = sch.formasiSD[formasi];
-        if (ptk.statusNorm === 'PNS') {
+        if (ptk.statusNorm === 'CPNS') {
+          targetFormasi.cpns++;
+        } else if (ptk.statusNorm === 'PNS') {
           targetFormasi.pns++;
         } else if (ptk.statusNorm === 'PPPK') {
           targetFormasi.pppk++;
@@ -394,17 +402,18 @@ function getDashboardData(forceRefresh) {
     
     // Hitung total untuk sekolah ini
     const totalButuh = f.KS.butuh + f.GURU_KELAS.butuh + f.GURU_PAI.butuh + f.GURU_PJOK.butuh + f.GURU_KRISTEN.butuh + f.GURU_KATOLIK.butuh;
+    const totalCPNS = f.KS.cpns + f.GURU_KELAS.cpns + f.GURU_PAI.cpns + f.GURU_PJOK.cpns + f.GURU_KRISTEN.cpns + f.GURU_KATOLIK.cpns;
     const totalPNS = f.KS.pns + f.GURU_KELAS.pns + f.GURU_PAI.pns + f.GURU_PJOK.pns + f.GURU_KRISTEN.pns + f.GURU_KATOLIK.pns;
     const totalPPPK = f.KS.pppk + f.GURU_KELAS.pppk + f.GURU_PAI.pppk + f.GURU_PJOK.pppk + f.GURU_KRISTEN.pppk + f.GURU_KATOLIK.pppk;
     const totalPW = f.KS.pw + f.GURU_KELAS.pw + f.GURU_PAI.pw + f.GURU_PJOK.pw + f.GURU_KRISTEN.pw + f.GURU_KATOLIK.pw;
-    const totalPengurang = totalPNS + totalPPPK + totalPW;
+    const totalPengurang = totalCPNS + totalPNS + totalPPPK + totalPW;
     const totalSelisih = totalPengurang - totalButuh;
     const totalNonASN = f.KS.nonAsn + f.GURU_KELAS.nonAsn + f.GURU_PAI.nonAsn + f.GURU_PJOK.nonAsn + f.GURU_KRISTEN.nonAsn + f.GURU_KATOLIK.nonAsn;
     const totalNonAsnOld = f.KS.nonAsnOld + f.GURU_KELAS.nonAsnOld + f.GURU_PAI.nonAsnOld + f.GURU_PJOK.nonAsnOld + f.GURU_KRISTEN.nonAsnOld + f.GURU_KATOLIK.nonAsnOld;
     const totalNonAsnNew = f.KS.nonAsnNew + f.GURU_KELAS.nonAsnNew + f.GURU_PAI.nonAsnNew + f.GURU_PJOK.nonAsnNew + f.GURU_KRISTEN.nonAsnNew + f.GURU_KATOLIK.nonAsnNew;
 
     // Hitung selisih per formasi
-    const calcSelisih = (item) => (item.pns + item.pppk + item.pw) - item.butuh;
+    const calcSelisih = (item) => (item.cpns + item.pns + item.pppk + item.pw) - item.butuh;
 
     const rowSekolah = {
       npsn: sd.npsn,
@@ -414,16 +423,17 @@ function getDashboardData(forceRefresh) {
       murid: sd.murid || 0,
       
       // Rincian per formasi
-      ks: { butuh: f.KS.butuh, pns: f.KS.pns, pppk: f.KS.pppk, pw: f.KS.pw, selisih: calcSelisih(f.KS), nonAsn: f.KS.nonAsn, nonAsnOld: f.KS.nonAsnOld, nonAsnNew: f.KS.nonAsnNew },
-      guruKelas: { butuh: f.GURU_KELAS.butuh, pns: f.GURU_KELAS.pns, pppk: f.GURU_KELAS.pppk, pw: f.GURU_KELAS.pw, selisih: calcSelisih(f.GURU_KELAS), nonAsn: f.GURU_KELAS.nonAsn, nonAsnOld: f.GURU_KELAS.nonAsnOld, nonAsnNew: f.GURU_KELAS.nonAsnNew },
-      guruPai: { butuh: f.GURU_PAI.butuh, pns: f.GURU_PAI.pns, pppk: f.GURU_PAI.pppk, pw: f.GURU_PAI.pw, selisih: calcSelisih(f.GURU_PAI), nonAsn: f.GURU_PAI.nonAsn, nonAsnOld: f.GURU_PAI.nonAsnOld, nonAsnNew: f.GURU_PAI.nonAsnNew },
-      guruPjok: { butuh: f.GURU_PJOK.butuh, pns: f.GURU_PJOK.pns, pppk: f.GURU_PJOK.pppk, pw: f.GURU_PJOK.pw, selisih: calcSelisih(f.GURU_PJOK), nonAsn: f.GURU_PJOK.nonAsn, nonAsnOld: f.GURU_PJOK.nonAsnOld, nonAsnNew: f.GURU_PJOK.nonAsnNew },
-      guruKristen: { butuh: f.GURU_KRISTEN.butuh, pns: f.GURU_KRISTEN.pns, pppk: f.GURU_KRISTEN.pppk, pw: f.GURU_KRISTEN.pw, selisih: calcSelisih(f.GURU_KRISTEN), nonAsn: f.GURU_KRISTEN.nonAsn, nonAsnOld: f.GURU_KRISTEN.nonAsnOld, nonAsnNew: f.GURU_KRISTEN.nonAsnNew },
-      guruKatolik: { butuh: f.GURU_KATOLIK.butuh, pns: f.GURU_KATOLIK.pns, pppk: f.GURU_KATOLIK.pppk, pw: f.GURU_KATOLIK.pw, selisih: calcSelisih(f.GURU_KATOLIK), nonAsn: f.GURU_KATOLIK.nonAsn, nonAsnOld: f.GURU_KATOLIK.nonAsnOld, nonAsnNew: f.GURU_KATOLIK.nonAsnNew },
+      ks: { butuh: f.KS.butuh, cpns: f.KS.cpns, pns: f.KS.pns, pppk: f.KS.pppk, pw: f.KS.pw, selisih: calcSelisih(f.KS), nonAsn: f.KS.nonAsn, nonAsnOld: f.KS.nonAsnOld, nonAsnNew: f.KS.nonAsnNew },
+      guruKelas: { butuh: f.GURU_KELAS.butuh, cpns: f.GURU_KELAS.cpns, pns: f.GURU_KELAS.pns, pppk: f.GURU_KELAS.pppk, pw: f.GURU_KELAS.pw, selisih: calcSelisih(f.GURU_KELAS), nonAsn: f.GURU_KELAS.nonAsn, nonAsnOld: f.GURU_KELAS.nonAsnOld, nonAsnNew: f.GURU_KELAS.nonAsnNew },
+      guruPai: { butuh: f.GURU_PAI.butuh, cpns: f.GURU_PAI.cpns, pns: f.GURU_PAI.pns, pppk: f.GURU_PAI.pppk, pw: f.GURU_PAI.pw, selisih: calcSelisih(f.GURU_PAI), nonAsn: f.GURU_PAI.nonAsn, nonAsnOld: f.GURU_PAI.nonAsnOld, nonAsnNew: f.GURU_PAI.nonAsnNew },
+      guruPjok: { butuh: f.GURU_PJOK.butuh, cpns: f.GURU_PJOK.cpns, pns: f.GURU_PJOK.pns, pppk: f.GURU_PJOK.pppk, pw: f.GURU_PJOK.pw, selisih: calcSelisih(f.GURU_PJOK), nonAsn: f.GURU_PJOK.nonAsn, nonAsnOld: f.GURU_PJOK.nonAsnOld, nonAsnNew: f.GURU_PJOK.nonAsnNew },
+      guruKristen: { butuh: f.GURU_KRISTEN.butuh, cpns: f.GURU_KRISTEN.cpns, pns: f.GURU_KRISTEN.pns, pppk: f.GURU_KRISTEN.pppk, pw: f.GURU_KRISTEN.pw, selisih: calcSelisih(f.GURU_KRISTEN), nonAsn: f.GURU_KRISTEN.nonAsn, nonAsnOld: f.GURU_KRISTEN.nonAsnOld, nonAsnNew: f.GURU_KRISTEN.nonAsnNew },
+      guruKatolik: { butuh: f.GURU_KATOLIK.butuh, cpns: f.GURU_KATOLIK.cpns, pns: f.GURU_KATOLIK.pns, pppk: f.GURU_KATOLIK.pppk, pw: f.GURU_KATOLIK.pw, selisih: calcSelisih(f.GURU_KATOLIK), nonAsn: f.GURU_KATOLIK.nonAsn, nonAsnOld: f.GURU_KATOLIK.nonAsnOld, nonAsnNew: f.GURU_KATOLIK.nonAsnNew },
       
       // Total Sekolah
       total: {
         butuh: totalButuh,
+        cpns: totalCPNS,
         pns: totalPNS,
         pppk: totalPPPK,
         pw: totalPW,
@@ -444,13 +454,13 @@ function getDashboardData(forceRefresh) {
         jmlSekolah: 0,
         totalMurid: 0,
         totalRombel: 0,
-        ks: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        guruKelas: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        guruPai: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        guruPjok: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        guruKristen: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        guruKatolik: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        total: { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
+        ks: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        guruKelas: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        guruPai: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        guruPjok: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        guruKristen: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        guruKatolik: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+        total: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
       };
     }
     
@@ -461,6 +471,7 @@ function getDashboardData(forceRefresh) {
     
     const akumulasi = (target, src) => {
       target.butuh += src.butuh;
+      target.cpns += src.cpns;
       target.pns += src.pns;
       target.pppk += src.pppk;
       target.pw += src.pw;
@@ -493,6 +504,7 @@ function getDashboardData(forceRefresh) {
         guru: 0,
         ks: 0,
         tendik: 0,
+        cpns: 0,
         pns: 0,
         pppk: 0,
         pw: 0,
@@ -510,6 +522,7 @@ function getDashboardData(forceRefresh) {
     rk.guru += sch.guruCount;
     rk.ks += sch.ksCount;
     rk.tendik += sch.tendikCount;
+    rk.cpns += sch.cpnsCount;
     rk.pns += sch.pnsCount;
     rk.pppk += sch.pppkCount;
     rk.pw += sch.pwCount;
@@ -519,16 +532,17 @@ function getDashboardData(forceRefresh) {
   });
 
   const rekapJenjang = {
-    SD: { jenjang: 'SD', jmlSekolah: listSD.length, totalPTK: ptkSDList.length, guru: 0, ks: 0, tendik: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-    SMP: { jenjang: 'SMP', jmlSekolah: listSekolah.filter(s => s.jenjang === 'SMP').length, totalPTK: ptkSMPList.length, guru: 0, ks: 0, tendik: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-    TOTAL: { jenjang: 'TOTAL (SD & SMP)', jmlSekolah: listSekolah.length, totalPTK: allPTK.length, guru: 0, ks: 0, tendik: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
+    SD: { jenjang: 'SD', jmlSekolah: listSD.length, totalPTK: ptkSDList.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+    SMP: { jenjang: 'SMP', jmlSekolah: listSekolah.filter(s => s.jenjang === 'SMP').length, totalPTK: ptkSMPList.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+    TOTAL: { jenjang: 'TOTAL (SD & SMP)', jmlSekolah: listSekolah.length, totalPTK: allPTK.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
   };
 
   allPTK.forEach(ptk => {
     const target = rekapJenjang[ptk.jenjang] || rekapJenjang.SD;
     const tot = rekapJenjang.TOTAL;
     
-    if (ptk.statusNorm === 'PNS') { target.pns++; tot.pns++; }
+    if (ptk.statusNorm === 'CPNS') { target.cpns++; tot.cpns++; }
+    else if (ptk.statusNorm === 'PNS') { target.pns++; tot.pns++; }
     else if (ptk.statusNorm === 'PPPK') { target.pppk++; tot.pppk++; }
     else if (ptk.statusNorm === 'PW') { target.pw++; tot.pw++; }
     else {
@@ -554,13 +568,14 @@ function getDashboardData(forceRefresh) {
       totalGuru: rekapJenjang.TOTAL.guru,
       totalKS: rekapJenjang.TOTAL.ks,
       totalTendik: rekapJenjang.TOTAL.tendik,
+      totalCPNS: rekapJenjang.TOTAL.cpns,
       totalPNS: rekapJenjang.TOTAL.pns,
       totalPPPK: rekapJenjang.TOTAL.pppk,
       totalPW: rekapJenjang.TOTAL.pw,
       totalNonASN: rekapJenjang.TOTAL.nonAsn,
       totalNonAsnOld: rekapJenjang.TOTAL.nonAsnOld,
       totalNonAsnNew: rekapJenjang.TOTAL.nonAsnNew,
-      persenASN: allPTK.length ? Math.round(((rekapJenjang.TOTAL.pns + rekapJenjang.TOTAL.pppk + rekapJenjang.TOTAL.pw) / allPTK.length) * 100) : 0
+      persenASN: allPTK.length ? Math.round(((rekapJenjang.TOTAL.cpns + rekapJenjang.TOTAL.pns + rekapJenjang.TOTAL.pppk + rekapJenjang.TOTAL.pw) / allPTK.length) * 100) : 0
     },
     kecamatanList: Array.from(kecamatanSet).sort(),
     rekapKecamatan: Object.values(rekapKecamatan).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan)),
@@ -782,14 +797,15 @@ function getPTKDetailSekolah(npsn, namaSekolah) {
 
     function getStatusRank(statusStr, tmtCat) {
       const s = String(statusStr || '').toUpperCase();
-      if (s === 'PNS') return 1;
-      if (s === 'PPPK') return 2;
+      if (s === 'CPNS') return 1;
+      if (s === 'PNS') return 2;
+      if (s === 'PPPK') return 3;
       if (s === 'NON-ASN' || s === 'NON ASN') {
-        if (tmtCat === 'OLD') return 3; // Non-ASN < 3-8-2023
-        return 4;                       // Non-ASN > 3-8-2023
+        if (tmtCat === 'OLD') return 4; // Non-ASN < 3-8-2023
+        return 5;                       // Non-ASN > 3-8-2023
       }
-      if (s === 'PW') return 5;
-      return 6;
+      if (s === 'PW') return 6;
+      return 7;
     }
 
     safePegawai.sort((a, b) => {
