@@ -385,6 +385,12 @@
     if (!grid) return;
 
     const jenjang = getActiveJenjang();
+    if (jenjang === 'SMP') {
+      grid.classList.add('grid-smp');
+    } else {
+      grid.classList.remove('grid-smp');
+    }
+
     const config = (jenjang === 'SMP') ? FORMASI_CONFIG_SMP : FORMASI_CONFIG_SD;
     const list = (jenjang === 'SMP') ? FORMASI_LIST_SMP : FORMASI_LIST_SD;
     const kebData = (jenjang === 'SMP') ? rawData.kebutuhanSMP : rawData.kebutuhanSD;
@@ -428,7 +434,7 @@
       html += `
         <div class="kpi-card" onclick="setFormasiToggle('${fKey}')" ${borderStyle} title="Klik untuk filter tabel ke ${escapeHtml(conf.label)}">
           <div class="kpi-card-header">
-            <span class="kpi-title">${escapeHtml(conf.label)}</span>
+            <span class="kpi-title" title="${escapeHtml(conf.label)}">${escapeHtml(conf.label)}</span>
             <div class="kpi-icon ${conf.icon || 'icon-blue'}">${conf.emoji || '👥'}</div>
           </div>
           <div class="kpi-value">${renderBadgeSelisihLarge(item.selisih)}</div>
@@ -446,9 +452,9 @@
   }
 
   function renderBadgeSelisihLarge(val) {
-    if (val < 0) return `<span style="color:#dc2626;">${val}</span> <span style="font-size:0.9rem; font-weight:600; color:#ef4444;">Kurang</span>`;
-    if (val === 0) return `<span style="color:#16a34a;">0</span> <span style="font-size:0.9rem; font-weight:600; color:#22c55e;">Pas</span>`;
-    return `<span style="color:#0284c7;">+${val}</span> <span style="font-size:0.9rem; font-weight:600; color:#0ea5e9;">Lebih</span>`;
+    if (val < 0) return `<span style="color:#dc2626;">${val}</span> <span class="kpi-value-status" style="font-size:0.85rem; font-weight:600; color:#ef4444;">Kurang</span>`;
+    if (val === 0) return `<span style="color:#16a34a;">0</span> <span class="kpi-value-status" style="font-size:0.85rem; font-weight:600; color:#22c55e;">Pas</span>`;
+    return `<span style="color:#0284c7;">+${val}</span> <span class="kpi-value-status" style="font-size:0.85rem; font-weight:600; color:#0ea5e9;">Lebih</span>`;
   }
 
   /**

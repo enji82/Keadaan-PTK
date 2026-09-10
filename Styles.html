@@ -250,12 +250,72 @@
     border: 1px solid #bbf7d0;
   }
 
-  /* KPI Grid Khusus Kebutuhan Formasi SD */
+  /* KPI Grid Khusus Kebutuhan Formasi SD & SMP */
   .kpi-formasi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 14px;
     margin-bottom: 24px;
+  }
+
+  /* Khusus Jenjang SMP: 8 Card per Baris (Tepat 2 Baris untuk 16 Card) */
+  .kpi-formasi-grid.grid-smp {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+  }
+
+  .kpi-formasi-grid.grid-smp .kpi-card {
+    padding: 10px 10px 8px 10px;
+    min-width: 0;
+  }
+  .kpi-formasi-grid.grid-smp .kpi-card-header {
+    margin-bottom: 4px;
+    gap: 4px;
+  }
+  .kpi-formasi-grid.grid-smp .kpi-title {
+    font-size: 0.74rem;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kpi-formasi-grid.grid-smp .kpi-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    border-radius: 6px;
+  }
+  .kpi-formasi-grid.grid-smp .kpi-value {
+    font-size: 1.22rem;
+    margin-bottom: 3px;
+    line-height: 1.1;
+  }
+  .kpi-formasi-grid.grid-smp .kpi-value-status {
+    font-size: 0.72rem !important;
+  }
+  .kpi-formasi-grid.grid-smp .formasi-kpi-breakdown {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .kpi-formasi-grid.grid-smp .formasi-tag-butuh,
+  .kpi-formasi-grid.grid-smp .formasi-tag-terisi {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  @media (max-width: 1300px) {
+    .kpi-formasi-grid.grid-smp {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (max-width: 768px) {
+    .kpi-formasi-grid.grid-smp {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   .kpi-card {
