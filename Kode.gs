@@ -688,49 +688,75 @@ function cleanSchoolNameForMatch(name) {
  * Mengambil detail nama-nama PTK pada sekolah tertentu
  */
 function getPTKDetailSekolah(npsn, namaSekolah) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const ptkSD = readPTKSheet(ss, 'Data', 'SD');
-  const ptkSMP = readPTKSheet(ss, 'Data2', 'SMP');
-  const allPTK = ptkSD.concat(ptkSMP);
-  
-  let targetNpsnRaw = String(npsn || '').trim();
-  if (targetNpsnRaw.includes('.')) targetNpsnRaw = targetNpsnRaw.split('.')[0];
-  const targetNpsnDigits = targetNpsnRaw.replace(/[^0-9]/g, '');
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const ptkSD = readPTKSheet(ss, 'Data', 'SD');
+    const ptkSMP = readPTKSheet(ss, 'Data2', 'SMP');
+    const allPTK = ptkSD.concat(ptkSMP);
+    
+    let targetNpsnRaw = String(npsn || '').trim();
+    if (targetNpsnRaw.includes('.')) targetNpsnRaw = targetNpsnRaw.split('.')[0];
+    const targetNpsnDigits = targetNpsnRaw.replace(/[^0-9]/g, '');
 
-  const targetName = String(namaSekolah || '').trim().toUpperCase();
-  const cleanTargetName = cleanSchoolNameForMatch(targetName);
-  
-  const filtered = allPTK.filter(item => {
-    const itemNpsnDigits = String(item.npsn || '').replace(/[^0-9]/g, '');
+    const targetName = String(namaSekolah || '').trim().toUpperCase();
+    const cleanTargetName = cleanSchoolNameForMatch(targetName);
     
-    // 1. Cocokkan berdasarkan digit NPSN jika valid (misal 8 digit)
-    if (targetNpsnDigits && targetNpsnDigits.length >= 6 && itemNpsnDigits) {
-      if (itemNpsnDigits === targetNpsnDigits) return true;
-    }
-    
-    // 2. Cocokkan string NPSN mentah jika bukan '-'
-    if (targetNpsnRaw && targetNpsnRaw !== '-' && item.npsn) {
-      if (item.npsn === targetNpsnRaw) return true;
-    }
-    
-    // 3. Cocokkan berdasarkan unitKerja persis
-    if (targetName && item.unitKerja) {
-      const itemUnitUpper = item.unitKerja.toUpperCase().trim();
-      if (itemUnitUpper === targetName) return true;
+    const filtered = allPTK.filter(item => {
+      const itemNpsnDigits = String(item.npsn || '').replace(/[^0-9]/g, '');
       
-      // 4. Cocokkan nama sekolah yang sudah dinormalisasi (SDN GRABAG 1 vs SD NEGERI GRABAG 1)
-      if (cleanTargetName && cleanSchoolNameForMatch(itemUnitUpper) === cleanTargetName) {
-        return true;
+      // 1. Cocokkan berdasarkan digit NPSN jika valid (misal 8 digit)
+      if (targetNpsnDigits && targetNpsnDigits.length >= 6 && itemNpsnDigits) {
+        if (itemNpsnDigits === targetNpsnDigits) return true;
       }
-    }
+      
+      // 2. Cocokkan string NPSN mentah jika bukan '-'
+      if (targetNpsnRaw && targetNpsnRaw !== '-' && item.npsn) {
+        if (item.npsn === targetNpsnRaw) return true;
+      }
+      
+      // 3. Cocokkan berdasarkan unitKerja persis
+      if (targetName && item.unitKerja) {
+        const itemUnitUpper = item.unitKerja.toUpperCase().trim();
+        if (itemUnitUpper === targetName) return true;
+        
+        // 4. Cocokkan nama sekolah yang sudah dinormalisasi (SDN GRABAG 1 vs SD NEGERI GRABAG 1)
+        if (cleanTargetName && cleanSchoolNameForMatch(itemUnitUpper) === cleanTargetName) {
+          return true;
+        }
+      }
+      
+      return false;
+    });
+
+    // Sanitasi data: pastikan SEMUA nilai adalah tipe primitif (string/number)
+    // Jangan pernah menyertakan objek Date atau Range yang menyebabkan kegagalan serialisasi di google.script.run
+    const safePegawai = filtered.map(item => ({
+      nama: String(item.nama || ''),
+      npsn: String(item.npsn || ''),
+      unitKerja: String(item.unitKerja || ''),
+      tugas: String(item.tugasRaw || item.jenisNorm || '-'),
+      statusNorm: String(item.statusNorm || '-'),
+      tmtCategory: String(item.tmtCategory || ''),
+      tmtFormatted: String(item.tmtFormatted || ''),
+      jenjang: String(item.jenjang || '')
+    }));
     
-    return false;
-  });
-  
-  return {
-    sekolah: namaSekolah || targetNpsnRaw,
-    npsn: targetNpsnRaw,
-    total: filtered.length,
-    pegawai: filtered
-  };
+    return {
+      success: true,
+      sekolah: String(namaSekolah || targetNpsnRaw || ''),
+      npsn: targetNpsnRaw,
+      total: safePegawai.length,
+      pegawai: safePegawai
+    };
+  } catch (err) {
+    Logger.log('Error in getPTKDetailSekolah: ' + err.toString());
+    return {
+      success: false,
+      error: err.toString(),
+      sekolah: String(namaSekolah || npsn || ''),
+      npsn: String(npsn || ''),
+      total: 0,
+      pegawai: []
+    };
+  }
 }

@@ -907,8 +907,14 @@
         modalLoading.style.display = 'none';
         modalTableWrap.style.display = 'block';
 
+        if (!res || !res.pegawai) {
+          const errMsg = (res && res.error) ? `<br><small style="color:#ef4444;">${escapeHtml(res.error)}</small>` : '';
+          modalTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 24px; color: #ef4444;">Gagal memuat data pegawai.${errMsg}</td></tr>`;
+          return;
+        }
+
         let html = '';
-        if (res.pegawai && res.pegawai.length > 0) {
+        if (res.pegawai.length > 0) {
           res.pegawai.forEach((p, idx) => {
             let statusBadge = `<span class="badge badge-nonasn">${escapeHtml(p.statusNorm)}</span>`;
             const sNormUpper = String(p.statusNorm || '').toUpperCase();
@@ -929,7 +935,7 @@
               <tr>
                 <td class="text-center">${idx + 1}</td>
                 <td><strong>${escapeHtml(p.nama)}</strong></td>
-                <td>${escapeHtml(p.tugasRaw || p.jenisNorm)}</td>
+                <td>${escapeHtml(p.tugas || '-')}</td>
                 <td class="text-center">${statusBadge}</td>
                 <td class="text-center"><span class="badge ${p.jenjang === 'SD' ? 'badge-sd' : 'badge-smp'}">${p.jenjang}</span></td>
               </tr>
@@ -942,7 +948,7 @@
       })
       .withFailureHandler(err => {
         modalLoading.style.display = 'none';
-        alert('Gagal mengambil rincian pegawai: ' + err.message);
+        alert('Gagal mengambil rincian pegawai: ' + (err && err.message ? err.message : err));
       })
       .getPTKDetailSekolah(npsn, namaSekolah);
   }
