@@ -911,13 +911,14 @@
         if (res.pegawai && res.pegawai.length > 0) {
           res.pegawai.forEach((p, idx) => {
             let statusBadge = `<span class="badge badge-nonasn">${escapeHtml(p.statusNorm)}</span>`;
-            if (p.statusNorm === 'PNS') {
+            const sNormUpper = String(p.statusNorm || '').toUpperCase();
+            if (sNormUpper === 'PNS') {
               statusBadge = `<span class="badge badge-pns">PNS</span>`;
-            } else if (p.statusNorm === 'PPPK') {
+            } else if (sNormUpper === 'PPPK') {
               statusBadge = `<span class="badge badge-pppk">PPPK</span>`;
-            } else if (p.statusNorm === 'PW') {
+            } else if (sNormUpper === 'PW') {
               statusBadge = `<span class="badge badge-pw">PW</span>`;
-            } else if (p.statusNorm === 'NON ASN') {
+            } else if (sNormUpper === 'NON-ASN' || sNormUpper === 'NON ASN') {
               const badgeClass = p.tmtCategory === 'OLD' ? 'badge-nonasn-old' : 'badge-nonasn-new';
               const labelCategory = p.tmtCategory === 'OLD' ? '< 3-8-23' : '> 3-8-23';
               const tmtInfo = p.tmtFormatted ? ` (${p.tmtFormatted})` : '';
@@ -935,7 +936,7 @@
             `;
           });
         } else {
-          html = '<tr><td colspan="5" class="text-center" style="padding: 20px;">Tidak ada data pegawai terdaftar untuk sekolah ini.</td></tr>';
+          html = '<tr><td colspan="5" class="text-center" style="padding: 24px; color: #64748b;">Tidak ada data pegawai terdaftar untuk sekolah ini di database.</td></tr>';
         }
         modalTbody.innerHTML = html;
       })

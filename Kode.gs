@@ -591,26 +591,29 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
   const values = sheet.getDataRange().getValues();
   if (values.length < 2) return [];
   
-  const header = values[0].map(h => String(h).trim().toLowerCase());
+  const header = values[0].map(h => String(h || '').trim().toLowerCase());
   
-  let npsnIdx = header.indexOf('npsn');
-  if (npsnIdx === -1) npsnIdx = 2;
+  // Deteksi indeks kolom lebih fleksibel
+  let npsnIdx = header.findIndex(h => h === 'npsn' || h.includes('npsn'));
+  if (npsnIdx === -1) npsnIdx = 2; // Kolom C
   
-  let namaIdx = header.indexOf('nama');
-  if (namaIdx === -1) namaIdx = 3;
+  let namaIdx = header.findIndex(h => h === 'nama' || h.includes('nama ptk') || h.includes('nama pegawai') || h.includes('nama lengkap'));
+  if (namaIdx === -1) namaIdx = header.findIndex(h => h.includes('nama'));
+  if (namaIdx === -1) namaIdx = 3; // Kolom D
   
-  let statusIdx = header.indexOf('status');
-  if (statusIdx === -1) statusIdx = 10;
+  let statusIdx = header.findIndex(h => h === 'status' || h.includes('status kepegawaian') || h.includes('kepegawaian'));
+  if (statusIdx === -1) statusIdx = header.findIndex(h => h.includes('status'));
+  if (statusIdx === -1) statusIdx = 10; // Kolom K
   
-  let tugasIdx = header.indexOf('tugas');
-  if (tugasIdx === -1) tugasIdx = 12;
+  let tugasIdx = header.findIndex(h => h === 'tugas' || h.includes('tugas tambahan') || h.includes('jabatan') || h.includes('jenis ptk'));
+  if (tugasIdx === -1) tugasIdx = header.findIndex(h => h.includes('tugas'));
+  if (tugasIdx === -1) tugasIdx = 12; // Kolom M
   
-  let kecIdx = header.indexOf('kecamatan');
-  if (kecIdx === -1) kecIdx = 1;
+  let kecIdx = header.findIndex(h => h === 'kecamatan' || h.includes('kecamatan'));
+  if (kecIdx === -1) kecIdx = 1; // Kolom B
   
-  let unitKerjaIdx = header.indexOf('unit_kerja');
-  if (unitKerjaIdx === -1) unitKerjaIdx = header.indexOf('unit kerja');
-  if (unitKerjaIdx === -1) unitKerjaIdx = 11;
+  let unitKerjaIdx = header.findIndex(h => h === 'unit kerja' || h === 'unit_kerja' || h.includes('unit kerja') || h.includes('sekolah') || h.includes('tempat tugas'));
+  if (unitKerjaIdx === -1) unitKerjaIdx = 11; // Kolom L
   
   // Kolom P adalah index 15 (0-based: A=0... P=15)
   let tmtIdx = header.findIndex(h => h.includes('tmt'));
@@ -623,7 +626,14 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
     const nama = String(row[namaIdx] || '').trim();
     if (!nama) continue;
     
-    const npsn = String(row[npsnIdx] || '').trim();
+    // Normalisasi string NPSN (hilangkan tanda petik/spasi/desimal jika terbaca float)
+    let rawNpsn = String(row[npsnIdx] || '').trim();
+    if (rawNpsn.includes('.')) {
+      rawNpsn = rawNpsn.split('.')[0];
+    }
+    const cleanNpsn = rawNpsn.replace(/[^0-9]/g, '');
+    const npsn = cleanNpsn || rawNpsn;
+
     const rawStatus = row[statusIdx];
     const rawTugas = row[tugasIdx];
     const rawKec = row[kecIdx];
@@ -662,6 +672,19 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
 }
 
 /**
+ * Helper membersihkan nama sekolah untuk pencocokan toleran
+ */
+function cleanSchoolNameForMatch(name) {
+  if (!name) return '';
+  return String(name)
+    .toUpperCase()
+    .replace(/^SD\s+NEGERI\b/, 'SDN')
+    .replace(/^SMP\s+NEGERI\b/, 'SMPN')
+    .replace(/[^A-Z0-9]/g, '')
+    .trim();
+}
+
+/**
  * Mengambil detail nama-nama PTK pada sekolah tertentu
  */
 function getPTKDetailSekolah(npsn, namaSekolah) {
@@ -670,18 +693,43 @@ function getPTKDetailSekolah(npsn, namaSekolah) {
   const ptkSMP = readPTKSheet(ss, 'Data2', 'SMP');
   const allPTK = ptkSD.concat(ptkSMP);
   
-  const targetNpsn = String(npsn || '').trim();
+  let targetNpsnRaw = String(npsn || '').trim();
+  if (targetNpsnRaw.includes('.')) targetNpsnRaw = targetNpsnRaw.split('.')[0];
+  const targetNpsnDigits = targetNpsnRaw.replace(/[^0-9]/g, '');
+
   const targetName = String(namaSekolah || '').trim().toUpperCase();
+  const cleanTargetName = cleanSchoolNameForMatch(targetName);
   
   const filtered = allPTK.filter(item => {
-    if (targetNpsn && targetNpsn !== '-' && item.npsn === targetNpsn) return true;
-    if (targetName && item.unitKerja && item.unitKerja.toUpperCase() === targetName) return true;
+    const itemNpsnDigits = String(item.npsn || '').replace(/[^0-9]/g, '');
+    
+    // 1. Cocokkan berdasarkan digit NPSN jika valid (misal 8 digit)
+    if (targetNpsnDigits && targetNpsnDigits.length >= 6 && itemNpsnDigits) {
+      if (itemNpsnDigits === targetNpsnDigits) return true;
+    }
+    
+    // 2. Cocokkan string NPSN mentah jika bukan '-'
+    if (targetNpsnRaw && targetNpsnRaw !== '-' && item.npsn) {
+      if (item.npsn === targetNpsnRaw) return true;
+    }
+    
+    // 3. Cocokkan berdasarkan unitKerja persis
+    if (targetName && item.unitKerja) {
+      const itemUnitUpper = item.unitKerja.toUpperCase().trim();
+      if (itemUnitUpper === targetName) return true;
+      
+      // 4. Cocokkan nama sekolah yang sudah dinormalisasi (SDN GRABAG 1 vs SD NEGERI GRABAG 1)
+      if (cleanTargetName && cleanSchoolNameForMatch(itemUnitUpper) === cleanTargetName) {
+        return true;
+      }
+    }
+    
     return false;
   });
   
   return {
-    sekolah: namaSekolah || targetNpsn,
-    npsn: targetNpsn,
+    sekolah: namaSekolah || targetNpsnRaw,
+    npsn: targetNpsnRaw,
     total: filtered.length,
     pegawai: filtered
   };
