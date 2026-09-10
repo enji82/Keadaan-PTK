@@ -77,75 +77,16 @@
 
     <!-- ==================== TAB 1: KEBUTUHAN GURU SD ==================== -->
     <div id="tabKebutuhanSD" class="tab-pane active">
-      <!-- SECTION CARD TERPISAH: STATISTIK KEBUTUHAN PER JENIS GURU SD -->
-
-      <div class="kpi-formasi-grid">
-        <!-- 1. Kepala Sekolah -->
-        <div class="kpi-card" onclick="setFormasiToggle('KS')" style="cursor: pointer;" title="Klik untuk filter tabel ke Kepala Sekolah">
-          <div class="kpi-card-header">
-            <span class="kpi-title">Kepala Sekolah</span>
-            <div class="kpi-icon icon-purple">🎓</div>
-          </div>
-          <div class="kpi-value" id="kpiKsSelisih">0</div>
-          <div class="kpi-subtitle" id="kpiKsDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
-        </div>
-
-        <!-- 2. Guru Kelas -->
-        <div class="kpi-card" onclick="setFormasiToggle('GURU_KELAS')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru Kelas">
-          <div class="kpi-card-header">
-            <span class="kpi-title">Guru Kelas</span>
-            <div class="kpi-icon icon-green">👨‍🏫</div>
-          </div>
-          <div class="kpi-value" id="kpiGkSelisih">0</div>
-          <div class="kpi-subtitle" id="kpiGkDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
-        </div>
-
-        <!-- 3. Guru PAI -->
-        <div class="kpi-card" onclick="setFormasiToggle('GURU_PAI')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru PAI">
-          <div class="kpi-card-header">
-            <span class="kpi-title">Guru PAI</span>
-            <div class="kpi-icon icon-amber">📖</div>
-          </div>
-          <div class="kpi-value" id="kpiPaiSelisih">0</div>
-          <div class="kpi-subtitle" id="kpiPaiDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
-        </div>
-
-        <!-- 4. Guru PJOK -->
-        <div class="kpi-card" onclick="setFormasiToggle('GURU_PJOK')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru PJOK">
-          <div class="kpi-card-header">
-            <span class="kpi-title">Guru PJOK</span>
-            <div class="kpi-icon icon-blue">⚽</div>
-          </div>
-          <div class="kpi-value" id="kpiPjokSelisih">0</div>
-          <div class="kpi-subtitle" id="kpiPjokDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
-        </div>
-
-        <!-- 5. Guru PA Kristen -->
-        <div class="kpi-card" onclick="setFormasiToggle('GURU_KRISTEN')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru Kristen">
-          <div class="kpi-card-header">
-            <span class="kpi-title">Guru PA Kristen</span>
-            <div class="kpi-icon icon-cyan">⛪</div>
-          </div>
-          <div class="kpi-value" id="kpiKristenSelisih">0</div>
-          <div class="kpi-subtitle" id="kpiKristenDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
-        </div>
-
-        <!-- 6. Guru PA Katolik -->
-        <div class="kpi-card" onclick="setFormasiToggle('GURU_KATOLIK')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru Katolik">
-          <div class="kpi-card-header">
-            <span class="kpi-title">Guru PA Katolik</span>
-            <div class="kpi-icon icon-rose">✝️</div>
-          </div>
-          <div class="kpi-value" id="kpiKatolikSelisih">0</div>
-          <div class="kpi-subtitle" id="kpiKatolikDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
-        </div>
+      <!-- SECTION CARD TERPISAH: STATISTIK KEBUTUHAN PER JENIS GURU (DINAMIS SD / SMP) -->
+      <div class="kpi-formasi-grid" id="kpiFormasiGrid">
+        <!-- Dirender dinamis via renderCardsFormasi() -->
       </div>
 
-      <!-- TABEL KEBUTUHAN GURU SD DENGAN TOGGLE / FILTER JENIS PTK -->
+      <!-- TABEL KEBUTUHAN GURU DENGAN TOGGLE / FILTER JENIS PTK -->
       <div class="card-table">
         <div class="card-header-bar" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;">
-            <h2>Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
+            <h2 id="headingTab1">Tabel Kebutuhan & Kekurangan/Kelebihan Guru SD</h2>
             <!-- Breadcrumb hanya muncul saat berada di dalam detail sekolah suatu kecamatan -->
             <div class="breadcrumb-wrap" id="breadcrumbWrap" style="display: none; margin-bottom: 0;"></div>
           </div>
@@ -154,15 +95,8 @@
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH JENIS PTK:</span>
-              <div class="toggle-bar">
-                <button class="toggle-btn active" id="btnTog_ALL" onclick="setFormasiToggle('ALL')">Semua (Total)</button>
-                <button class="toggle-btn" id="btnTog_KS" onclick="setFormasiToggle('KS')">Kepala Sekolah</button>
-                <button class="toggle-btn" id="btnTog_GURU_KELAS" onclick="setFormasiToggle('GURU_KELAS')">Guru Kelas</button>
-                <button class="toggle-btn" id="btnTog_GURU_PAI" onclick="setFormasiToggle('GURU_PAI')">Guru PAI</button>
-                <button class="toggle-btn" id="btnTog_GURU_PJOK" onclick="setFormasiToggle('GURU_PJOK')">Guru PJOK</button>
-                <button class="toggle-btn" id="btnTog_GURU_KRISTEN" onclick="setFormasiToggle('GURU_KRISTEN')">PA Kristen</button>
-                <button class="toggle-btn" id="btnTog_GURU_KATOLIK" onclick="setFormasiToggle('GURU_KATOLIK')">PA Katolik</button>
-                <button class="toggle-btn" id="btnTog_MATRIX" onclick="setFormasiToggle('MATRIX')">Matriks Semua</button>
+              <div class="toggle-bar" id="toggleBarFormasi" style="flex-wrap: wrap;">
+                <!-- Dirender dinamis via renderFormasiToggleButtons() -->
               </div>
             </div>
 
@@ -192,22 +126,22 @@
     <!-- ==================== TAB 2: KEADAAN PTK SD ==================== -->
     <div id="tabKeadaanSD" class="tab-pane">
       <!-- SECTION CARD RINGKASAN KEADAAN PTK SD (2 BARIS) -->
-      <!-- Baris 1: Total PTK SD, Kepala SD, Guru SD, Tenaga Kependidikan -->
+      <!-- Baris 1: Total PTK, Kepala Sekolah, Guru, Tenaga Kependidikan -->
       <div class="kpi-grid-4">
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Total PTK SD</span><div class="kpi-icon icon-blue">👥</div></div>
+          <div class="kpi-card-header"><span class="kpi-title" id="kpiKeadaanTotalPTKTitle">Total PTK SD</span><div class="kpi-icon icon-blue">👥</div></div>
           <div class="kpi-value" id="kpiKeadaanTotalPTK">0</div>
           <div class="kpi-subtitle" id="kpiKeadaanSubSekolah">Mencakup 0 SD</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Kepala SD</span><div class="kpi-icon icon-purple">🎓</div></div>
+          <div class="kpi-card-header"><span class="kpi-title" id="kpiKeadaanTotalKSTitle">Kepala SD</span><div class="kpi-icon icon-purple">🎓</div></div>
           <div class="kpi-value" id="kpiKeadaanTotalKS">0</div>
           <div class="kpi-subtitle" id="kpiKeadaanSubKS">Kepala Sekolah Definitif/Aktif</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Guru SD</span><div class="kpi-icon icon-green">👨‍🏫</div></div>
+          <div class="kpi-card-header"><span class="kpi-title" id="kpiKeadaanTotalGuruTitle">Guru SD</span><div class="kpi-icon icon-green">👨‍🏫</div></div>
           <div class="kpi-value" id="kpiKeadaanTotalGuru">0</div>
-          <div class="kpi-subtitle" id="kpiKeadaanSubGuru">Guru Kelas, Mapel & Agama</div>
+          <div class="kpi-subtitle" id="kpiKeadaanSubGuru">Guru Mapel & Agama</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card-header"><span class="kpi-title">Tenaga Kependidikan</span><div class="kpi-icon icon-amber">📑</div></div>
@@ -252,7 +186,7 @@
       <div class="card-table">
         <div class="card-header-bar" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;">
-            <h2>Tabel Keadaan PTK Sekolah Dasar (SD)</h2>
+            <h2 id="headingTab2">Tabel Keadaan PTK Sekolah Dasar (SD)</h2>
             <!-- Breadcrumb saat drilldown kecamatan -->
             <div class="breadcrumb-wrap" id="breadcrumbWrapKeadaan" style="display: none; margin-bottom: 0;"></div>
           </div>
@@ -261,21 +195,8 @@
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH TUGAS:</span>
-              <div class="toggle-bar" style="flex-wrap: wrap;">
-                <button class="toggle-btn active" id="btnKeadaanTog_ALL"                onclick="setKeadaanRoleToggle('ALL')">Semua PTK</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_KS"                 onclick="setKeadaanRoleToggle('KS')">Kepala Sekolah</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_GURU_KELAS"          onclick="setKeadaanRoleToggle('GURU_KELAS')">Guru Kelas</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_GURU_PJOK"           onclick="setKeadaanRoleToggle('GURU_PJOK')">Guru PJOK</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_GURU_PAI"            onclick="setKeadaanRoleToggle('GURU_PAI')">Guru PAI</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_GURU_KRISTEN"        onclick="setKeadaanRoleToggle('GURU_KRISTEN')">Guru PA Kristen</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_GURU_KATOLIK"        onclick="setKeadaanRoleToggle('GURU_KATOLIK')">Guru PA Katolik</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_GURU_INGGRIS"        onclick="setKeadaanRoleToggle('GURU_INGGRIS')">Guru Bhs. Inggris</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_GURU_LAIN"           onclick="setKeadaanRoleToggle('GURU_LAIN')">Guru Lainnya</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_OP_LAYANAN"          onclick="setKeadaanRoleToggle('OP_LAYANAN')">Operator Layanan Operasional</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_PENGELOLA_LAYANAN"   onclick="setKeadaanRoleToggle('PENGELOLA_LAYANAN')">Pengelola Layanan Operasional</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_PENATA_LAYANAN"      onclick="setKeadaanRoleToggle('PENATA_LAYANAN')">Penata Layanan Operasional</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_PENGELOLA_UMUM"      onclick="setKeadaanRoleToggle('PENGELOLA_UMUM')">Pengelola Umum Operasional</button>
-                <button class="toggle-btn"        id="btnKeadaanTog_TENDIK_LAIN"         onclick="setKeadaanRoleToggle('TENDIK_LAIN')">Tendik Lainnya</button>
+              <div class="toggle-bar" id="toggleBarKeadaan" style="flex-wrap: wrap;">
+                <!-- Dirender dinamis via renderKeadaanToggleButtons() -->
               </div>
             </div>
 
@@ -326,10 +247,10 @@
           <div class="kpi-subtitle" id="kpiPensiunYearDetail">KS: 0 | Guru: 0 | Tendik: 0</div>
         </div>
 
-        <!-- Card 2: Kepala SD -->
+        <!-- Card 2: Kepala Sekolah -->
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-title">Kepala SD</span>
+            <span class="kpi-title" id="kpiPensiunKsTitle">Kepala SD</span>
             <div class="kpi-icon icon-purple">🎓</div>
           </div>
           <div class="kpi-value" id="kpiPensiunKsCount">0</div>
@@ -338,10 +259,10 @@
           </div>
         </div>
 
-        <!-- Card 3: Guru SD -->
+        <!-- Card 3: Guru -->
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-title">Guru SD</span>
+            <span class="kpi-title" id="kpiPensiunGuruTitle">Guru SD</span>
             <div class="kpi-icon icon-green">👨‍🏫</div>
           </div>
           <div class="kpi-value" id="kpiPensiunGuruCount">0</div>

@@ -150,6 +150,48 @@ function mapFormasiGuruSD(rawTugas) {
 }
 
 /**
+ * Normalisasi Jenis Formasi Guru SMP (16 Kategori sesuai urutan)
+ * 1. KS
+ * 2. GURU_PAI
+ * 3. GURU_KRISTEN
+ * 4. GURU_KATOLIK
+ * 5. GURU_PKN
+ * 6. GURU_INDO
+ * 7. GURU_MTK
+ * 8. GURU_IPA
+ * 9. GURU_IPS
+ * 10. GURU_INGGRIS
+ * 11. GURU_PJOK
+ * 12. GURU_TIK
+ * 13. GURU_SBK
+ * 14. GURU_BK
+ * 15. GURU_JAWA
+ * 16. GURU_LAIN
+ */
+function mapFormasiGuruSMP(rawTugas) {
+  if (!rawTugas) return null;
+  const val = String(rawTugas).trim().toLowerCase();
+
+  if (val.includes('kepala sekolah') || val.includes('ks') || val === 'kasek') return 'KS';
+  if (val.includes('pai') || val.includes('agama islam') || val.includes('pendidikan agama islam')) return 'GURU_PAI';
+  if (val.includes('kristen') || val.includes('protestan')) return 'GURU_KRISTEN';
+  if (val.includes('katolik')) return 'GURU_KATOLIK';
+  if (val.includes('pkn') || val.includes('ppkn') || val.includes('pancasila') || val.includes('kewarganegaraan')) return 'GURU_PKN';
+  if (val.includes('bahasa indonesia') || val.includes('bhs. indonesia') || val.includes('bhs indonesia') || val.includes('b. indonesia') || val.includes('b indonesia') || val.includes('indonesia')) return 'GURU_INDO';
+  if (val.includes('matematika') || val.includes('mtk') || val.includes('math')) return 'GURU_MTK';
+  if (val.includes('ipa') || val.includes('ilmu pengetahuan alam') || val.includes('fisika') || val.includes('biologi')) return 'GURU_IPA';
+  if (val.includes('ips') || val.includes('ilmu pengetahuan sosial') || val.includes('geografi') || val.includes('sejarah') || val.includes('ekonomi')) return 'GURU_IPS';
+  if (val.includes('bahasa inggris') || val.includes('bhs. inggris') || val.includes('bhs inggris') || val.includes('b. inggris') || val.includes('b inggris') || val.includes('english')) return 'GURU_INGGRIS';
+  if (val.includes('pjok') || val.includes('penjas') || val.includes('olahraga') || val.includes('jasmani')) return 'GURU_PJOK';
+  if (val.includes('tik') || val.includes('informatika') || val.includes('komputer')) return 'GURU_TIK';
+  if (val.includes('sbk') || val.includes('seni') || val.includes('budaya') || val.includes('prakarya')) return 'GURU_SBK';
+  if (val.includes('bk') || val.includes('bimbingan') || val.includes('konseling')) return 'GURU_BK';
+  if (val.includes('jawa') || val.includes('bhs. jawa') || val.includes('bahasa jawa')) return 'GURU_JAWA';
+  if (val.includes('guru') || val.includes('pengajar') || val.includes('pendidik')) return 'GURU_LAIN';
+  return null;
+}
+
+/**
  * Mapping Tugas Granular PTK (untuk filter Tab Keadaan PTK SD)
  * Mengembalikan key granular yang konsisten untuk agregasi per-tugas.
  */
@@ -176,6 +218,13 @@ function mapTugasGranular(rawTugas) {
  * Helper membuat objek counter tugas granular yang terisi nol.
  */
 /**
+ * Helper membuat satu slot formasi guru (kebutuhan vs ketersediaan)
+ */
+function emptyFormasiSlot(butuh = 0) {
+  return { butuh: butuh, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 };
+}
+
+/**
  * Helper membuat satu slot breakdown status kepegawaian per tugas.
  */
 function emptyTugasSlot() {
@@ -191,6 +240,62 @@ function emptyTugasCount() {
     GURU_KRISTEN:      emptyTugasSlot(),
     GURU_KATOLIK:      emptyTugasSlot(),
     GURU_INGGRIS:      emptyTugasSlot(),
+    GURU_LAIN:         emptyTugasSlot(),
+    OP_LAYANAN:        emptyTugasSlot(),
+    PENGELOLA_LAYANAN: emptyTugasSlot(),
+    PENATA_LAYANAN:    emptyTugasSlot(),
+    PENGELOLA_UMUM:    emptyTugasSlot(),
+    TENDIK_LAIN:       emptyTugasSlot()
+  };
+}
+
+/**
+ * Mapping Tugas Granular PTK SMP (untuk filter Tab Keadaan PTK SMP)
+ */
+function mapTugasGranularSMP(rawTugas) {
+  if (!rawTugas) return 'TENDIK_LAIN';
+  const val = String(rawTugas).trim().toLowerCase();
+
+  if (val.includes('kepala sekolah') || val === 'ks' || val === 'kasek') return 'KS';
+  if (val.includes('pai') || val.includes('agama islam')) return 'GURU_PAI';
+  if (val.includes('kristen') || val.includes('protestan')) return 'GURU_KRISTEN';
+  if (val.includes('katolik')) return 'GURU_KATOLIK';
+  if (val.includes('pkn') || val.includes('ppkn') || val.includes('pancasila')) return 'GURU_PKN';
+  if (val.includes('bahasa indonesia') || val.includes('bhs. indonesia') || val.includes('bhs indonesia') || val.includes('indonesia')) return 'GURU_INDO';
+  if (val.includes('matematika') || val.includes('mtk')) return 'GURU_MTK';
+  if (val.includes('ipa') || val.includes('fisika') || val.includes('biologi')) return 'GURU_IPA';
+  if (val.includes('ips') || val.includes('sejarah') || val.includes('geografi') || val.includes('ekonomi')) return 'GURU_IPS';
+  if (val.includes('bahasa inggris') || val.includes('bhs. inggris') || val.includes('bhs inggris') || val.includes('english')) return 'GURU_INGGRIS';
+  if (val.includes('pjok') || val.includes('penjas') || val.includes('olahraga')) return 'GURU_PJOK';
+  if (val.includes('tik') || val.includes('informatika') || val.includes('komputer')) return 'GURU_TIK';
+  if (val.includes('sbk') || val.includes('seni') || val.includes('prakarya')) return 'GURU_SBK';
+  if (val.includes('bk') || val.includes('bimbingan') || val.includes('konseling')) return 'GURU_BK';
+  if (val.includes('jawa') || val.includes('bhs. jawa') || val.includes('bahasa jawa')) return 'GURU_JAWA';
+  if (val.includes('guru')) return 'GURU_LAIN';
+  if (val.includes('operator layanan') || val.includes('operator pend')) return 'OP_LAYANAN';
+  if (val.includes('pengelola layanan') || val.includes('pengelola pend')) return 'PENGELOLA_LAYANAN';
+  if (val.includes('penata layanan') || val.includes('penata pend')) return 'PENATA_LAYANAN';
+  if (val.includes('pengelola umum') || val.includes('umum operasional')) return 'PENGELOLA_UMUM';
+  return 'TENDIK_LAIN';
+}
+
+function emptyTugasCountSMP() {
+  return {
+    KS:                emptyTugasSlot(),
+    GURU_PAI:          emptyTugasSlot(),
+    GURU_KRISTEN:      emptyTugasSlot(),
+    GURU_KATOLIK:      emptyTugasSlot(),
+    GURU_PKN:          emptyTugasSlot(),
+    GURU_INDO:         emptyTugasSlot(),
+    GURU_MTK:          emptyTugasSlot(),
+    GURU_IPA:          emptyTugasSlot(),
+    GURU_IPS:          emptyTugasSlot(),
+    GURU_INGGRIS:      emptyTugasSlot(),
+    GURU_PJOK:         emptyTugasSlot(),
+    GURU_TIK:          emptyTugasSlot(),
+    GURU_SBK:          emptyTugasSlot(),
+    GURU_BK:           emptyTugasSlot(),
+    GURU_JAWA:         emptyTugasSlot(),
     GURU_LAIN:         emptyTugasSlot(),
     OP_LAYANAN:        emptyTugasSlot(),
     PENGELOLA_LAYANAN: emptyTugasSlot(),
@@ -331,7 +436,7 @@ function hitungKebutuhanMapelSD(rombel) {
  */
 function getDashboardData(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const CACHE_KEY = 'REKAP_PTK_WITH_PENSIUN_V8';
+  const CACHE_KEY = 'REKAP_PTK_WITH_PENSIUN_V9';
   
   if (!forceRefresh) {
     const cached = cache.get(CACHE_KEY);
@@ -377,6 +482,27 @@ function getDashboardData(forceRefresh) {
 
   let butuhKatolikColIdx = unitHeader.indexOf('kebutuhan guru pa katolik');
   if (butuhKatolikColIdx === -1) butuhKatolikColIdx = 22; // Kolom W
+
+  // Indeks Kolom Kebutuhan Guru SMP di Sheet DataUnit:
+  // AP: Bhs Indonesia (41), AQ: IPA (42), AR: IPS (43), AS: Matematika (44), AT: PKN (45),
+  // AU: Bhs Inggris (46), AV: Bhs Jawa (47), AW: PJOK (48), AX: PAI (49), AY: PA Kristen (50),
+  // AZ: PA Katolik (51), BA: BK (52), (BB: 53 dilewati), BC: SBK (54), BD: TIK (55)
+  const smpColIdxMap = {
+    indo: 41,     // AP
+    ipa: 42,      // AQ
+    ips: 43,      // AR
+    mtk: 44,      // AS
+    pkn: 45,      // AT
+    inggris: 46,  // AU
+    jawa: 47,     // AV
+    pjok: 48,     // AW
+    pai: 49,      // AX
+    kristen: 50,  // AY
+    katolik: 51,  // AZ
+    bk: 52,       // BA
+    sbk: 54,      // BC
+    tik: 55       // BD
+  };
   
   const schoolMaster = {}; 
   const kecamatanSet = new Set();
@@ -401,7 +527,7 @@ function getDashboardData(forceRefresh) {
     
     let jenjang = 'SD';
     const upperName = namaSekolah.toUpperCase();
-    if (upperName.includes('SMP')) {
+    if (upperName.startsWith('SMPN') || upperName.includes('SMP')) {
       jenjang = 'SMP';
     } else if (upperName.includes('TK') || upperName.includes('PAUD')) {
       jenjang = 'PAUD/TK';
@@ -411,6 +537,9 @@ function getDashboardData(forceRefresh) {
     const murid = muridColIdx !== -1 ? (parseInt(row[muridColIdx]) || 0) : 0;
     const butuhKristen = parseInt(row[butuhKristenColIdx]) || 0;
     const butuhKatolik = parseInt(row[butuhKatolikColIdx]) || 0;
+
+    // Kebutuhan Guru SMP per Mapel dari kolom AP..BD
+    const parseSmpButuh = (cIdx) => (jenjang === 'SMP' ? (parseInt(row[cIdx]) || 0) : 0);
     
     const key = npsn || ('NAME_' + namaSekolah.toUpperCase());
     schoolMaster[key] = {
@@ -438,15 +567,36 @@ function getDashboardData(forceRefresh) {
 
       // Counter granular per tugas (untuk filter Tab Keadaan)
       tugasCount: emptyTugasCount(),
+      tugasCountSMP: emptyTugasCountSMP(),
 
       // Komposisi Khusus Guru SD (Kebutuhan & Ketersediaan)
       formasiSD: {
-        KS: { butuh: (jenjang === 'SD' ? 1 : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_KELAS: { butuh: (jenjang === 'SD' ? rombel : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_PAI: { butuh: (jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_PJOK: { butuh: (jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_KRISTEN: { butuh: (jenjang === 'SD' ? butuhKristen : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-        GURU_KATOLIK: { butuh: (jenjang === 'SD' ? butuhKatolik : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
+        KS:           emptyFormasiSlot(jenjang === 'SD' ? 1 : 0),
+        GURU_KELAS:   emptyFormasiSlot(jenjang === 'SD' ? rombel : 0),
+        GURU_PAI:     emptyFormasiSlot(jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0),
+        GURU_PJOK:    emptyFormasiSlot(jenjang === 'SD' ? hitungKebutuhanMapelSD(rombel) : 0),
+        GURU_KRISTEN: emptyFormasiSlot(jenjang === 'SD' ? butuhKristen : 0),
+        GURU_KATOLIK: emptyFormasiSlot(jenjang === 'SD' ? butuhKatolik : 0)
+      },
+
+      // Komposisi Khusus Guru SMP (16 Kategori Kebutuhan & Ketersediaan)
+      formasiSMP: {
+        KS:           emptyFormasiSlot(jenjang === 'SMP' ? 1 : 0),
+        GURU_PAI:     emptyFormasiSlot(parseSmpButuh(smpColIdxMap.pai)),
+        GURU_KRISTEN: emptyFormasiSlot(parseSmpButuh(smpColIdxMap.kristen)),
+        GURU_KATOLIK: emptyFormasiSlot(parseSmpButuh(smpColIdxMap.katolik)),
+        GURU_PKN:     emptyFormasiSlot(parseSmpButuh(smpColIdxMap.pkn)),
+        GURU_INDO:    emptyFormasiSlot(parseSmpButuh(smpColIdxMap.indo)),
+        GURU_MTK:     emptyFormasiSlot(parseSmpButuh(smpColIdxMap.mtk)),
+        GURU_IPA:     emptyFormasiSlot(parseSmpButuh(smpColIdxMap.ipa)),
+        GURU_IPS:     emptyFormasiSlot(parseSmpButuh(smpColIdxMap.ips)),
+        GURU_INGGRIS: emptyFormasiSlot(parseSmpButuh(smpColIdxMap.inggris)),
+        GURU_PJOK:    emptyFormasiSlot(parseSmpButuh(smpColIdxMap.pjok)),
+        GURU_TIK:     emptyFormasiSlot(parseSmpButuh(smpColIdxMap.tik)),
+        GURU_SBK:     emptyFormasiSlot(parseSmpButuh(smpColIdxMap.sbk)),
+        GURU_BK:      emptyFormasiSlot(parseSmpButuh(smpColIdxMap.bk)),
+        GURU_JAWA:    emptyFormasiSlot(parseSmpButuh(smpColIdxMap.jawa)),
+        GURU_LAIN:    emptyFormasiSlot(0)
       }
     };
   }
@@ -487,13 +637,32 @@ function getDashboardData(forceRefresh) {
         nonAsnOldCount: 0,
         nonAsnNewCount: 0,
         tugasCount: emptyTugasCount(),
+        tugasCountSMP: emptyTugasCountSMP(),
         formasiSD: {
-          KS: { butuh: (ptk.jenjang === 'SD' ? 1 : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_KELAS: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_PAI: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_PJOK: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_KRISTEN: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-          GURU_KATOLIK: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
+          KS:           emptyFormasiSlot(ptk.jenjang === 'SD' ? 1 : 0),
+          GURU_KELAS:   emptyFormasiSlot(0),
+          GURU_PAI:     emptyFormasiSlot(0),
+          GURU_PJOK:    emptyFormasiSlot(0),
+          GURU_KRISTEN: emptyFormasiSlot(0),
+          GURU_KATOLIK: emptyFormasiSlot(0)
+        },
+        formasiSMP: {
+          KS:           emptyFormasiSlot(ptk.jenjang === 'SMP' ? 1 : 0),
+          GURU_PAI:     emptyFormasiSlot(0),
+          GURU_KRISTEN: emptyFormasiSlot(0),
+          GURU_KATOLIK: emptyFormasiSlot(0),
+          GURU_PKN:     emptyFormasiSlot(0),
+          GURU_INDO:    emptyFormasiSlot(0),
+          GURU_MTK:     emptyFormasiSlot(0),
+          GURU_IPA:     emptyFormasiSlot(0),
+          GURU_IPS:     emptyFormasiSlot(0),
+          GURU_INGGRIS: emptyFormasiSlot(0),
+          GURU_PJOK:    emptyFormasiSlot(0),
+          GURU_TIK:     emptyFormasiSlot(0),
+          GURU_SBK:     emptyFormasiSlot(0),
+          GURU_BK:      emptyFormasiSlot(0),
+          GURU_JAWA:    emptyFormasiSlot(0),
+          GURU_LAIN:    emptyFormasiSlot(0)
         }
       };
     }
@@ -531,7 +700,7 @@ function getDashboardData(forceRefresh) {
     // Pemetaan khusus Formasi SD
     if (ptk.jenjang === 'SD') {
       const formasi = mapFormasiGuruSD(ptk.tugasRaw);
-      if (formasi && sch.formasiSD[formasi]) {
+      if (formasi && sch.formasiSD && sch.formasiSD[formasi]) {
         const targetFormasi = sch.formasiSD[formasi];
         if (ptk.statusNorm === 'CPNS') {
           targetFormasi.cpns++;
@@ -552,7 +721,31 @@ function getDashboardData(forceRefresh) {
       }
     }
 
-    // Hitung counter tugas granular (dengan breakdown status kepegawaian)
+    // Pemetaan khusus Formasi SMP (16 Kategori)
+    if (ptk.jenjang === 'SMP') {
+      const formasi = mapFormasiGuruSMP(ptk.tugasRaw);
+      if (formasi && sch.formasiSMP && sch.formasiSMP[formasi]) {
+        const targetFormasi = sch.formasiSMP[formasi];
+        if (ptk.statusNorm === 'CPNS') {
+          targetFormasi.cpns++;
+        } else if (ptk.statusNorm === 'PNS') {
+          targetFormasi.pns++;
+        } else if (ptk.statusNorm === 'PPPK') {
+          targetFormasi.pppk++;
+        } else if (ptk.statusNorm === 'PW') {
+          targetFormasi.pw++;
+        } else {
+          targetFormasi.nonAsn++;
+          if (ptk.tmtCategory === 'OLD') {
+            targetFormasi.nonAsnOld++;
+          } else {
+            targetFormasi.nonAsnNew++;
+          }
+        }
+      }
+    }
+
+    // Hitung counter tugas granular SD
     const tugasKey = mapTugasGranular(ptk.tugasRaw);
     if (tugasKey && sch.tugasCount && sch.tugasCount[tugasKey]) {
       const slot = sch.tugasCount[tugasKey];
@@ -564,6 +757,23 @@ function getDashboardData(forceRefresh) {
       else {
         if (ptk.tmtCategory === 'OLD') slot.nonAsnOld++;
         else                           slot.nonAsnNew++;
+      }
+    }
+
+    // Hitung counter tugas granular SMP
+    if (ptk.jenjang === 'SMP') {
+      const tugasKeySMP = mapTugasGranularSMP(ptk.tugasRaw);
+      if (tugasKeySMP && sch.tugasCountSMP && sch.tugasCountSMP[tugasKeySMP]) {
+        const slotSMP = sch.tugasCountSMP[tugasKeySMP];
+        slotSMP.total++;
+        if (ptk.statusNorm === 'CPNS')       slotSMP.cpns++;
+        else if (ptk.statusNorm === 'PNS')   slotSMP.pns++;
+        else if (ptk.statusNorm === 'PPPK')  slotSMP.pppk++;
+        else if (ptk.statusNorm === 'PW')    slotSMP.pw++;
+        else {
+          if (ptk.tmtCategory === 'OLD') slotSMP.nonAsnOld++;
+          else                           slotSMP.nonAsnNew++;
+        }
       }
     }
   });
@@ -668,6 +878,132 @@ function getDashboardData(forceRefresh) {
     akumulasi(rk.total, rowSekolah.total);
   });
 
+  // 4b. Hitung Analisis Kebutuhan Guru SMP (Per Sekolah & Per Kecamatan)
+  const listSMP = listSekolah.filter(s => s.jenjang === 'SMP');
+  const rekapKebutuhanSMP_Sekolah = [];
+  const rekapKebutuhanSMP_Kecamatan = {};
+
+  const smpRoleKeys = [
+    { key: 'ks', prop: 'KS' },
+    { key: 'guruPai', prop: 'GURU_PAI' },
+    { key: 'guruKristen', prop: 'GURU_KRISTEN' },
+    { key: 'guruKatolik', prop: 'GURU_KATOLIK' },
+    { key: 'guruPkn', prop: 'GURU_PKN' },
+    { key: 'guruIndo', prop: 'GURU_INDO' },
+    { key: 'guruMtk', prop: 'GURU_MTK' },
+    { key: 'guruIpa', prop: 'GURU_IPA' },
+    { key: 'guruIps', prop: 'GURU_IPS' },
+    { key: 'guruInggris', prop: 'GURU_INGGRIS' },
+    { key: 'guruPjok', prop: 'GURU_PJOK' },
+    { key: 'guruTik', prop: 'GURU_TIK' },
+    { key: 'guruSbk', prop: 'GURU_SBK' },
+    { key: 'guruBk', prop: 'GURU_BK' },
+    { key: 'guruJawa', prop: 'GURU_JAWA' },
+    { key: 'guruLain', prop: 'GURU_LAIN' }
+  ];
+
+  listSMP.forEach(smp => {
+    const f = smp.formasiSMP;
+    const calcSelisih = (item) => (item.cpns + item.pns + item.pppk + item.pw) - item.butuh;
+
+    let totalButuh = 0;
+    let totalCPNS = 0;
+    let totalPNS = 0;
+    let totalPPPK = 0;
+    let totalPW = 0;
+    let totalNonASN = 0;
+    let totalNonAsnOld = 0;
+    let totalNonAsnNew = 0;
+
+    const rowSekolah = {
+      npsn: smp.npsn,
+      namaSekolah: smp.namaSekolah,
+      kecamatan: smp.kecamatan,
+      rombel: smp.rombel,
+      murid: smp.murid || 0
+    };
+
+    smpRoleKeys.forEach(r => {
+      const slot = f[r.prop] || emptyFormasiSlot(0);
+      totalButuh += slot.butuh;
+      totalCPNS += slot.cpns;
+      totalPNS += slot.pns;
+      totalPPPK += slot.pppk;
+      totalPW += slot.pw;
+      totalNonASN += slot.nonAsn;
+      totalNonAsnOld += slot.nonAsnOld;
+      totalNonAsnNew += slot.nonAsnNew;
+
+      rowSekolah[r.key] = {
+        butuh: slot.butuh,
+        cpns: slot.cpns,
+        pns: slot.pns,
+        pppk: slot.pppk,
+        pw: slot.pw,
+        selisih: calcSelisih(slot),
+        nonAsn: slot.nonAsn,
+        nonAsnOld: slot.nonAsnOld,
+        nonAsnNew: slot.nonAsnNew
+      };
+    });
+
+    const totalPengurang = totalCPNS + totalPNS + totalPPPK + totalPW;
+    const totalSelisih = totalPengurang - totalButuh;
+
+    rowSekolah.total = {
+      butuh: totalButuh,
+      cpns: totalCPNS,
+      pns: totalPNS,
+      pppk: totalPPPK,
+      pw: totalPW,
+      pengurang: totalPengurang,
+      selisih: totalSelisih,
+      nonAsn: totalNonASN,
+      nonAsnOld: totalNonAsnOld,
+      nonAsnNew: totalNonAsnNew
+    };
+
+    rekapKebutuhanSMP_Sekolah.push(rowSekolah);
+
+    // Agregasi ke Kecamatan SMP
+    const kec = smp.kecamatan || 'LAINNYA';
+    if (!rekapKebutuhanSMP_Kecamatan[kec]) {
+      const initKec = {
+        kecamatan: kec,
+        jmlSekolah: 0,
+        totalMurid: 0,
+        totalRombel: 0,
+        total: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
+      };
+      smpRoleKeys.forEach(r => {
+        initKec[r.key] = { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 };
+      });
+      rekapKebutuhanSMP_Kecamatan[kec] = initKec;
+    }
+
+    const rk = rekapKebutuhanSMP_Kecamatan[kec];
+    rk.jmlSekolah++;
+    rk.totalMurid += (smp.murid || 0);
+    rk.totalRombel += smp.rombel;
+
+    const akumulasi = (target, src) => {
+      target.butuh += src.butuh;
+      target.cpns += src.cpns;
+      target.pns += src.pns;
+      target.pppk += src.pppk;
+      target.pw += src.pw;
+      target.selisih += src.selisih;
+      target.nonAsn += src.nonAsn;
+      target.nonAsnOld += (src.nonAsnOld || 0);
+      target.nonAsnNew += (src.nonAsnNew || 0);
+    };
+
+    smpRoleKeys.forEach(r => {
+      akumulasi(rk[r.key], rowSekolah[r.key]);
+    });
+    akumulasi(rk.total, rowSekolah.total);
+  });
+
   // 5. Rekap Wilayah Kecamatan & Jenjang Umum
   const rekapKecamatan = {};
   listSekolah.forEach(sch => {
@@ -765,9 +1101,65 @@ function getDashboardData(forceRefresh) {
     }
   });
 
+  // 5c. Rekap Wilayah Kecamatan Khusus SMP (Untuk Tab Keadaan PTK SMP)
+  const rekapKecamatanSMP = {};
+  listSMP.forEach(sch => {
+    const kec = sch.kecamatan || 'LAINNYA';
+    if (!rekapKecamatanSMP[kec]) {
+      rekapKecamatanSMP[kec] = {
+        kecamatan: kec,
+        totalSekolah: 0,
+        totalMurid: 0,
+        totalRombel: 0,
+        totalPTK: 0,
+        guru: 0,
+        ks: 0,
+        tendik: 0,
+        cpns: 0,
+        pns: 0,
+        pppk: 0,
+        pw: 0,
+        nonAsn: 0,
+        nonAsnOld: 0,
+        nonAsnNew: 0,
+        tugasCountSMP: emptyTugasCountSMP()
+      };
+    }
+    const rk = rekapKecamatanSMP[kec];
+    rk.totalSekolah++;
+    rk.totalMurid += (sch.murid || 0);
+    rk.totalRombel += (sch.rombel || 0);
+    rk.totalPTK += sch.ptkCount;
+    rk.guru += sch.guruCount;
+    rk.ks += sch.ksCount;
+    rk.tendik += sch.tendikCount;
+    rk.cpns += sch.cpnsCount;
+    rk.pns += sch.pnsCount;
+    rk.pppk += sch.pppkCount;
+    rk.pw += sch.pwCount;
+    rk.nonAsn += sch.nonAsnCount;
+    rk.nonAsnOld += (sch.nonAsnOldCount || 0);
+    rk.nonAsnNew += (sch.nonAsnNewCount || 0);
+    // Agregasi tugasCountSMP granular ke rekap kecamatan
+    if (sch.tugasCountSMP) {
+      Object.keys(sch.tugasCountSMP).forEach(key => {
+        if (!rk.tugasCountSMP[key]) rk.tugasCountSMP[key] = emptyTugasSlot();
+        const src = sch.tugasCountSMP[key];
+        const dst = rk.tugasCountSMP[key];
+        dst.cpns      += (src.cpns      || 0);
+        dst.pns       += (src.pns       || 0);
+        dst.pppk      += (src.pppk      || 0);
+        dst.pw        += (src.pw        || 0);
+        dst.nonAsnOld += (src.nonAsnOld || 0);
+        dst.nonAsnNew += (src.nonAsnNew || 0);
+        dst.total     += (src.total     || 0);
+      });
+    }
+  });
+
   const rekapJenjang = {
     SD: { jenjang: 'SD', jmlSekolah: listSD.length, totalPTK: ptkSDList.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-    SMP: { jenjang: 'SMP', jmlSekolah: listSekolah.filter(s => s.jenjang === 'SMP').length, totalPTK: ptkSMPList.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
+    SMP: { jenjang: 'SMP', jmlSekolah: listSMP.length, totalPTK: ptkSMPList.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
     TOTAL: { jenjang: 'TOTAL (SD & SMP)', jmlSekolah: listSekolah.length, totalPTK: allPTK.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
   };
 
@@ -826,20 +1218,61 @@ function getDashboardData(forceRefresh) {
       totalNonAsnNew: rekapJenjang.SD.nonAsnNew,
       persenASN: rekapJenjang.SD.totalPTK ? Math.round(((rekapJenjang.SD.cpns + rekapJenjang.SD.pns + rekapJenjang.SD.pppk + rekapJenjang.SD.pw) / rekapJenjang.SD.totalPTK) * 100) : 0
     },
+    summarySMP: {
+      totalSekolah: rekapJenjang.SMP.jmlSekolah,
+      totalPTK: rekapJenjang.SMP.totalPTK,
+      totalGuru: rekapJenjang.SMP.guru,
+      totalKS: rekapJenjang.SMP.ks,
+      totalTendik: rekapJenjang.SMP.tendik,
+      totalCPNS: rekapJenjang.SMP.cpns,
+      totalPNS: rekapJenjang.SMP.pns,
+      totalPPPK: rekapJenjang.SMP.pppk,
+      totalPW: rekapJenjang.SMP.pw,
+      totalNonASN: rekapJenjang.SMP.nonAsn,
+      totalNonAsnOld: rekapJenjang.SMP.nonAsnOld,
+      totalNonAsnNew: rekapJenjang.SMP.nonAsnNew,
+      persenASN: rekapJenjang.SMP.totalPTK ? Math.round(((rekapJenjang.SMP.cpns + rekapJenjang.SMP.pns + rekapJenjang.SMP.pppk + rekapJenjang.SMP.pw) / rekapJenjang.SMP.totalPTK) * 100) : 0
+    },
     kecamatanList: Array.from(kecamatanSet).sort(),
     rekapKecamatan: Object.values(rekapKecamatan).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan)),
     rekapKecamatanSD: Object.values(rekapKecamatanSD).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan)),
+    rekapKecamatanSMP: Object.values(rekapKecamatanSMP).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan)),
     rekapJenjang: [rekapJenjang.SD, rekapJenjang.SMP, rekapJenjang.TOTAL],
     rekapSekolah: listSekolah.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
     rekapSekolahSD: listSD.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
+    rekapSekolahSMP: listSMP.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
     
     // Data Khusus Analisis Kebutuhan Guru SD
     kebutuhanSD: {
       perSekolah: rekapKebutuhanSD_Sekolah.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
       perKecamatan: Object.values(rekapKebutuhanSD_Kecamatan).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan))
     },
-    // Data Khusus Proyeksi Pensiun SD (Seluruh Status: PNS, PPPK, PW, Non-ASN)
+    // Data Khusus Analisis Kebutuhan Guru SMP
+    kebutuhanSMP: {
+      perSekolah: rekapKebutuhanSMP_Sekolah.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
+      perKecamatan: Object.values(rekapKebutuhanSMP_Kecamatan).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan))
+    },
+    // Data Khusus Proyeksi Pensiun SD
     pensiunSD: ptkSDList
+      .filter(p => p.pensiunInfo)
+      .map(p => ({
+        nama: p.nama,
+        nip: p.nip,
+        unitKerja: p.unitKerja,
+        kecamatan: p.kecamatan,
+        jabatan: p.tugasRaw || p.jenisNorm || '-',
+        status: p.statusNorm,
+        tglLahir: p.tglLahirFormatted,
+        bup: p.pensiunInfo.bup,
+        pensiunTahun: p.pensiunInfo.tahun,
+        pensiunBulan: p.pensiunInfo.bulan, // 1 - 12
+        pensiunBulanNama: p.pensiunInfo.bulanNama,
+        pensiunTmt: p.pensiunInfo.tmtPensiun,
+        roleCategory: p.pensiunInfo.roleCategory, // 'KS', 'GURU', 'TENDIK'
+        isGuruKs: p.pensiunInfo.isGuruKs
+      })),
+    // Data Khusus Proyeksi Pensiun SMP
+    pensiunSMP: ptkSMPList
       .filter(p => p.pensiunInfo)
       .map(p => ({
         nama: p.nama,

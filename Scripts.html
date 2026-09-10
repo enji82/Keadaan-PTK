@@ -2,18 +2,109 @@
   // State Global
   let rawData = null;
   let activeTab = 'kebutuhanSD';
-  let activeFormasiToggle = 'ALL'; // 'ALL', 'KS', 'GURU_KELAS', 'GURU_PAI', 'GURU_PJOK', 'GURU_KRISTEN', 'GURU_KATOLIK', 'MATRIX'
+  let activeFormasiToggle = 'ALL';
   let currentKebutuhanMode = 'KECAMATAN'; // 'KECAMATAN' (default) atau 'SEKOLAH' (saat drilldown)
   
-  // State Khusus Tab 2: Keadaan PTK SD
-  let activeKeadaanRoleToggle = 'ALL'; // 'ALL','KS','GURU_KELAS','GURU_PJOK','GURU_PAI','GURU_KRISTEN','GURU_KATOLIK','GURU_INGGRIS','GURU_LAIN','OP_LAYANAN','PENGELOLA_LAYANAN','PENATA_LAYANAN','PENGELOLA_UMUM','TENDIK_LAIN'
+  // State Khusus Tab 2: Keadaan PTK
+  let activeKeadaanRoleToggle = 'ALL';
   let currentKeadaanMode = 'KECAMATAN'; // 'KECAMATAN' atau 'SEKOLAH'
 
-  // State Khusus Tab 3: Proyeksi Pensiun SD
+  // State Khusus Tab 3: Proyeksi Pensiun
   let currentYear = new Date().getFullYear();
   let selectedPensiunYear = currentYear; // Default: Tahun ini
   let selectedPensiunMonth = null; // null = semua bulan di tahun terpilih, 1..12 = bulan tertentu
   let isPensiunTableVisible = true;
+
+  // Konfigurasi Formasi Guru SD (6 Jenis PTK)
+  const FORMASI_CONFIG_SD = {
+    'ALL':          { key: 'total',       label: 'Semua Guru SD (Total)', short: 'Semua (Total)' },
+    'KS':           { key: 'ks',          label: 'Kepala Sekolah',        short: 'Kepala Sekolah', icon: 'icon-purple', emoji: '🎓' },
+    'GURU_KELAS':   { key: 'guruKelas',   label: 'Guru Kelas',            short: 'Guru Kelas',     icon: 'icon-green',  emoji: '👨‍🏫' },
+    'GURU_PAI':     { key: 'guruPai',     label: 'Guru PAI',              short: 'Guru PAI',       icon: 'icon-amber',  emoji: '📖' },
+    'GURU_PJOK':    { key: 'guruPjok',    label: 'Guru PJOK',             short: 'Guru PJOK',      icon: 'icon-blue',   emoji: '⚽' },
+    'GURU_KRISTEN': { key: 'guruKristen', label: 'Guru PA Kristen',      short: 'PA Kristen',     icon: 'icon-cyan',   emoji: '⛪' },
+    'GURU_KATOLIK': { key: 'guruKatolik', label: 'Guru PA Katolik',      short: 'PA Katolik',     icon: 'icon-rose',   emoji: '✝️' },
+    'MATRIX':       { key: 'matrix',      label: 'Matriks Semua Formasi', short: 'Matriks Semua' }
+  };
+
+  const FORMASI_LIST_SD = ['KS', 'GURU_KELAS', 'GURU_PAI', 'GURU_PJOK', 'GURU_KRISTEN', 'GURU_KATOLIK'];
+
+  // Konfigurasi Formasi Guru SMP (16 Jenis PTK Urutan Resmi)
+  const FORMASI_CONFIG_SMP = {
+    'ALL':          { key: 'total',       label: 'Semua Guru SMP (Total)', short: 'Semua (Total)' },
+    'KS':           { key: 'ks',          label: 'Kepala Sekolah',        short: 'Kepala Sekolah', icon: 'icon-purple', emoji: '🎓', colCls: 'mat-ks' },
+    'GURU_PAI':     { key: 'guruPai',     label: 'Guru PAI',              short: 'Guru PAI',       icon: 'icon-amber',  emoji: '📖', colCls: 'mat-pai' },
+    'GURU_KRISTEN': { key: 'guruKristen', label: 'Guru PA Kristen',      short: 'PA Kristen',     icon: 'icon-cyan',   emoji: '⛪', colCls: 'mat-kri' },
+    'GURU_KATOLIK': { key: 'guruKatolik', label: 'Guru PA Katolik',      short: 'PA Katolik',     icon: 'icon-rose',   emoji: '✝️', colCls: 'mat-kat' },
+    'GURU_PKN':     { key: 'guruPkn',     label: 'Guru PKN',              short: 'Guru PKN',       icon: 'icon-rose',   emoji: '🇮🇩', colCls: 'mat-pkn' },
+    'GURU_INDO':    { key: 'guruIndo',    label: 'Guru Bhs. Indonesia',   short: 'Bhs. Indonesia', icon: 'icon-blue',   emoji: '📚', colCls: 'mat-indo' },
+    'GURU_MTK':     { key: 'guruMtk',     label: 'Guru Matematika',       short: 'Matematika',     icon: 'icon-purple', emoji: '📐', colCls: 'mat-mtk' },
+    'GURU_IPA':     { key: 'guruIpa',     label: 'Guru IPA',              short: 'Guru IPA',       icon: 'icon-green',  emoji: '🔬', colCls: 'mat-ipa' },
+    'GURU_IPS':     { key: 'guruIps',     label: 'Guru IPS',              short: 'Guru IPS',       icon: 'icon-amber',  emoji: '🌏', colCls: 'mat-ips' },
+    'GURU_INGGRIS': { key: 'guruInggris', label: 'Guru Bhs. Inggris',     short: 'Bhs. Inggris',   icon: 'icon-cyan',   emoji: '🇬🇧', colCls: 'mat-inggris' },
+    'GURU_PJOK':    { key: 'guruPjok',    label: 'Guru PJOK',             short: 'Guru PJOK',      icon: 'icon-blue',   emoji: '⚽', colCls: 'mat-pjok' },
+    'GURU_TIK':     { key: 'guruTik',     label: 'Guru TIK',              short: 'Guru TIK',       icon: 'icon-purple', emoji: '💻', colCls: 'mat-tik' },
+    'GURU_SBK':     { key: 'guruSbk',     label: 'Guru SBK',              short: 'Guru SBK',       icon: 'icon-rose',   emoji: '🎨', colCls: 'mat-sbk' },
+    'GURU_BK':      { key: 'guruBk',      label: 'Guru BK',               short: 'Guru BK',        icon: 'icon-blue',   emoji: '💬', colCls: 'mat-bk' },
+    'GURU_JAWA':    { key: 'guruJawa',    label: 'Guru Bhs. Jawa',        short: 'Bhs. Jawa',      icon: 'icon-green',  emoji: '📜', colCls: 'mat-jawa' },
+    'GURU_LAIN':    { key: 'guruLain',    label: 'Guru Lainnya',          short: 'Guru Lainnya',   icon: 'icon-amber',  emoji: '👨‍🏫', colCls: 'mat-lain' },
+    'MATRIX':       { key: 'matrix',      label: 'Matriks Semua Formasi', short: 'Matriks Semua' }
+  };
+
+  const FORMASI_LIST_SMP = [
+    'KS', 'GURU_PAI', 'GURU_KRISTEN', 'GURU_KATOLIK', 'GURU_PKN', 'GURU_INDO',
+    'GURU_MTK', 'GURU_IPA', 'GURU_IPS', 'GURU_INGGRIS', 'GURU_PJOK', 'GURU_TIK',
+    'GURU_SBK', 'GURU_BK', 'GURU_JAWA', 'GURU_LAIN'
+  ];
+
+  // Konfigurasi Tugas Tab Keadaan SD
+  const TUGAS_CONFIG_SD = [
+    { key: 'ALL', label: 'Semua PTK' },
+    { key: 'KS', label: 'Kepala Sekolah' },
+    { key: 'GURU_KELAS', label: 'Guru Kelas' },
+    { key: 'GURU_PJOK', label: 'Guru PJOK' },
+    { key: 'GURU_PAI', label: 'Guru PAI' },
+    { key: 'GURU_KRISTEN', label: 'Guru PA Kristen' },
+    { key: 'GURU_KATOLIK', label: 'Guru PA Katolik' },
+    { key: 'GURU_INGGRIS', label: 'Guru Bhs. Inggris' },
+    { key: 'GURU_LAIN', label: 'Guru Lainnya' },
+    { key: 'OP_LAYANAN', label: 'Operator Layanan Operasional' },
+    { key: 'PENGELOLA_LAYANAN', label: 'Pengelola Layanan Operasional' },
+    { key: 'PENATA_LAYANAN', label: 'Penata Layanan Operasional' },
+    { key: 'PENGELOLA_UMUM', label: 'Pengelola Umum Operasional' },
+    { key: 'TENDIK_LAIN', label: 'Tendik Lainnya' }
+  ];
+
+  // Konfigurasi Tugas Tab Keadaan SMP (16 Urutan Guru + Tendik)
+  const TUGAS_CONFIG_SMP = [
+    { key: 'ALL', label: 'Semua PTK' },
+    { key: 'KS', label: 'Kepala Sekolah' },
+    { key: 'GURU_PAI', label: 'Guru PAI' },
+    { key: 'GURU_KRISTEN', label: 'Guru PA Kristen' },
+    { key: 'GURU_KATOLIK', label: 'Guru PA Katolik' },
+    { key: 'GURU_PKN', label: 'Guru PKN' },
+    { key: 'GURU_INDO', label: 'Guru Bhs. Indonesia' },
+    { key: 'GURU_MTK', label: 'Guru Matematika' },
+    { key: 'GURU_IPA', label: 'Guru IPA' },
+    { key: 'GURU_IPS', label: 'Guru IPS' },
+    { key: 'GURU_INGGRIS', label: 'Guru Bhs. Inggris' },
+    { key: 'GURU_PJOK', label: 'Guru PJOK' },
+    { key: 'GURU_TIK', label: 'Guru TIK' },
+    { key: 'GURU_SBK', label: 'Guru SBK' },
+    { key: 'GURU_BK', label: 'Guru BK' },
+    { key: 'GURU_JAWA', label: 'Guru Bhs. Jawa' },
+    { key: 'GURU_LAIN', label: 'Guru Lainnya' },
+    { key: 'OP_LAYANAN', label: 'Operator Layanan Operasional' },
+    { key: 'PENGELOLA_LAYANAN', label: 'Pengelola Layanan Operasional' },
+    { key: 'PENATA_LAYANAN', label: 'Penata Layanan Operasional' },
+    { key: 'PENGELOLA_UMUM', label: 'Pengelola Umum Operasional' },
+    { key: 'TENDIK_LAIN', label: 'Tendik Lainnya' }
+  ];
+
+  function getActiveJenjang() {
+    const el = document.getElementById('filterJenjang');
+    return el ? el.value : 'SD';
+  }
 
   document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData(false);
@@ -41,12 +132,15 @@
 
     populateKecamatanOptions(data.kecamatanList || []);
 
+    // Render Tab Buttons and Controls
+    updateUIForActiveJenjang();
+
     // Render Semua Bagian
     renderKPIUmum();
-    renderCardsFormasiSD();
-    renderTabKebutuhanSD();
-    renderTabKeadaanSD();
-    renderTabPensiunSD();
+    renderCardsFormasi();
+    renderTabKebutuhan();
+    renderTabKeadaan();
+    renderTabPensiun();
   }
 
   function handleDataError(err) {
@@ -79,19 +173,119 @@
   }
 
   /**
-   * Helper: Dapatkan ringkasan Keadaan PTK SD berdasarkan filter kecamatan
+   * Menyesuaikan teks judul tab, heading tabel, dan tombol toggle sesuai jenjang aktif
+   */
+  function updateUIForActiveJenjang() {
+    const jenjang = getActiveJenjang();
+    const jenjangLabel = jenjang === 'SMP' ? 'SMP' : 'SD';
+
+    // 1. Update teks tab navigasi
+    const btnTab1 = document.getElementById('tabBtnKebutuhanSD');
+    const btnTab2 = document.getElementById('tabBtnKeadaanSD');
+    const btnTab3 = document.getElementById('tabBtnPensiunSD');
+    if (btnTab1) btnTab1.textContent = `1. Kebutuhan Guru ${jenjangLabel}`;
+    if (btnTab2) btnTab2.textContent = `2. Keadaan PTK ${jenjangLabel}`;
+    if (btnTab3) btnTab3.textContent = `3. Proyeksi Pensiun PTK ${jenjangLabel}`;
+
+    // 2. Update heading tabel
+    const headingTab1 = document.getElementById('headingTab1');
+    const headingTab2 = document.getElementById('headingTab2');
+    if (headingTab1) headingTab1.textContent = `Tabel Kebutuhan & Kekurangan/Kelebihan Guru ${jenjangLabel}`;
+    if (headingTab2) headingTab2.textContent = `Tabel Keadaan PTK Sekolah ${jenjang === 'SMP' ? 'Menengah Pertama (SMP)' : 'Dasar (SD)'}`;
+
+    // 3. Update titles in Tab 2 cards
+    const tTotalPTK = document.getElementById('kpiKeadaanTotalPTKTitle');
+    const tKS = document.getElementById('kpiKeadaanTotalKSTitle');
+    const tGuru = document.getElementById('kpiKeadaanTotalGuruTitle');
+    if (tTotalPTK) tTotalPTK.textContent = `Total PTK ${jenjangLabel}`;
+    if (tKS) tKS.textContent = `Kepala ${jenjangLabel}`;
+    if (tGuru) tGuru.textContent = `Guru ${jenjangLabel}`;
+
+    // 4. Update titles in Tab 3 cards
+    const tPensiunKS = document.getElementById('kpiPensiunKsTitle');
+    const tPensiunGuru = document.getElementById('kpiPensiunGuruTitle');
+    if (tPensiunKS) tPensiunKS.textContent = `Kepala ${jenjangLabel}`;
+    if (tPensiunGuru) tPensiunGuru.textContent = `Guru ${jenjangLabel}`;
+
+    // 5. Render ulang toggle bar formasi Tab 1
+    renderFormasiToggleButtons();
+
+    // 6. Render ulang toggle bar keadaan Tab 2
+    renderKeadaanToggleButtons();
+  }
+
+  /**
+   * Render Tombol Toggle Formasi Tab 1 Dinamis (SD vs SMP)
+   */
+  function renderFormasiToggleButtons() {
+    const container = document.getElementById('toggleBarFormasi');
+    if (!container) return;
+
+    const jenjang = getActiveJenjang();
+    const config = (jenjang === 'SMP') ? FORMASI_CONFIG_SMP : FORMASI_CONFIG_SD;
+    const list = (jenjang === 'SMP') ? FORMASI_LIST_SMP : FORMASI_LIST_SD;
+
+    // Pastikan activeFormasiToggle valid
+    if (activeFormasiToggle !== 'ALL' && activeFormasiToggle !== 'MATRIX' && !config[activeFormasiToggle]) {
+      activeFormasiToggle = 'ALL';
+    }
+
+    let html = `<button class="toggle-btn ${activeFormasiToggle === 'ALL' ? 'active' : ''}" id="btnTog_ALL" onclick="setFormasiToggle('ALL')">Semua (Total)</button>`;
+    
+    list.forEach(fKey => {
+      const item = config[fKey];
+      if (!item) return;
+      const isAct = (activeFormasiToggle === fKey);
+      html += `<button class="toggle-btn ${isAct ? 'active' : ''}" id="btnTog_${fKey}" onclick="setFormasiToggle('${fKey}')">${escapeHtml(item.short || item.label)}</button>`;
+    });
+
+    html += `<button class="toggle-btn ${activeFormasiToggle === 'MATRIX' ? 'active' : ''}" id="btnTog_MATRIX" onclick="setFormasiToggle('MATRIX')">Matriks Semua</button>`;
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Render Tombol Toggle Tugas Tab 2 Dinamis (SD vs SMP)
+   */
+  function renderKeadaanToggleButtons() {
+    const container = document.getElementById('toggleBarKeadaan');
+    if (!container) return;
+
+    const jenjang = getActiveJenjang();
+    const list = (jenjang === 'SMP') ? TUGAS_CONFIG_SMP : TUGAS_CONFIG_SD;
+
+    // Pastikan activeKeadaanRoleToggle valid
+    const validKeys = list.map(t => t.key);
+    if (!validKeys.includes(activeKeadaanRoleToggle)) {
+      activeKeadaanRoleToggle = 'ALL';
+    }
+
+    let html = '';
+    list.forEach(t => {
+      const isAct = (activeKeadaanRoleToggle === t.key);
+      html += `<button class="toggle-btn ${isAct ? 'active' : ''}" id="btnKeadaanTog_${t.key}" onclick="setKeadaanRoleToggle('${t.key}')">${escapeHtml(t.label)}</button>`;
+    });
+
+    container.innerHTML = html;
+  }
+
+  /**
+   * Helper: Dapatkan ringkasan Keadaan PTK (SD / SMP) berdasarkan filter kecamatan
    */
   function getFilteredSummaryKeadaan() {
     if (!rawData) return null;
+    const jenjang = getActiveJenjang();
     const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
     
-    // Jika Semua Kecamatan, gunakan summarySD bawaan
+    // Jika Semua Kecamatan, gunakan summary bawaan
     if (filterKec === 'ALL') {
+      if (jenjang === 'SMP') return rawData.summarySMP || rawData.summary;
       return rawData.summarySD || rawData.summary;
     }
 
     // Jika filter spesifik per kecamatan, agregasi dari sekolah-sekolah di kecamatan tersebut
-    const sekolahList = (rawData.rekapSekolahSD || []).filter(s => s.kecamatan === filterKec);
+    const masterList = (jenjang === 'SMP') ? (rawData.rekapSekolahSMP || []) : (rawData.rekapSekolahSD || []);
+    const sekolahList = masterList.filter(s => s.kecamatan === filterKec);
     
     const res = {
       totalSekolah: sekolahList.length,
@@ -127,24 +321,26 @@
   }
 
   /**
-   * Render KPI Cards Umum (Tab 2: Keadaan PTK SD) - 2 Baris Card (Mengikuti Filter Utama)
+   * Render KPI Cards Umum (Tab 2: Keadaan PTK)
    */
   function renderKPIUmum() {
     const summary = getFilteredSummaryKeadaan();
     if (!summary) return;
 
+    const jenjang = getActiveJenjang();
+    const jenjangLabel = jenjang === 'SMP' ? 'SMP' : 'SD';
     const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
 
-    // Baris 1: Total PTK SD, Kepala SD, Guru SD, Tenaga Kependidikan
+    // Baris 1: Total PTK, Kepala Sekolah, Guru, Tenaga Kependidikan
     const elTotal = document.getElementById('kpiKeadaanTotalPTK');
     if (elTotal) elTotal.textContent = formatNumber(summary.totalPTK);
 
     const elSubSekolah = document.getElementById('kpiKeadaanSubSekolah');
     if (elSubSekolah) {
       if (filterKec === 'ALL') {
-        elSubSekolah.textContent = `Mencakup ${formatNumber(summary.totalSekolah)} SD`;
+        elSubSekolah.textContent = `Mencakup ${formatNumber(summary.totalSekolah)} ${jenjangLabel}`;
       } else {
-        elSubSekolah.textContent = `Kec. ${filterKec} (${formatNumber(summary.totalSekolah)} SD)`;
+        elSubSekolah.textContent = `Kec. ${filterKec} (${formatNumber(summary.totalSekolah)} ${jenjangLabel})`;
       }
     }
 
@@ -181,67 +377,72 @@
   }
 
   /**
-   * Render 6 Card Kebutuhan Guru SD per Jenis PTK (Mengikuti Filter Utama)
+   * Render KPI Cards Kebutuhan Guru per Jenis PTK (Dinamis SD 6 Cards / SMP 16 Cards)
    */
-  function renderCardsFormasiSD() {
-    if (!rawData || !rawData.kebutuhanSD || !rawData.kebutuhanSD.perSekolah) return;
+  function renderCardsFormasi() {
+    if (!rawData) return;
+    const grid = document.getElementById('kpiFormasiGrid');
+    if (!grid) return;
+
+    const jenjang = getActiveJenjang();
+    const config = (jenjang === 'SMP') ? FORMASI_CONFIG_SMP : FORMASI_CONFIG_SD;
+    const list = (jenjang === 'SMP') ? FORMASI_LIST_SMP : FORMASI_LIST_SD;
+    const kebData = (jenjang === 'SMP') ? rawData.kebutuhanSMP : rawData.kebutuhanSD;
+    if (!kebData || !kebData.perSekolah) return;
 
     const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
 
-    const totals = {
-      ks: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-      gk: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-      pai: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-      pjok: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-      kristen: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
-      katolik: { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 }
-    };
+    // Siapkan wadah agregasi per peran
+    const totals = {};
+    list.forEach(fKey => {
+      totals[fKey] = { butuh: 0, terisi: 0, selisih: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 };
+    });
 
     const sekolahList = (filterKec === 'ALL')
-      ? rawData.kebutuhanSD.perSekolah
-      : rawData.kebutuhanSD.perSekolah.filter(sd => sd.kecamatan === filterKec);
+      ? kebData.perSekolah
+      : kebData.perSekolah.filter(sd => sd.kecamatan === filterKec);
 
-    sekolahList.forEach(sd => {
-      const acc = (target, src) => {
+    sekolahList.forEach(sch => {
+      list.forEach(fKey => {
+        const propKey = config[fKey].key;
+        const src = sch[propKey];
         if (!src) return;
+        const target = totals[fKey];
         target.butuh += (src.butuh || 0);
         target.terisi += (((src.cpns || 0) + (src.pns || 0) + (src.pppk || 0) + (src.pw || 0)));
         target.selisih += (src.selisih || 0);
         target.nonAsn += (src.nonAsn || 0);
         target.nonAsnOld += (src.nonAsnOld || 0);
         target.nonAsnNew += (src.nonAsnNew || 0);
-      };
-
-      acc(totals.ks, sd.ks);
-      acc(totals.gk, sd.guruKelas);
-      acc(totals.pai, sd.guruPai);
-      acc(totals.pjok, sd.guruPjok);
-      acc(totals.kristen, sd.guruKristen);
-      acc(totals.katolik, sd.guruKatolik);
+      });
     });
 
-    const setCard = (prefix, item) => {
-      const valElem = document.getElementById(prefix + 'Selisih');
-      const detElem = document.getElementById(prefix + 'Detail');
-      if (valElem) {
-        valElem.innerHTML = renderBadgeSelisihLarge(item.selisih);
-      }
-      if (detElem) {
-        detElem.innerHTML = `
-          <div class="formasi-kpi-breakdown">
-            <span class="formasi-tag-butuh" title="Jumlah Kebutuhan">Butuh: ${formatNumber(item.butuh)}</span>
-            <span class="formasi-tag-terisi" title="Terisi ASN/PPPK PW">Terisi: ${formatNumber(item.terisi)}</span>
-          </div>
-        `;
-      }
-    };
+    // Generate HTML Cards
+    let html = '';
+    list.forEach(fKey => {
+      const conf = config[fKey];
+      const item = totals[fKey];
+      const isAct = (activeFormasiToggle === fKey);
+      const borderStyle = isAct ? 'style="border: 2px solid var(--primary); cursor: pointer;"' : 'style="cursor: pointer;"';
 
-    setCard('kpiKs', totals.ks);
-    setCard('kpiGk', totals.gk);
-    setCard('kpiPai', totals.pai);
-    setCard('kpiPjok', totals.pjok);
-    setCard('kpiKristen', totals.kristen);
-    setCard('kpiKatolik', totals.katolik);
+      html += `
+        <div class="kpi-card" onclick="setFormasiToggle('${fKey}')" ${borderStyle} title="Klik untuk filter tabel ke ${escapeHtml(conf.label)}">
+          <div class="kpi-card-header">
+            <span class="kpi-title">${escapeHtml(conf.label)}</span>
+            <div class="kpi-icon ${conf.icon || 'icon-blue'}">${conf.emoji || '👥'}</div>
+          </div>
+          <div class="kpi-value">${renderBadgeSelisihLarge(item.selisih)}</div>
+          <div class="kpi-subtitle">
+            <div class="formasi-kpi-breakdown">
+              <span class="formasi-tag-butuh" title="Jumlah Kebutuhan">Butuh: ${formatNumber(item.butuh)}</span>
+              <span class="formasi-tag-terisi" title="Terisi ASN/PPPK PW">Terisi: ${formatNumber(item.terisi)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    grid.innerHTML = html;
   }
 
   function renderBadgeSelisihLarge(val) {
@@ -251,16 +452,17 @@
   }
 
   /**
-   * Ubah Toggle Jenis PTK untuk Tabel Kebutuhan SD
+   * Ubah Toggle Jenis PTK untuk Tabel Kebutuhan (SD / SMP)
    */
   function setFormasiToggle(formasiKey) {
     activeFormasiToggle = formasiKey;
-    document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#toggleBarFormasi .toggle-btn').forEach(btn => btn.classList.remove('active'));
     
     const activeBtn = document.getElementById('btnTog_' + formasiKey);
     if (activeBtn) activeBtn.classList.add('active');
 
-    renderTabKebutuhanSD();
+    renderCardsFormasi();
+    renderTabKebutuhan();
   }
 
   /**
@@ -286,9 +488,9 @@
     selKec.value = kecamatanName;
     currentKebutuhanMode = 'SEKOLAH';
     currentKeadaanMode = 'SEKOLAH';
-    renderCardsFormasiSD();
+    renderCardsFormasi();
     renderKPIUmum();
-    renderTabKebutuhanSD();
+    renderTabKebutuhan();
   }
 
   /**
@@ -299,16 +501,22 @@
     selKec.value = 'ALL';
     currentKebutuhanMode = 'KECAMATAN';
     currentKeadaanMode = 'KECAMATAN';
-    renderCardsFormasiSD();
+    renderCardsFormasi();
     renderKPIUmum();
-    renderTabKebutuhanSD();
+    renderTabKebutuhan();
   }
 
   /**
-   * TAB 1: Render Kebutuhan Guru SD
+   * TAB 1: Render Kebutuhan Guru (Dinamis SD / SMP)
    */
-  function renderTabKebutuhanSD() {
-    if (!rawData || !rawData.kebutuhanSD) return;
+  function renderTabKebutuhan() {
+    if (!rawData) return;
+    const jenjang = getActiveJenjang();
+    const jenjangLabel = jenjang === 'SMP' ? 'SMP' : 'SD';
+    const config = (jenjang === 'SMP') ? FORMASI_CONFIG_SMP : FORMASI_CONFIG_SD;
+    const listRoleKeys = (jenjang === 'SMP') ? FORMASI_LIST_SMP : FORMASI_LIST_SD;
+    const kebData = (jenjang === 'SMP') ? rawData.kebutuhanSMP : rawData.kebutuhanSD;
+    if (!kebData) return;
 
     const thead = document.getElementById('theadKebutuhanSD');
     const tbody = document.getElementById('tbodyKebutuhanSD');
@@ -319,34 +527,22 @@
     const searchEl = document.getElementById('searchSekolah');
     const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
 
-    // Kamus Label Formasi
-    const formasiConfig = {
-      'ALL': { key: 'total', label: 'TOTAL SELURUH GURU SD' },
-      'KS': { key: 'ks', label: 'Kepala Sekolah' },
-      'GURU_KELAS': { key: 'guruKelas', label: 'Guru Kelas' },
-      'GURU_PAI': { key: 'guruPai', label: 'Guru PAI' },
-      'GURU_PJOK': { key: 'guruPjok', label: 'Guru PJOK' },
-      'GURU_KRISTEN': { key: 'guruKristen', label: 'Guru PA Kristen' },
-      'GURU_KATOLIK': { key: 'guruKatolik', label: 'Guru PA Katolik' }
-    };
-
-    const activeConf = formasiConfig[activeFormasiToggle] || formasiConfig.ALL;
+    const activeConf = config[activeFormasiToggle] || config.ALL;
     const fKey = activeConf.key;
 
     // -------------------------------------------------------------
     // KONDISI A: TAMPILAN PER KECAMATAN (DEFAULT)
     // -------------------------------------------------------------
     if (currentKebutuhanMode === 'KECAMATAN') {
-      breadcrumbWrap.style.display = 'none'; // Sembunyikan badge/breadcrumb
+      breadcrumbWrap.style.display = 'none';
 
-      let list = (rawData.kebutuhanSD.perKecamatan || []).slice();
+      let list = (kebData.perKecamatan || []).slice();
 
-      // Filter Pencarian jika diisi
       if (searchVal) {
         list = list.filter(k => k.kecamatan && k.kecamatan.toLowerCase().includes(searchVal));
       }
 
-      // SORTING: Kekurangan terbanyak (selisih paling minus) di baris paling atas
+      // SORTING: Kekurangan terbanyak di baris paling atas
       list.sort((a, b) => {
         const valA = (activeFormasiToggle === 'ALL' || activeFormasiToggle === 'MATRIX') ? a.total.selisih : (a[fKey] ? a[fKey].selisih : 0);
         const valB = (activeFormasiToggle === 'ALL' || activeFormasiToggle === 'MATRIX') ? b.total.selisih : (b[fKey] ? b[fKey].selisih : 0);
@@ -355,28 +551,27 @@
 
       if (activeFormasiToggle === 'MATRIX') {
         // Matriks Semua Formasi per Kecamatan
+        let thRoles1 = '';
+        let thRoles2 = '';
+        listRoleKeys.forEach(rk => {
+          const c = config[rk];
+          const colCls = c.colCls || ('mat-' + c.key.toLowerCase());
+          thRoles1 += `<th colspan="3" class="text-center ${colCls}">${escapeHtml(c.short || c.label)}</th>`;
+          thRoles2 += `<th class="text-center ${colCls}">Bth</th><th class="text-center ${colCls}">Ada</th><th class="text-center ${colCls}">+/-</th>`;
+        });
+
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>${jenjangLabel}</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
-            <th colspan="3" class="text-center mat-ks">Kepala Sekolah</th>
-            <th colspan="3" class="text-center mat-kel">Guru Kelas</th>
-            <th colspan="3" class="text-center mat-pai">Guru PAI</th>
-            <th colspan="3" class="text-center mat-pjok">Guru PJOK</th>
-            <th colspan="3" class="text-center mat-kri">Guru Kristen</th>
-            <th colspan="3" class="text-center mat-kat">Guru Katolik</th>
-            <th colspan="7" class="text-center mat-tot">TOTAL GURU SD</th>
+            ${thRoles1}
+            <th colspan="7" class="text-center mat-tot">TOTAL GURU ${jenjangLabel}</th>
           </tr>
           <tr>
-            <th class="text-center mat-ks">Bth</th><th class="text-center mat-ks">Ada</th><th class="text-center mat-ks">+/-</th>
-            <th class="text-center mat-kel">Bth</th><th class="text-center mat-kel">Ada</th><th class="text-center mat-kel">+/-</th>
-            <th class="text-center mat-pai">Bth</th><th class="text-center mat-pai">Ada</th><th class="text-center mat-pai">+/-</th>
-            <th class="text-center mat-pjok">Bth</th><th class="text-center mat-pjok">Ada</th><th class="text-center mat-pjok">+/-</th>
-            <th class="text-center mat-kri">Bth</th><th class="text-center mat-kri">Ada</th><th class="text-center mat-kri">+/-</th>
-            <th class="text-center mat-kat">Bth</th><th class="text-center mat-kat">Ada</th><th class="text-center mat-kat">+/-</th>
+            ${thRoles2}
             <th class="text-center mat-tot-bth">Butuh</th>
             <th class="text-center mat-tot">PNS</th>
             <th class="text-center mat-tot">PPPK</th>
@@ -402,11 +597,18 @@
           totNonOld += (k.total.nonAsnOld || 0);
           totNonNew += (k.total.nonAsnNew || 0);
 
-          const renderKecFormasi = (f, cls) => `
-            <td class="text-center ${cls}">${formatNumber(f.butuh)}</td>
-            <td class="text-center ${cls}">${formatNumber(f.pns + f.pppk + f.pw)}</td>
-            <td class="text-center ${cls}">${renderBadgeSelisih(f.selisih)}</td>
-          `;
+          let rowFormasiHtml = '';
+          listRoleKeys.forEach(rk => {
+            const c = config[rk];
+            const colCls = c.colCls || ('mat-' + c.key.toLowerCase());
+            const f = k[c.key] || { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0 };
+            const ada = (f.cpns || 0) + (f.pns || 0) + (f.pppk || 0) + (f.pw || 0);
+            rowFormasiHtml += `
+              <td class="text-center ${colCls}">${formatNumber(f.butuh)}</td>
+              <td class="text-center ${colCls}">${formatNumber(ada)}</td>
+              <td class="text-center ${colCls}">${renderBadgeSelisih(f.selisih)}</td>
+            `;
+          });
 
           html += `
             <tr class="clickable-row" onclick="drillDownToKecamatan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
@@ -415,12 +617,7 @@
               <td class="text-center">${formatNumber(k.jmlSekolah)}</td>
               <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
               <td class="text-center">${formatNumber(k.totalRombel)}</td>
-              ${renderKecFormasi(k.ks, 'mat-ks')}
-              ${renderKecFormasi(k.guruKelas, 'mat-kel')}
-              ${renderKecFormasi(k.guruPai, 'mat-pai')}
-              ${renderKecFormasi(k.guruPjok, 'mat-pjok')}
-              ${renderKecFormasi(k.guruKristen, 'mat-kri')}
-              ${renderKecFormasi(k.guruKatolik, 'mat-kat')}
+              ${rowFormasiHtml}
               <td class="text-center mat-tot-bth">${formatNumber(k.total.butuh)}</td>
               <td class="text-center mat-tot">${formatNumber(k.total.pns)}</td>
               <td class="text-center mat-tot">${formatNumber(k.total.pppk)}</td>
@@ -432,14 +629,15 @@
           `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="30" class="text-center" style="padding: 24px;">Tidak ada data kecamatan.</td></tr>';
+        const spanColCount = listRoleKeys.length * 3;
+        tbody.innerHTML = html || `<tr><td colspan="${spanColCount + 12}" class="text-center" style="padding: 24px;">Tidak ada data kecamatan.</td></tr>`;
         tfoot.innerHTML = `
           <tr>
             <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
             <th class="text-center">${formatNumber(totSekolah)}</th>
             <th class="text-center">${formatNumber(totMurid)}</th>
             <th class="text-center">${formatNumber(totRombel)}</th>
-            <th colspan="18" class="text-center" style="color:#64748b;">- Akumulasi Seluruh Formasi Tertera di Kolom Total -</th>
+            <th colspan="${spanColCount}" class="text-center" style="color:#64748b;">- Akumulasi Seluruh Formasi Tertera di Kolom Total -</th>
             <th class="text-center mat-tot-bth">${formatNumber(totBth)}</th>
             <th class="text-center mat-tot">${formatNumber(totPns)}</th>
             <th class="text-center mat-tot">${formatNumber(totPppk)}</th>
@@ -456,7 +654,7 @@
           <tr>
             <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>${jenjangLabel}</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
             <th rowspan="2" class="text-center col-kebutuhan" style="vertical-align: middle;">Kebutuhan</th>
@@ -478,7 +676,7 @@
         let totSekolah = 0, totMurid = 0, totRombel = 0, totBth = 0, totCpns = 0, totPns = 0, totPppk = 0, totPw = 0, totTerisi = 0, totSelisih = 0, totNonOld = 0, totNonNew = 0;
 
         list.forEach((k, idx) => {
-          const f = k[fKey];
+          const f = k[fKey] || { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsnOld: 0, nonAsnNew: 0 };
           const cpnsVal = f.cpns || 0;
           const terisi = cpnsVal + f.pns + f.pppk + f.pw;
 
@@ -547,7 +745,7 @@
         <span class="breadcrumb-current">Sekolah di Kecamatan: <strong>${escapeHtml(filterKec)}</strong></span>
       `;
 
-      let list = (rawData.kebutuhanSD.perSekolah || []).slice();
+      let list = (kebData.perSekolah || []).slice();
 
       // Filter Data per Kecamatan terpilih
       let filtered = list.filter(item => {
@@ -568,6 +766,15 @@
       });
 
       if (activeFormasiToggle === 'MATRIX') {
+        let thRoles1 = '';
+        let thRoles2 = '';
+        listRoleKeys.forEach(rk => {
+          const c = config[rk];
+          const colCls = c.colCls || ('mat-' + c.key.toLowerCase());
+          thRoles1 += `<th colspan="6" class="text-center ${colCls}">${escapeHtml(c.short || c.label)}</th>`;
+          thRoles2 += `<th class="text-center ${colCls}">Bth</th><th class="text-center ${colCls}">PNS</th><th class="text-center ${colCls}">PPPK</th><th class="text-center ${colCls}">PW</th><th class="text-center ${colCls}">+/-</th><th class="text-center ${colCls}">Non</th>`;
+        });
+
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">No</th>
@@ -575,22 +782,12 @@
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
-            <th colspan="6" class="text-center mat-ks">Kepala Sekolah</th>
-            <th colspan="6" class="text-center mat-kel">Guru Kelas</th>
-            <th colspan="6" class="text-center mat-pai">Guru PAI</th>
-            <th colspan="6" class="text-center mat-pjok">Guru PJOK</th>
-            <th colspan="6" class="text-center mat-kri">Guru Kristen</th>
-            <th colspan="6" class="text-center mat-kat">Guru Katolik</th>
-            <th colspan="8" class="text-center mat-tot">TOTAL GURU SD</th>
+            ${thRoles1}
+            <th colspan="8" class="text-center mat-tot">TOTAL GURU ${jenjangLabel}</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
           </tr>
           <tr>
-            <th class="text-center mat-ks">Bth</th><th class="text-center mat-ks">PNS</th><th class="text-center mat-ks">PPPK</th><th class="text-center mat-ks">PW</th><th class="text-center mat-ks">+/-</th><th class="text-center mat-ks">Non</th>
-            <th class="text-center mat-kel">Bth</th><th class="text-center mat-kel">PNS</th><th class="text-center mat-kel">PPPK</th><th class="text-center mat-kel">PW</th><th class="text-center mat-kel">+/-</th><th class="text-center mat-kel">Non</th>
-            <th class="text-center mat-pai">Bth</th><th class="text-center mat-pai">PNS</th><th class="text-center mat-pai">PPPK</th><th class="text-center mat-pai">PW</th><th class="text-center mat-pai">+/-</th><th class="text-center mat-pai">Non</th>
-            <th class="text-center mat-pjok">Bth</th><th class="text-center mat-pjok">PNS</th><th class="text-center mat-pjok">PPPK</th><th class="text-center mat-pjok">PW</th><th class="text-center mat-pjok">+/-</th><th class="text-center mat-pjok">Non</th>
-            <th class="text-center mat-kri">Bth</th><th class="text-center mat-kri">PNS</th><th class="text-center mat-kri">PPPK</th><th class="text-center mat-kri">PW</th><th class="text-center mat-kri">+/-</th><th class="text-center mat-kri">Non</th>
-            <th class="text-center mat-kat">Bth</th><th class="text-center mat-kat">PNS</th><th class="text-center mat-kat">PPPK</th><th class="text-center mat-kat">PW</th><th class="text-center mat-kat">+/-</th><th class="text-center mat-kat">Non</th>
+            ${thRoles2}
             <th class="text-center mat-tot-bth">Butuh</th>
             <th class="text-center mat-tot">PNS</th>
             <th class="text-center mat-tot">PPPK</th>
@@ -605,53 +802,54 @@
         let html = '';
         let sumBth = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNonOld = 0, sumNonNew = 0, sumRombel = 0, sumMurid = 0;
 
-        filtered.forEach((sd, idx) => {
-          sumRombel += sd.rombel;
-          sumMurid += (sd.murid || 0);
-          sumBth += sd.total.butuh;
-          sumPns += sd.total.pns;
-          sumPppk += sd.total.pppk;
-          sumPw += sd.total.pw;
-          sumTerisi += sd.total.pengurang;
-          sumSelisih += sd.total.selisih;
-          sumNonOld += (sd.total.nonAsnOld || 0);
-          sumNonNew += (sd.total.nonAsnNew || 0);
+        filtered.forEach((sch, idx) => {
+          sumRombel += sch.rombel;
+          sumMurid += (sch.murid || 0);
+          sumBth += sch.total.butuh;
+          sumPns += sch.total.pns;
+          sumPppk += sch.total.pppk;
+          sumPw += sch.total.pw;
+          sumTerisi += sch.total.pengurang;
+          sumSelisih += sch.total.selisih;
+          sumNonOld += (sch.total.nonAsnOld || 0);
+          sumNonNew += (sch.total.nonAsnNew || 0);
 
-          const renderCols = (f, cls) => `
-            <td class="text-center ${cls}">${formatNumber(f.butuh)}</td>
-            <td class="text-center ${cls}">${f.pns || '-'}</td>
-            <td class="text-center ${cls}">${f.pppk || '-'}</td>
-            <td class="text-center ${cls}">${f.pw || '-'}</td>
-            <td class="text-center ${cls}">${renderBadgeSelisih(f.selisih)}</td>
-            <td class="text-center ${cls}" style="color:#64748b;">${f.nonAsn || '-'}</td>
-          `;
+          let rowMatrixHtml = '';
+          listRoleKeys.forEach(rk => {
+            const c = config[rk];
+            const colCls = c.colCls || ('mat-' + c.key.toLowerCase());
+            const f = sch[c.key] || { butuh: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsn: 0 };
+            rowMatrixHtml += `
+              <td class="text-center ${colCls}">${formatNumber(f.butuh)}</td>
+              <td class="text-center ${colCls}">${f.pns || '-'}</td>
+              <td class="text-center ${colCls}">${f.pppk || '-'}</td>
+              <td class="text-center ${colCls}">${f.pw || '-'}</td>
+              <td class="text-center ${colCls}">${renderBadgeSelisih(f.selisih)}</td>
+              <td class="text-center ${colCls}" style="color:#64748b;">${f.nonAsn || '-'}</td>
+            `;
+          });
 
           html += `
             <tr>
               <td class="text-center">${idx + 1}</td>
               <td class="col-sekolah">
-                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sd.namaSekolah)}</div>
-                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sd.npsn)}</div>
+                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
+                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
               </td>
-              <td>${escapeHtml(sd.kecamatan)}</td>
-              <td class="text-center">${formatNumber(sd.rombel)}</td>
-              <td class="text-center">${formatNumber(sd.murid || 0)}</td>
-              ${renderCols(sd.ks, 'mat-ks')}
-              ${renderCols(sd.guruKelas, 'mat-kel')}
-              ${renderCols(sd.guruPai, 'mat-pai')}
-              ${renderCols(sd.guruPjok, 'mat-pjok')}
-              ${renderCols(sd.guruKristen, 'mat-kri')}
-              ${renderCols(sd.guruKatolik, 'mat-kat')}
-              <td class="text-center mat-tot-bth">${formatNumber(sd.total.butuh)}</td>
-              <td class="text-center mat-tot">${formatNumber(sd.total.pns)}</td>
-              <td class="text-center mat-tot">${formatNumber(sd.total.pppk)}</td>
-              <td class="text-center mat-tot">${formatNumber(sd.total.pw)}</td>
-              <td class="text-center mat-tot">${formatNumber(sd.total.pengurang)}</td>
-              <td class="text-center mat-tot-sel">${renderBadgeSelisih(sd.total.selisih)}</td>
-              <td class="text-center mat-tot">${formatNumber(sd.total.nonAsnOld)}</td>
-              <td class="text-center mat-tot">${formatNumber(sd.total.nonAsnNew)}</td>
+              <td>${escapeHtml(sch.kecamatan)}</td>
+              <td class="text-center">${formatNumber(sch.rombel)}</td>
+              <td class="text-center">${formatNumber(sch.murid || 0)}</td>
+              ${rowMatrixHtml}
+              <td class="text-center mat-tot-bth">${formatNumber(sch.total.butuh)}</td>
+              <td class="text-center mat-tot">${formatNumber(sch.total.pns)}</td>
+              <td class="text-center mat-tot">${formatNumber(sch.total.pppk)}</td>
+              <td class="text-center mat-tot">${formatNumber(sch.total.pw)}</td>
+              <td class="text-center mat-tot">${formatNumber(sch.total.pengurang)}</td>
+              <td class="text-center mat-tot-sel">${renderBadgeSelisih(sch.total.selisih)}</td>
+              <td class="text-center mat-tot">${formatNumber(sch.total.nonAsnOld)}</td>
+              <td class="text-center mat-tot">${formatNumber(sch.total.nonAsnNew)}</td>
               <td class="text-center">
-                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sd.npsn)}', '${escapeQuote(sd.namaSekolah)}')">
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
                   👁️ PTK
                 </button>
               </td>
@@ -659,13 +857,14 @@
           `;
         });
 
-        tbody.innerHTML = html || '<tr><td colspan="50" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok.</td></tr>';
+        const spanColCount = listRoleKeys.length * 6;
+        tbody.innerHTML = html || `<tr><td colspan="${spanColCount + 14}" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok.</td></tr>`;
         tfoot.innerHTML = `
           <tr>
-            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
+            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} ${jenjangLabel})</th>
             <th class="text-center">${formatNumber(sumRombel)}</th>
             <th class="text-center">${formatNumber(sumMurid)}</th>
-            <th colspan="36" class="text-center" style="color:#64748b;">- Rincian Matriks Tertera pada Tabel -</th>
+            <th colspan="${spanColCount}" class="text-center" style="color:#64748b;">- Rincian Matriks Tertera pada Tabel -</th>
             <th class="text-center mat-tot-bth">${formatNumber(sumBth)}</th>
             <th class="text-center mat-tot">${formatNumber(sumPns)}</th>
             <th class="text-center mat-tot">${formatNumber(sumPppk)}</th>
@@ -705,13 +904,13 @@
         let html = '';
         let sumBth = 0, sumCpns = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumTerisi = 0, sumSelisih = 0, sumNonOld = 0, sumNonNew = 0, sumRombel = 0, sumMurid = 0;
 
-        filtered.forEach((sd, idx) => {
-          const f = sd[fKey];
+        filtered.forEach((sch, idx) => {
+          const f = sch[fKey] || { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, selisih: 0, nonAsnOld: 0, nonAsnNew: 0 };
           const cpnsVal = f.cpns || 0;
           const terisi = cpnsVal + f.pns + f.pppk + f.pw;
           
-          sumRombel += sd.rombel;
-          sumMurid += (sd.murid || 0);
+          sumRombel += sch.rombel;
+          sumMurid += (sch.murid || 0);
           sumBth += f.butuh;
           sumCpns += cpnsVal;
           sumPns += f.pns;
@@ -726,12 +925,12 @@
             <tr>
               <td class="text-center">${idx + 1}</td>
               <td class="col-sekolah">
-                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sd.namaSekolah)}</div>
-                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sd.npsn)}</div>
+                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
+                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
               </td>
-              <td>${escapeHtml(sd.kecamatan)}</td>
-              <td class="text-center">${formatNumber(sd.rombel)}</td>
-              <td class="text-center">${formatNumber(sd.murid || 0)}</td>
+              <td>${escapeHtml(sch.kecamatan)}</td>
+              <td class="text-center">${formatNumber(sch.rombel)}</td>
+              <td class="text-center">${formatNumber(sch.murid || 0)}</td>
               <td class="text-center col-kebutuhan">${formatNumber(f.butuh)}</td>
               <td class="text-center col-keadaan">${formatNumber(cpnsVal)}</td>
               <td class="text-center col-keadaan">${formatNumber(f.pns)}</td>
@@ -742,7 +941,7 @@
               <td class="text-center col-nonasn">${formatNumber(f.nonAsnOld)}</td>
               <td class="text-center col-nonasn">${formatNumber(f.nonAsnNew)}</td>
               <td class="text-center">
-                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sd.npsn)}', '${escapeQuote(sd.namaSekolah)}')">
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
                   👁️ PTK
                 </button>
               </td>
@@ -753,7 +952,7 @@
         tbody.innerHTML = html || `<tr><td colspan="15" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria formasi <strong>${escapeHtml(activeConf.label)}</strong></td></tr>`;
         tfoot.innerHTML = `
           <tr>
-            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} SD)</th>
+            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${filtered.length} ${jenjangLabel})</th>
             <th class="text-center">${formatNumber(sumRombel)}</th>
             <th class="text-center">${formatNumber(sumMurid)}</th>
             <th class="text-center col-kebutuhan">${formatNumber(sumBth)}</th>
@@ -771,60 +970,49 @@
       }
     }
   }
-
-  function renderBadgeSelisih(val) {
-    if (val < 0) {
-      return `<span style="color:#b91c1c;">${val}</span>`;
-    } else if (val === 0 || !val) {
-      return `<span>-</span>`;
-    } else {
-      return `<span style="color:#0369a1;">+${val}</span>`;
-    }
-  }
-
-  function formatNumber(num) {
+function formatNumber(num) {
     if (num === 0 || num === '0' || !num) return '-';
     return Number(num).toLocaleString('id-ID');
   }
 
   /**
-   * Toggle Pilihan Peran/Tugas di Tab 2: Keadaan PTK SD
+   * Toggle Pilihan Peran/Tugas di Tab 2: Keadaan PTK (SD / SMP)
    */
   function setKeadaanRoleToggle(roleKey) {
     activeKeadaanRoleToggle = roleKey;
-    document.querySelectorAll('#tabKeadaanSD .toggle-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#toggleBarKeadaan .toggle-btn').forEach(btn => btn.classList.remove('active'));
 
     const activeBtn = document.getElementById('btnKeadaanTog_' + roleKey);
     if (activeBtn) activeBtn.classList.add('active');
 
-    renderTabKeadaanSD();
+    renderTabKeadaan();
   }
 
   /**
-   * Drilldown Keadaan PTK SD ke Sekolah
+   * Drilldown Keadaan PTK ke Sekolah
    */
   function drillDownToKecamatanKeadaan(kecamatanName) {
     const selKec = document.getElementById('filterKecamatan');
     selKec.value = kecamatanName;
     currentKeadaanMode = 'SEKOLAH';
-    renderCardsFormasiSD();
+    renderCardsFormasi();
     renderKPIUmum();
-    renderTabKeadaanSD();
+    renderTabKeadaan();
   }
 
   function resetToKecamatanKeadaanView() {
     const selKec = document.getElementById('filterKecamatan');
     selKec.value = 'ALL';
     currentKeadaanMode = 'KECAMATAN';
-    renderCardsFormasiSD();
+    renderCardsFormasi();
     renderKPIUmum();
-    renderTabKeadaanSD();
+    renderTabKeadaan();
   }
 
   /**
-   * TAB 2: Render Keadaan PTK SD (Mode Kecamatan & Mode Sekolah)
+   * TAB 2: Render Keadaan PTK (SD / SMP) (Mode Kecamatan & Mode Sekolah)
    */
-  function renderTabKeadaanSD() {
+  function renderTabKeadaan() {
     if (!rawData) return;
 
     const thead = document.getElementById('theadKeadaanSD');
@@ -833,58 +1021,40 @@
     const breadcrumbWrap = document.getElementById('breadcrumbWrapKeadaan');
     if (!thead || !tbody || !tfoot) return;
 
+    const jenjang = getActiveJenjang();
+    const jenjangLabel = jenjang === 'SMP' ? 'SMP' : 'SD';
     const filterKec  = document.getElementById('filterKecamatan').value;
-    const tugasKey   = activeKeadaanRoleToggle; // 'ALL' atau salah satu key granular
+    const tugasKey   = activeKeadaanRoleToggle;
     const isFiltered = (tugasKey !== 'ALL');
 
-    // Label judul kolom Tugas untuk heading tabel saat filter aktif
-    const TUGAS_LABEL = {
-      ALL:                'Semua PTK',
-      KS:                 'Kepala Sekolah',
-      GURU_KELAS:         'Guru Kelas',
-      GURU_PJOK:          'Guru PJOK',
-      GURU_PAI:           'Guru PAI',
-      GURU_KRISTEN:       'Guru PA Kristen',
-      GURU_KATOLIK:       'Guru PA Katolik',
-      GURU_INGGRIS:       'Guru Bhs. Inggris',
-      GURU_LAIN:          'Guru Lainnya',
-      OP_LAYANAN:         'Operator Layanan Operasional',
-      PENGELOLA_LAYANAN:  'Pengelola Layanan Operasional',
-      PENATA_LAYANAN:     'Penata Layanan Operasional',
-      PENGELOLA_UMUM:     'Pengelola Umum Operasional',
-      TENDIK_LAIN:        'Tendik Lainnya'
-    };
+    const tugasConfigList = (jenjang === 'SMP') ? TUGAS_CONFIG_SMP : TUGAS_CONFIG_SD;
+    const TUGAS_LABEL = {};
+    tugasConfigList.forEach(t => { TUGAS_LABEL[t.key] = t.label; });
 
-    // Helper untuk slot breakdown status kepegawaian per tugas
     function emptySlot() { return { cpns:0, pns:0, pppk:0, pw:0, nonAsnOld:0, nonAsnNew:0, total:0 }; }
     function getTugasSlot(obj) {
       if (!isFiltered) return null;
-      const tc = obj.tugasCount || {};
+      const tc = (jenjang === 'SMP' && obj.tugasCountSMP) ? obj.tugasCountSMP : (obj.tugasCount || {});
       return tc[tugasKey] || emptySlot();
     }
     function getTugasSlotSch(sch) {
       if (!isFiltered) return null;
-      const tc = sch.tugasCount || {};
+      const tc = (jenjang === 'SMP' && sch.tugasCountSMP) ? sch.tugasCountSMP : (sch.tugasCount || {});
       return tc[tugasKey] || emptySlot();
     }
 
-
-    // -------------------------------------------------------------
-    // KONDISI A: MODE KECAMATAN (DEFAULT)
-    // -------------------------------------------------------------
     if (currentKeadaanMode === 'KECAMATAN') {
       if (breadcrumbWrap) breadcrumbWrap.style.display = 'none';
 
-      let list = (rawData.rekapKecamatanSD || []).slice();
+      let list = (jenjang === 'SMP') ? (rawData.rekapKecamatanSMP || []).slice() : (rawData.rekapKecamatanSD || []).slice();
 
       if (isFiltered) {
-        // Tampilan dengan subkolom status kepegawaian per tugas terpilih
-        const tugasLabel = escapeHtml(TUGAS_LABEL[tugasKey]);
+        const tugasLabel = escapeHtml(TUGAS_LABEL[tugasKey] || tugasKey);
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="width: 40px; vertical-align: middle;">No</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>${jenjangLabel}</th>
             <th colspan="7" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">${tugasLabel}</th>
           </tr>
           <tr>
@@ -911,7 +1081,7 @@
           totNonOld  += sl.nonAsnOld;
           totNonNew  += sl.nonAsnNew;
           totJml     += sl.total;
-          if (!sl.total) return; // sembunyikan kecamatan kosong
+          if (!sl.total) return;
           rowIdx++;
           html += `
             <tr class="clickable-row" onclick="drillDownToKecamatanKeadaan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah di Kec. ${escapeHtml(k.kecamatan)}">
@@ -945,12 +1115,11 @@
         `;
 
       } else {
-        // Tampilan lengkap: semua kolom
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
             <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>${jenjangLabel}</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
             <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
             <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas</th>
@@ -1034,9 +1203,6 @@
       }
 
     } else {
-      // -------------------------------------------------------------
-      // KONDISI B: MODE SEKOLAH (DRILL DOWN KECAMATAN)
-      // -------------------------------------------------------------
       if (breadcrumbWrap) {
         breadcrumbWrap.style.display = 'flex';
         breadcrumbWrap.innerHTML = `
@@ -1048,14 +1214,14 @@
         `;
       }
 
-      let list = (rawData.rekapSekolahSD || []).filter(s => s.jenjang === 'SD');
+      let masterSekolah = (jenjang === 'SMP') ? (rawData.rekapSekolahSMP || []) : (rawData.rekapSekolahSD || []);
+      let list = masterSekolah.filter(s => s.jenjang === jenjang);
       if (filterKec !== 'ALL') {
         list = list.filter(s => s.kecamatan === filterKec);
       }
 
       if (isFiltered) {
-        // Tampilan dengan subkolom status kepegawaian per tugas terpilih per sekolah
-        const tugasLabel = escapeHtml(TUGAS_LABEL[tugasKey]);
+        const tugasLabel = escapeHtml(TUGAS_LABEL[tugasKey] || tugasKey);
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="width: 40px; vertical-align: middle;">No</th>
@@ -1086,7 +1252,7 @@
           sumNonOld += sl.nonAsnOld;
           sumNonNew += sl.nonAsnNew;
           sumJml    += sl.total;
-          if (!sl.total) return; // sembunyikan sekolah yang tidak punya tugas ini
+          if (!sl.total) return;
           displayIdx++;
           html += `
             <tr>
@@ -1112,10 +1278,10 @@
           `;
         });
 
-        tbody.innerHTML = html || `<tr><td colspan="11" class="text-center" style="padding: 24px;">Tidak ada sekolah dengan tugas <strong>${escapeHtml(TUGAS_LABEL[tugasKey])}</strong> di kecamatan ini.</td></tr>`;
+        tbody.innerHTML = html || `<tr><td colspan="11" class="text-center" style="padding: 24px;">Tidak ada sekolah dengan tugas <strong>${escapeHtml(TUGAS_LABEL[tugasKey] || tugasKey)}</strong> di kecamatan ini.</td></tr>`;
         tfoot.innerHTML = `
           <tr>
-            <th colspan="3" class="text-center">TOTAL (${displayIdx} SD)</th>
+            <th colspan="3" class="text-center">TOTAL (${displayIdx} ${jenjangLabel})</th>
             <th class="text-center col-keadaan">${formatNumber(sumCpns)}</th>
             <th class="text-center col-keadaan">${formatNumber(sumPns)}</th>
             <th class="text-center col-keadaan">${formatNumber(sumPppk)}</th>
@@ -1128,7 +1294,6 @@
         `;
 
       } else {
-        // Tampilan lengkap: semua kolom
         thead.innerHTML = `
           <tr>
             <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
@@ -1206,7 +1371,7 @@
 
         tfoot.innerHTML = `
           <tr>
-            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${list.length} SD)</th>
+            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${list.length} ${jenjangLabel})</th>
             <th class="text-center">${formatNumber(sumRombel)}</th>
             <th class="text-center">${formatNumber(sumMurid)}</th>
             <th class="text-center">${formatNumber(sumKS)}</th>
@@ -1226,15 +1391,14 @@
     }
   }
 
-
-
   function applyFilters() {
     if (!rawData) return;
-    renderCardsFormasiSD();
+    updateUIForActiveJenjang();
+    renderCardsFormasi();
     renderKPIUmum();
-    renderTabKebutuhanSD();
-    renderTabKeadaanSD();
-    renderTabPensiunSD();
+    renderTabKebutuhan();
+    renderTabKeadaan();
+    renderTabPensiun();
   }
 
   function switchTab(tabKey) {
@@ -1247,19 +1411,19 @@
       const pane = document.getElementById('tabKebutuhanSD');
       if (btn) btn.classList.add('active');
       if (pane) pane.classList.add('active');
-      renderTabKebutuhanSD();
+      renderTabKebutuhan();
     } else if (tabKey === 'keadaanSD') {
       const btn = document.getElementById('tabBtnKeadaanSD');
       const pane = document.getElementById('tabKeadaanSD');
       if (btn) btn.classList.add('active');
       if (pane) pane.classList.add('active');
-      renderTabKeadaanSD();
+      renderTabKeadaan();
     } else if (tabKey === 'pensiunSD') {
       const btn = document.getElementById('tabBtnPensiunSD');
       const pane = document.getElementById('tabPensiunSD');
       if (btn) btn.classList.add('active');
       if (pane) pane.classList.add('active');
-      renderTabPensiunSD();
+      renderTabPensiun();
     }
   }
 
@@ -1382,29 +1546,24 @@
   }
 
   /**
-   * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru SD
+   * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru (SD / SMP)
    */
   function exportTableKebutuhanSDToExcel() {
     const table = document.getElementById('tableKebutuhanSD');
     if (!table) return;
 
+    const jenjang = getActiveJenjang();
+    const jenjangLabel = jenjang === 'SMP' ? 'SMP' : 'SD';
+    const config = (jenjang === 'SMP') ? FORMASI_CONFIG_SMP : FORMASI_CONFIG_SD;
     const filterKec = document.getElementById('filterKecamatan').value;
-    const formasiLabelMap = {
-      'ALL': 'Semua Guru SD (Total)',
-      'KS': 'Kepala Sekolah',
-      'GURU_KELAS': 'Guru Kelas',
-      'GURU_PAI': 'Guru PAI',
-      'GURU_PJOK': 'Guru PJOK',
-      'GURU_KRISTEN': 'Guru PA Kristen',
-      'GURU_KATOLIK': 'Guru PA Katolik',
-      'MATRIX': 'Matriks Semua Formasi'
-    };
-    const fTitle = formasiLabelMap[activeFormasiToggle] || activeFormasiToggle;
+
+    const activeConf = config[activeFormasiToggle] || config.ALL;
+    const fTitle = activeConf.label;
     const isSekolahMode = (currentKebutuhanMode === 'SEKOLAH' && filterKec !== 'ALL');
 
     const mainTitle = isSekolahMode 
-      ? `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU SD (${fTitle.toUpperCase()}) - KECAMATAN ${filterKec.toUpperCase()}`
-      : `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU SD (${fTitle.toUpperCase()}) - REKAP PER KECAMATAN`;
+      ? `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU ${jenjangLabel} (${fTitle.toUpperCase()}) - KECAMATAN ${filterKec.toUpperCase()}`
+      : `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU ${jenjangLabel} (${fTitle.toUpperCase()}) - REKAP PER KECAMATAN`;
     
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
@@ -1419,28 +1578,30 @@
 
     const fFileSlug = fTitle.replace(/[^A-Za-z0-9]/g, '_');
     const fileName = isSekolahMode 
-      ? `Kebutuhan_Guru_SD_${fFileSlug}_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`
-      : `Kebutuhan_Guru_SD_${fFileSlug}_Per_Kecamatan.xlsx`;
+      ? `Kebutuhan_Guru_${jenjangLabel}_${fFileSlug}_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`
+      : `Kebutuhan_Guru_${jenjangLabel}_${fFileSlug}_Per_Kecamatan.xlsx`;
 
-    const sheetName = isSekolahMode ? filterKec.substring(0, 30) : "Kebutuhan Guru SD";
+    const sheetName = isSekolahMode ? filterKec.substring(0, 30) : `Kebutuhan Guru ${jenjangLabel}`;
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
     XLSX.writeFile(wb, fileName);
   }
 
   /**
-   * Ekspor Khusus Tabel Keadaan PTK SD
+   * Ekspor Khusus Tabel Keadaan PTK (SD / SMP)
    */
   function exportTableKeadaanSDToExcel() {
     const table = document.getElementById('tableKeadaanSD');
     if (!table) return;
 
+    const jenjang = getActiveJenjang();
+    const jenjangLabel = jenjang === 'SMP' ? 'SMP' : 'SD';
     const filterKec = document.getElementById('filterKecamatan').value;
     const isSekolahMode = (currentKeadaanMode === 'SEKOLAH' && filterKec !== 'ALL');
 
     const mainTitle = isSekolahMode 
-      ? `TABEL KEADAAN PTK SD - KECAMATAN ${filterKec.toUpperCase()}`
-      : `TABEL KEADAAN PTK SD - REKAPITULASI PER KECAMATAN`;
+      ? `TABEL KEADAAN PTK ${jenjangLabel} - KECAMATAN ${filterKec.toUpperCase()}`
+      : `TABEL KEADAAN PTK ${jenjangLabel} - REKAPITULASI PER KECAMATAN`;
     
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
@@ -1454,10 +1615,10 @@
     ], { origin: "A1" });
 
     const fileName = isSekolahMode 
-      ? `Keadaan_PTK_SD_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`
-      : `Keadaan_PTK_SD_Per_Kecamatan.xlsx`;
+      ? `Keadaan_PTK_${jenjangLabel}_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`
+      : `Keadaan_PTK_${jenjangLabel}_Per_Kecamatan.xlsx`;
 
-    const sheetName = isSekolahMode ? filterKec.substring(0, 30) : "Keadaan PTK SD";
+    const sheetName = isSekolahMode ? filterKec.substring(0, 30) : `Keadaan PTK ${jenjangLabel}`;
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
     XLSX.writeFile(wb, fileName);
@@ -1474,7 +1635,7 @@
   }
 
   /* ==========================================================================
-     FUNGSI TAB 3: PROYEKSI PENSIUN SD
+     FUNGSI TAB 3: PROYEKSI PENSIUN (SD / SMP)
      ========================================================================== */
 
   /**
@@ -1482,8 +1643,8 @@
    */
   function setPensiunYear(year) {
     selectedPensiunYear = parseInt(year);
-    selectedPensiunMonth = null; // Reset filter bulan saat tahun diganti
-    renderTabPensiunSD();
+    selectedPensiunMonth = null;
+    renderTabPensiun();
   }
 
   /**
@@ -1491,11 +1652,11 @@
    */
   function selectPensiunMonth(month) {
     if (selectedPensiunMonth === month) {
-      selectedPensiunMonth = null; // Toggle off jika diklik ulang
+      selectedPensiunMonth = null;
     } else {
       selectedPensiunMonth = month;
     }
-    renderTabPensiunSD();
+    renderTabPensiun();
   }
 
   /**
@@ -1510,33 +1671,31 @@
   }
 
   /**
-   * Render Utama Tab 3: Proyeksi Pensiun SD
+   * Render Utama Tab 3: Proyeksi Pensiun (Dinamis SD / SMP)
    */
-  function renderTabPensiunSD() {
+  function renderTabPensiun() {
     if (!rawData) return;
 
+    const jenjang = getActiveJenjang();
     const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
-    let list = (rawData.pensiunSD || []).slice();
+    const masterPensiun = (jenjang === 'SMP') ? (rawData.pensiunSMP || []) : (rawData.pensiunSD || []);
+    let list = masterPensiun.slice();
 
     // Filter Wilayah Kecamatan (Filter Utama)
     if (filterKec !== 'ALL') {
       list = list.filter(p => p.kecamatan === filterKec);
     }
 
-    // 1. Render Tombol Pilihan Tahun (Dinamis Rentang 5 Tahun: Tahun Ini s/d +4 Tahun)
     renderPensiunYearButtons();
 
-    // 2. Filter Data Berdasarkan Tahun Terpilih
     const yearList = list.filter(p => p.pensiunTahun === selectedPensiunYear);
 
-    // Helper hitung breakdown status (PNS, PPPK, PW, Non-ASN)
     const createStatusBreakdown = () => ({ pns: 0, pppk: 0, pw: 0, nonAsn: 0, total: 0 });
     const statKS = createStatusBreakdown();
     const statGuru = createStatusBreakdown();
     const statTendik = createStatusBreakdown();
 
     yearList.forEach(p => {
-      // Tentukan kelompok peran
       let cat = p.roleCategory;
       if (!cat) {
         cat = p.isGuruKs ? 'GURU' : 'TENDIK';
@@ -1554,7 +1713,6 @@
       else target.nonAsn++;
     });
 
-    // Helper format teks breakdown PNS | PPPK | PPPK PW | Non ASN (badge tag identik Tab 1 & Tab 2)
     const formatBreakdownText = (st) => {
       return `<div class="pensiun-status-breakdown">` +
              `<span class="pensiun-tag-pns" title="PNS">PNS: ${formatNumber(st.pns)}</span>` +
@@ -1564,7 +1722,6 @@
              `</div>`;
     };
 
-    // Card 1: Total Pensiun Tahun XXXX
     const elYearTitle = document.getElementById('kpiPensiunYearTitle');
     const elYearCount = document.getElementById('kpiPensiunYearCount');
     const elYearDetail = document.getElementById('kpiPensiunYearDetail');
@@ -1572,28 +1729,23 @@
     if (elYearCount) elYearCount.textContent = formatNumber(yearList.length);
     if (elYearDetail) elYearDetail.textContent = `KS: ${formatNumber(statKS.total)} | Guru: ${formatNumber(statGuru.total)} | Tendik: ${formatNumber(statTendik.total)}`;
 
-    // Card 2: Kepala SD
     const elKsCount = document.getElementById('kpiPensiunKsCount');
     const elKsDetail = document.getElementById('kpiPensiunKsDetail');
     if (elKsCount) elKsCount.textContent = formatNumber(statKS.total);
     if (elKsDetail) elKsDetail.innerHTML = formatBreakdownText(statKS);
 
-    // Card 3: Guru SD
     const elGuruCount = document.getElementById('kpiPensiunGuruCount');
     const elGuruDetail = document.getElementById('kpiPensiunGuruDetail');
     if (elGuruCount) elGuruCount.textContent = formatNumber(statGuru.total);
     if (elGuruDetail) elGuruDetail.innerHTML = formatBreakdownText(statGuru);
 
-    // Card 4: Tendik
     const elTendikCount = document.getElementById('kpiPensiunTendikCount');
     const elTendikDetail = document.getElementById('kpiPensiunTendikDetail');
     if (elTendikCount) elTendikCount.textContent = formatNumber(statTendik.total);
     if (elTendikDetail) elTendikDetail.innerHTML = formatBreakdownText(statTendik);
 
-    // 3. Render Timeline Bar Chart Bulanan (Dibagi 4 Kriteria & Dibedakan Warna)
     renderPensiunBarChart(yearList);
 
-    // 4. Render Tabel Daftar Nama Pensiun
     const bulanIndo = [
       '', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI',
       'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'
@@ -1615,9 +1767,6 @@
     renderPensiunTable(tableList);
   }
 
-  /**
-   * Render Tombol Rentang 5 Tahun Pensiun Secara Dinamis
-   */
   function renderPensiunYearButtons() {
     const container = document.getElementById('pensiunYearButtons');
     if (!container) return;
@@ -1638,9 +1787,6 @@
     container.innerHTML = html;
   }
 
-  /**
-   * Render Bar Chart Bulanan (Jan - Des) dengan Stacked Bars 4 Kriteria (PNS, PPPK, PPPK PW, Non-ASN)
-   */
   function renderPensiunBarChart(yearList) {
     const container = document.getElementById('pensiunChartBars');
     const titleEl = document.getElementById('pensiunChartTitle');
@@ -1648,52 +1794,46 @@
     if (!container) return;
 
     const bulanShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    
-    // Hitung per bulan (1 - 12) dengan rincian 4 kriteria: pns, pppk, pw, nonAsn
-    const monthlyData = [];
-    for (let m = 0; m <= 12; m++) {
-      monthlyData.push({ pns: 0, pppk: 0, pw: 0, nonAsn: 0, total: 0 });
+
+    const monthlyData = {};
+    for (let m = 1; m <= 12; m++) {
+      monthlyData[m] = { pns: 0, pppk: 0, pw: 0, nonAsn: 0, total: 0 };
     }
 
     yearList.forEach(p => {
       const m = p.pensiunBulan;
       if (m >= 1 && m <= 12) {
-        const slot = monthlyData[m];
-        slot.total++;
+        monthlyData[m].total++;
         const s = p.status || 'Non-ASN';
-        if (s === 'PNS' || s === 'CPNS') slot.pns++;
-        else if (s === 'PPPK') slot.pppk++;
-        else if (s === 'PW') slot.pw++;
-        else slot.nonAsn++;
+        if (s === 'PNS' || s === 'CPNS') monthlyData[m].pns++;
+        else if (s === 'PPPK') monthlyData[m].pppk++;
+        else if (s === 'PW') monthlyData[m].pw++;
+        else monthlyData[m].nonAsn++;
       }
     });
 
-    const maxTotal = Math.max(...monthlyData.slice(1).map(d => d.total), 1);
+    let maxCount = 1;
+    for (let m = 1; m <= 12; m++) {
+      if (monthlyData[m].total > maxCount) maxCount = monthlyData[m].total;
+    }
 
     let html = '';
     for (let m = 1; m <= 12; m++) {
       const d = monthlyData[m];
       const isSel = (selectedPensiunMonth === m);
-      
-      // Hitung tinggi proporsional total & per segmen (terhadap maxTotal)
-      const trackHeight = 140; // tinggi maksimal px pada track bar
-      const totalBarHeightPx = d.total > 0 ? Math.max((d.total / maxTotal) * trackHeight, 14) : 0;
-      
-      // Proporsi masing-masing kriteria di dalam bar
+      const barHeightPct = Math.round((d.total / maxCount) * 100);
+
       const pnsPct = d.total > 0 ? (d.pns / d.total) * 100 : 0;
       const pppkPct = d.total > 0 ? (d.pppk / d.total) * 100 : 0;
       const pwPct = d.total > 0 ? (d.pw / d.total) * 100 : 0;
       const nonAsnPct = d.total > 0 ? (d.nonAsn / d.total) * 100 : 0;
 
-      // Tooltip informatif saat hover
-      const tooltip = `${bulanShort[m-1]} ${selectedPensiunYear} (Total: ${d.total})\n• PNS: ${d.pns}\n• PPPK: ${d.pppk}\n• PPPK PW: ${d.pw}\n• Non ASN: ${d.nonAsn}`;
-
       html += `
-        <div class="pensiun-bar-col ${isSel ? 'selected' : ''}" onclick="selectPensiunMonth(${m})" title="${tooltip}">
-          <div class="pensiun-bar-value">${d.total > 0 ? d.total : ''}</div>
+        <div class="pensiun-bar-col ${isSel ? 'selected' : ''}" onclick="selectPensiunMonth(${m})" title="Klik untuk filter: ${bulanShort[m-1]} ${selectedPensiunYear} (${d.total} orang)">
+          <div class="pensiun-bar-val">${d.total > 0 ? d.total : '-'}</div>
           <div class="pensiun-bar-track">
             ${d.total > 0 ? `
-              <div class="pensiun-bar-wrapper" style="height: ${totalBarHeightPx}px; width: 100%; display: flex; flex-direction: column-reverse; overflow: hidden; border-radius: 5px 5px 0 0;">
+              <div class="pensiun-bar-fill" style="height: ${Math.max(barHeightPct, 12)}%;">
                 ${d.pns > 0 ? `<div class="pensiun-bar-segment segment-pns" style="height: ${pnsPct}%;" title="PNS: ${d.pns}"></div>` : ''}
                 ${d.pppk > 0 ? `<div class="pensiun-bar-segment segment-pppk" style="height: ${pppkPct}%;" title="PPPK: ${d.pppk}"></div>` : ''}
                 ${d.pw > 0 ? `<div class="pensiun-bar-segment segment-pw" style="height: ${pwPct}%;" title="PPPK PW: ${d.pw}"></div>` : ''}
@@ -1709,9 +1849,6 @@
     container.innerHTML = html;
   }
 
-  /**
-   * Render Tabel Daftar Nama Pensiun
-   */
   function renderPensiunTable(list) {
     const tbody = document.getElementById('tbodyPensiunList');
     if (!tbody) return;
@@ -1727,7 +1864,6 @@
       return;
     }
 
-    // Urutkan berdasarkan bulan pensiun, lalu nama
     list.sort((a, b) => {
       if (a.pensiunBulan !== b.pensiunBulan) return a.pensiunBulan - b.pensiunBulan;
       return a.nama.localeCompare(b.nama);
@@ -1765,24 +1901,20 @@
     tbody.innerHTML = html;
   }
 
-  /**
-   * Ekspor Tabel Proyeksi Pensiun ke Excel
-   */
   function exportTablePensiunSDToExcel() {
     if (!rawData) return;
 
+    const jenjang = getActiveJenjang();
+    const jenjangLabel = jenjang === 'SMP' ? 'SMP' : 'SD';
     const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
-    let list = (rawData.pensiunSD || []).slice();
+    const masterPensiun = (jenjang === 'SMP') ? (rawData.pensiunSMP || []) : (rawData.pensiunSD || []);
+    let list = masterPensiun.slice();
 
-    // Filter Wilayah Kecamatan
     if (filterKec !== 'ALL') {
       list = list.filter(p => p.kecamatan === filterKec);
     }
 
-    // Filter Tahun
     const yearList = list.filter(p => p.pensiunTahun === selectedPensiunYear);
-
-    // Filter Bulan jika dipilih
     const tableList = selectedPensiunMonth !== null 
       ? yearList.filter(p => p.pensiunBulan === selectedPensiunMonth)
       : yearList;
@@ -1792,7 +1924,6 @@
       return;
     }
 
-    // Urutkan seperti tampilan di tabel
     tableList.sort((a, b) => {
       if (a.pensiunBulan !== b.pensiunBulan) return a.pensiunBulan - b.pensiunBulan;
       return a.nama.localeCompare(b.nama);
@@ -1804,10 +1935,9 @@
     ];
 
     const bulanTitle = selectedPensiunMonth !== null ? ` BULAN ${bulanIndo[selectedPensiunMonth]}` : '';
-    const mainTitle = `PROYEKSI PENSIUN SD NEGERI TAHUN ${selectedPensiunYear}${bulanTitle} - WILAYAH ${filterKec.toUpperCase()}`;
+    const mainTitle = `PROYEKSI PENSIUN ${jenjangLabel} NEGERI TAHUN ${selectedPensiunYear}${bulanTitle} - WILAYAH ${filterKec.toUpperCase()}`;
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
-    // Susun array of array secara murni tanpa konversi html table agar tipe string NIP tidak terpotong
     const headers = ['NO', 'NAMA LENGKAP', 'NIP', 'UNIT KERJA', 'JABATAN', 'STATUS', 'TGL LAHIR', 'BUP', 'PENSIUN'];
     const rows = [];
 
@@ -1829,27 +1959,24 @@
       ]);
     });
 
-    // Buat worksheet dari AOA (Array of Arrays)
     const wsData = [
       [mainTitle],
       [subTitle],
-      [], // baris kosong 3
+      [],
       headers,
       ...rows
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Set tipe data Kolom C (NIP) menjadi teks string ('s') dengan format '@'
     if (ws['!ref']) {
       const range = XLSX.utils.decode_range(ws['!ref']);
-      // Kolom C adalah index 2 (A=0, B=1, C=2). Baris data mulai baris ke-5 (index 4)
       for (let R = 4; R <= range.e.r; ++R) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: 2 });
         const cell = ws[cellAddress];
         if (cell && cell.v !== undefined && cell.v !== null) {
           const sVal = String(cell.v).trim();
-          cell.t = 's'; // Pastikan tipe data Cell adalah Text/String
+          cell.t = 's';
           cell.v = sVal;
           cell.w = sVal;
           cell.z = '@';
@@ -1857,11 +1984,10 @@
       }
     }
 
-    // Set lebar kolom otomatis agar nyaman dibaca di Excel
     ws['!cols'] = [
       { wch: 6 },  // NO
       { wch: 36 }, // NAMA LENGKAP
-      { wch: 24 }, // NIP (cukup lebar untuk 18 digit)
+      { wch: 24 }, // NIP
       { wch: 32 }, // UNIT KERJA
       { wch: 28 }, // JABATAN
       { wch: 14 }, // STATUS
@@ -1870,12 +1996,11 @@
       { wch: 18 }  // PENSIUN
     ];
 
-    const fileName = `Proyeksi_Pensiun_SD_${selectedPensiunYear}_${filterKec.replace(/\s+/g, '_')}.xlsx`;
+    const fileName = `Proyeksi_Pensiun_${jenjangLabel}_${selectedPensiunYear}_${filterKec.replace(/\s+/g, '_')}.xlsx`;
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pensiun SD");
+    XLSX.utils.book_append_sheet(wb, ws, `Pensiun ${jenjangLabel}`);
     XLSX.writeFile(wb, fileName);
   }
-
 
   function escapeHtml(str) {
     if (!str) return '';
