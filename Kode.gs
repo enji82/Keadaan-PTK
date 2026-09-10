@@ -740,6 +740,44 @@ function getPTKDetailSekolah(npsn, namaSekolah) {
       tmtFormatted: String(item.tmtFormatted || ''),
       jenjang: String(item.jenjang || '')
     }));
+
+    // Aturan Pengurutan (Poin 1):
+    // 1. Hirarki Tugas / Jabatan: Kepala Sekolah -> Guru -> Tenaga Kependidikan / Tendik
+    // 2. Status Kepegawaian: PNS -> PPPK -> Non-ASN (< 3-8-23) -> Non-ASN (> 3-8-23) -> PW
+    // 3. Nama Pegawai (A-Z)
+    function getJabatanRank(tugasStr) {
+      const t = String(tugasStr || '').toUpperCase();
+      if (t.includes('KEPALA SEKOLAH') || t.includes('KS')) return 1;
+      if (t.includes('GURU')) return 2;
+      return 3; // Tenaga kependidikan, operator, administrasi, dll.
+    }
+
+    function getStatusRank(statusStr, tmtCat) {
+      const s = String(statusStr || '').toUpperCase();
+      if (s === 'PNS') return 1;
+      if (s === 'PPPK') return 2;
+      if (s === 'NON-ASN' || s === 'NON ASN') {
+        if (tmtCat === 'OLD') return 3; // Non-ASN < 3-8-2023
+        return 4;                       // Non-ASN > 3-8-2023
+      }
+      if (s === 'PW') return 5;
+      return 6;
+    }
+
+    safePegawai.sort((a, b) => {
+      // 1. Bandingkan Rank Jabatan
+      const rankJabA = getJabatanRank(a.tugas);
+      const rankJabB = getJabatanRank(b.tugas);
+      if (rankJabA !== rankJabB) return rankJabA - rankJabB;
+
+      // 2. Bandingkan Rank Status Kepegawaian
+      const rankStatA = getStatusRank(a.statusNorm, a.tmtCategory);
+      const rankStatB = getStatusRank(b.statusNorm, b.tmtCategory);
+      if (rankStatA !== rankStatB) return rankStatA - rankStatB;
+
+      // 3. Bandingkan Nama Pegawai (A-Z)
+      return a.nama.localeCompare(b.nama, 'id', { sensitivity: 'base' });
+    });
     
     return {
       success: true,
