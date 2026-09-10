@@ -933,13 +933,18 @@
               statusBadge = `<span class="badge ${badgeClass}" title="TMT: ${p.tmtFormatted || '-'}">Non-ASN ${labelCategory}${tmtInfo}</span>`;
             }
 
+            const nipLabel = (p.nip && p.nip !== '-') ? `NIP. ${escapeHtml(p.nip)}` : 'NIP: -';
+
             html += `
               <tr>
                 <td class="text-center">${idx + 1}</td>
-                <td><strong>${escapeHtml(p.nama)}</strong></td>
+                <td>
+                  <div style="font-weight: 600; color: var(--secondary);">${escapeHtml(p.nama)}</div>
+                  <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px; font-family: monospace;">${nipLabel}</div>
+                </td>
                 <td>${escapeHtml(p.tugas || '-')}</td>
                 <td class="text-center">${statusBadge}</td>
-                <td class="text-center"><span class="badge ${p.jenjang === 'SD' ? 'badge-sd' : 'badge-smp'}">${p.jenjang}</span></td>
+                <td class="text-center" style="font-weight: 500; color: #334155;">${escapeHtml(p.pangkatGol || '-')}</td>
               </tr>
             `;
           });

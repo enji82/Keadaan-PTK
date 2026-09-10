@@ -603,6 +603,14 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
   let namaIdx = header.findIndex(h => h === 'nama' || h.includes('nama ptk') || h.includes('nama pegawai') || h.includes('nama lengkap'));
   if (namaIdx === -1) namaIdx = header.findIndex(h => h.includes('nama'));
   if (namaIdx === -1) namaIdx = 3; // Kolom D
+
+  // Kolom E adalah NIP (0-based: A=0, B=1, C=2, D=3, E=4)
+  let nipIdx = header.findIndex(h => h === 'nip' || h.includes('nip'));
+  if (nipIdx === -1) nipIdx = 4; // Kolom E fallback
+
+  // Kolom F adalah Pangkat / Golongan (0-based: F=5)
+  let golIdx = header.findIndex(h => h === 'gol' || h.includes('golongan') || h.includes('pangkat') || h.includes('pangkat/gol'));
+  if (golIdx === -1) golIdx = 5; // Kolom F fallback
   
   let statusIdx = header.findIndex(h => h === 'status' || h.includes('status kepegawaian') || h.includes('kepegawaian'));
   if (statusIdx === -1) statusIdx = header.findIndex(h => h.includes('status'));
@@ -637,6 +645,8 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
     const cleanNpsn = rawNpsn.replace(/[^0-9]/g, '');
     const npsn = cleanNpsn || rawNpsn;
 
+    const rawNip = row[nipIdx];
+    const rawGol = row[golIdx];
     const rawStatus = row[statusIdx];
     const rawTugas = row[tugasIdx];
     const rawKec = row[kecIdx];
@@ -655,8 +665,25 @@ function readPTKSheet(ss, sheetName, defaultJenjang) {
       }
     }
 
+    // Penentuan NIP:
+    // Hanya CPNS, PNS, PPPK, dan PW yang memiliki NIP.
+    // Untuk Tenaga Non-ASN diberi tanda '-'
+    let nipClean = '-';
+    const sNormUpper = String(statusNorm || '').toUpperCase();
+    const isAsnOrPw = (sNormUpper === 'PNS' || sNormUpper === 'CPNS' || sNormUpper === 'PPPK' || sNormUpper === 'PW');
+    if (isAsnOrPw && rawNip) {
+      let sNip = String(rawNip).trim();
+      if (sNip.includes('.')) sNip = sNip.split('.')[0];
+      const digitsNip = sNip.replace(/[^0-9]/g, '');
+      nipClean = digitsNip || sNip || '-';
+    }
+
+    const pangkatGolClean = rawGol ? String(rawGol).trim() : '-';
+
     ptkList.push({
       nama: nama,
+      nip: nipClean,
+      pangkatGol: pangkatGolClean,
       npsn: npsn,
       kecamatan: rawKec ? String(rawKec).trim() : '',
       unitKerja: rawUnit ? String(rawUnit).trim() : '',
@@ -731,6 +758,8 @@ function getPTKDetailSekolah(npsn, namaSekolah) {
     // Jangan pernah menyertakan objek Date atau Range yang menyebabkan kegagalan serialisasi di google.script.run
     const safePegawai = filtered.map(item => ({
       nama: String(item.nama || ''),
+      nip: String(item.nip || '-'),
+      pangkatGol: String(item.pangkatGol || '-'),
       npsn: String(item.npsn || ''),
       unitKerja: String(item.unitKerja || ''),
       tugas: String(item.tugasRaw || item.jenisNorm || '-'),
