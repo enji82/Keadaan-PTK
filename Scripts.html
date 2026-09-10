@@ -963,14 +963,48 @@
     if (e.target.id === 'detailModal') closeModal();
   }
 
-  function exportActiveTabToExcel() {
-    let tableId = 'tableKebutuhanSD';
-    let fileName = `Kebutuhan_Guru_SD_${activeFormasiToggle}.xlsx`;
+  /**
+   * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru SD
+   */
+  function exportTableKebutuhanSDToExcel() {
+    const table = document.getElementById('tableKebutuhanSD');
+    if (!table) return;
 
-    if (activeTab === 'kecamatan') {
-      tableId = 'tableKecamatan';
-      fileName = 'Rekap_PTK_Kecamatan.xlsx';
-    } else if (activeTab === 'jenjang') {
+    const filterKec = document.getElementById('filterKecamatan').value;
+    const formasiLabelMap = {
+      'ALL': 'Semua_Guru_SD',
+      'KS': 'Kepala_Sekolah',
+      'GURU_KELAS': 'Guru_Kelas',
+      'GURU_PAI': 'Guru_PAI',
+      'GURU_PJOK': 'Guru_PJOK',
+      'GURU_KRISTEN': 'Guru_PA_Kristen',
+      'GURU_KATOLIK': 'Guru_PA_Katolik',
+      'MATRIX': 'Matriks_Semua'
+    };
+    const fLabel = formasiLabelMap[activeFormasiToggle] || activeFormasiToggle;
+
+    let fileName = '';
+    if (currentKebutuhanMode === 'SEKOLAH' && filterKec !== 'ALL') {
+      fileName = `Kebutuhan_Guru_SD_${fLabel}_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`;
+    } else {
+      fileName = `Kebutuhan_Guru_SD_${fLabel}_Per_Kecamatan.xlsx`;
+    }
+
+    const sheetName = (currentKebutuhanMode === 'SEKOLAH' && filterKec !== 'ALL') ? filterKec.substring(0, 30) : "Kebutuhan SD";
+    const wb = XLSX.utils.table_to_book(table, { sheet: sheetName });
+    XLSX.writeFile(wb, fileName);
+  }
+
+  function exportActiveTabToExcel() {
+    if (activeTab === 'kebutuhanSD') {
+      exportTableKebutuhanSDToExcel();
+      return;
+    }
+
+    let tableId = 'tableKecamatan';
+    let fileName = 'Rekap_PTK_Kecamatan.xlsx';
+
+    if (activeTab === 'jenjang') {
       tableId = 'tableJenjang';
       fileName = 'Rekap_PTK_Jenjang.xlsx';
     } else if (activeTab === 'sekolah') {
