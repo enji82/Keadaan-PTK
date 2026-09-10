@@ -1578,12 +1578,14 @@
       else target.nonAsn++;
     });
 
-    // Helper format teks breakdown PNS | PPPK | PPPK PW | Non ASN
+    // Helper format teks breakdown PNS | PPPK | PPPK PW | Non ASN (badge tag identik Tab 1 & Tab 2)
     const formatBreakdownText = (st) => {
-      return `<span title="PNS">PNS: <strong>${formatNumber(st.pns)}</strong></span> • ` +
-             `<span title="PPPK Penuh Waktu">PPPK: <strong>${formatNumber(st.pppk)}</strong></span> • ` +
-             `<span title="PPPK Paruh Waktu">PW: <strong>${formatNumber(st.pw)}</strong></span> • ` +
-             `<span title="Non ASN">Non ASN: <strong>${formatNumber(st.nonAsn)}</strong></span>`;
+      return `<div class="pensiun-status-breakdown">` +
+             `<span class="pensiun-tag-pns" title="PNS">PNS: ${formatNumber(st.pns)}</span>` +
+             `<span class="pensiun-tag-pppk" title="PPPK Penuh Waktu">PPPK: ${formatNumber(st.pppk)}</span>` +
+             `<span class="pensiun-tag-pw" title="PPPK Paruh Waktu">PW: ${formatNumber(st.pw)}</span>` +
+             `<span class="pensiun-tag-nonasn" title="Non ASN">Non ASN: ${formatNumber(st.nonAsn)}</span>` +
+             `</div>`;
     };
 
     // Card 1: Total Pensiun Tahun XXXX

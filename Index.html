@@ -37,9 +37,6 @@
         <button class="btn btn-secondary" onclick="refreshData(true)" title="Perbarui Data Langsung dari Spreadsheet">
           🔄 Refresh Data
         </button>
-        <button class="btn btn-success" onclick="exportActiveTabToExcel()" title="Export Tabel Aktif ke File Excel (.xlsx)">
-          📥 Unduh Excel
-        </button>
       </div>
     </div>
   </header>
@@ -86,7 +83,7 @@
         2. Keadaan PTK SD
       </button>
       <button class="tab-btn" id="tabBtnPensiunSD" onclick="switchTab('pensiunSD')">
-        3. Proyeksi Pensiun
+        3. Proyeksi Pensiun PTK SD
       </button>
     </div>
 
@@ -326,60 +323,51 @@
         </div>
       </div>
 
-      <!-- 4 BUAH KPI CARD RINGKASAN PENSIUN (RINCIAN: KS, GURU, TENDIK DENGAN PNS | PPPK | PPPK PW | NON ASN) -->
-      <div class="kpi-grid-4 pensiun-kpi-grid-4">
+      <!-- 4 BUAH KPI CARD RINGKASAN PENSIUN (IDENTIK DENGAN TAB 1 DAN TAB 2) -->
+      <div class="kpi-grid-4">
         <!-- Card 1: Pensiun Tahun Ini / Terpilih -->
-        <div class="kpi-card pensiun-card-total">
+        <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-title" id="kpiPensiunYearTitle">PENSIUN TAHUN 2026</span>
             <div class="kpi-icon icon-blue">📅</div>
           </div>
-          <div class="kpi-value text-primary" id="kpiPensiunYearCount">0</div>
+          <div class="kpi-value" id="kpiPensiunYearCount">0</div>
           <div class="kpi-subtitle" id="kpiPensiunYearDetail">KS: 0 | Guru: 0 | Tendik: 0</div>
         </div>
 
         <!-- Card 2: Kepala SD -->
-        <div class="kpi-card pensiun-card-ks">
+        <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-title">KEPALA SD</span>
+            <span class="kpi-title">Kepala SD</span>
             <div class="kpi-icon icon-purple">🎓</div>
           </div>
-          <div class="kpi-value text-purple" id="kpiPensiunKsCount">0</div>
-          <div class="kpi-subtitle pensiun-status-breakdown" id="kpiPensiunKsDetail">
-            <span title="PNS">PNS: 0</span> • 
-            <span title="PPPK Penuh Waktu">PPPK: 0</span> • 
-            <span title="PPPK Paruh Waktu">PW: 0</span> • 
-            <span title="Non ASN">Non ASN: 0</span>
+          <div class="kpi-value" id="kpiPensiunKsCount">0</div>
+          <div class="kpi-status-breakdown" id="kpiPensiunKsDetail">
+            <!-- Rincian diisi via JS -->
           </div>
         </div>
 
         <!-- Card 3: Guru SD -->
-        <div class="kpi-card pensiun-card-guru">
+        <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-title">GURU SD</span>
+            <span class="kpi-title">Guru SD</span>
             <div class="kpi-icon icon-green">👨‍🏫</div>
           </div>
-          <div class="kpi-value text-green" id="kpiPensiunGuruCount">0</div>
-          <div class="kpi-subtitle pensiun-status-breakdown" id="kpiPensiunGuruDetail">
-            <span title="PNS">PNS: 0</span> • 
-            <span title="PPPK Penuh Waktu">PPPK: 0</span> • 
-            <span title="PPPK Paruh Waktu">PW: 0</span> • 
-            <span title="Non ASN">Non ASN: 0</span>
+          <div class="kpi-value" id="kpiPensiunGuruCount">0</div>
+          <div class="kpi-status-breakdown" id="kpiPensiunGuruDetail">
+            <!-- Rincian diisi via JS -->
           </div>
         </div>
 
         <!-- Card 4: Tenaga Kependidikan (Tendik) -->
-        <div class="kpi-card pensiun-card-tendik">
+        <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-title">TENDIK</span>
+            <span class="kpi-title">Tenaga Kependidikan</span>
             <div class="kpi-icon icon-amber">📑</div>
           </div>
-          <div class="kpi-value text-amber" id="kpiPensiunTendikCount">0</div>
-          <div class="kpi-subtitle pensiun-status-breakdown" id="kpiPensiunTendikDetail">
-            <span title="PNS">PNS: 0</span> • 
-            <span title="PPPK Penuh Waktu">PPPK: 0</span> • 
-            <span title="PPPK Paruh Waktu">PW: 0</span> • 
-            <span title="Non ASN">Non ASN: 0</span>
+          <div class="kpi-value" id="kpiPensiunTendikCount">0</div>
+          <div class="kpi-status-breakdown" id="kpiPensiunTendikDetail">
+            <!-- Rincian diisi via JS -->
           </div>
         </div>
       </div>
@@ -406,8 +394,11 @@
 
       <!-- DAFTAR NAMA PENSIUN (SELALU DITAMPILKAN) -->
       <div class="card-table pensiun-table-card" id="wrapPensiunTable">
-        <div class="card-header-bar" style="border-bottom: 1px solid var(--border-color); padding: 14px 18px;">
-          <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--secondary);" id="pensiunTableHeading">Daftar Nama Personil Pensiun</h3>
+        <div class="card-header-bar" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 14px 18px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--secondary); margin: 0;" id="pensiunTableHeading">Daftar Nama Personil Pensiun</h3>
+          <button class="btn btn-excel" onclick="exportActiveTabToExcel()" title="Ekspor daftar pensiun saat ini ke format Excel (.xlsx)">
+            📊 Ekspor Excel
+          </button>
         </div>
         <div class="table-responsive">
           <table class="data-table pensiun-table">
