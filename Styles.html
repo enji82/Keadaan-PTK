@@ -674,36 +674,13 @@
   }
 
   /* ==========================================================================
-     STYLING TAB 3: PROYEKSI PENSIUN SD
+     STYLING TAB 3: PROYEKSI PENSIUN SD (TEMA IDENTIK TAB 1 & 2)
      ========================================================================== */
   .pensiun-topbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
     margin-bottom: 20px;
-  }
-
-  .pensiun-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .pensiun-title-indicator {
-    width: 5px;
-    height: 22px;
-    background: #881337;
-    border-radius: 3px;
-  }
-
-  .pensiun-title-wrap h2 {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #881337;
-    letter-spacing: -0.01em;
-    margin: 0;
   }
 
   .pensiun-year-switcher {
@@ -729,14 +706,14 @@
   }
 
   .pensiun-year-btn:hover {
-    color: #881337;
-    background: rgba(136, 19, 55, 0.06);
+    color: var(--primary);
+    background: #ffffff;
   }
 
   .pensiun-year-btn.active {
-    background: #881337;
+    background: var(--primary);
     color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
   }
 
   .pensiun-kpi-grid {
@@ -753,15 +730,15 @@
   }
 
   .pensiun-card-year {
-    border-left: 4px solid #be123c;
+    border-left: 4px solid var(--primary);
   }
 
   .pensiun-card-month {
-    border-left: 4px solid #d97706;
+    border-left: 4px solid var(--accent);
   }
 
-  .text-rose {
-    color: #be123c !important;
+  .text-primary {
+    color: var(--primary) !important;
   }
 
   .text-amber {
@@ -792,7 +769,7 @@
   .pensiun-chart-header h3 {
     font-size: 0.95rem;
     font-weight: 800;
-    color: #881337;
+    color: var(--secondary);
     letter-spacing: -0.01em;
     margin: 0;
   }
@@ -825,27 +802,27 @@
   }
 
   .pensiun-bar-col.selected .pensiun-bar {
-    background: #4c0519 !important;
-    box-shadow: 0 0 0 3px rgba(136, 19, 55, 0.25);
+    background: var(--primary-hover) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
   }
 
   .pensiun-bar-col.selected .pensiun-bar-label {
     font-weight: 800;
-    color: #881337;
+    color: var(--primary);
   }
 
   .pensiun-bar-value {
     font-size: 0.76rem;
     font-weight: 700;
     margin-bottom: 4px;
-    color: #881337;
+    color: var(--primary);
   }
 
   .pensiun-bar-track {
     width: 100%;
     max-width: 44px;
     height: 140px;
-    background: #f8fafc;
+    background: #f1f5f9;
     border-radius: 6px 6px 0 0;
     display: flex;
     align-items: flex-end;
@@ -854,7 +831,7 @@
 
   .pensiun-bar {
     width: 100%;
-    background: #881337;
+    background: var(--primary);
     border-radius: 5px 5px 0 0;
     min-height: 0px;
     transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -868,39 +845,24 @@
     text-align: center;
   }
 
-  /* Accordion Button & Table */
-  .pensiun-toggle-btn {
-    width: 100%;
-    background: #ffffff;
-    border: 1px solid #881337;
-    color: #881337;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 14px;
-    transition: all 0.2s ease;
-  }
-
-  .pensiun-toggle-btn:hover {
-    background: #fff1f2;
+  .pensiun-table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
 
   .pensiun-table thead th {
-    background-color: #fef3c7 !important;
-    color: #78350f !important;
-    border-bottom: 2px solid #fde68a !important;
+    background-color: #f8fafc !important;
+    color: var(--secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
     font-weight: 700;
     font-size: 0.77rem;
     letter-spacing: 0.02em;
   }
 
   .pensiun-table tbody tr:hover td {
-    background-color: #fff1f2 !important;
+    background-color: var(--primary-light) !important;
   }
 </style>

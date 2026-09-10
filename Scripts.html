@@ -1599,6 +1599,15 @@
       ? yearList.filter(p => p.pensiunBulan === selectedPensiunMonth)
       : yearList;
 
+    const elTableHeading = document.getElementById('pensiunTableHeading');
+    if (elTableHeading) {
+      if (selectedPensiunMonth !== null) {
+        elTableHeading.textContent = `Daftar Nama Personil Pensiun - Bulan ${bulanIndo[selectedPensiunMonth]} ${selectedPensiunYear} (${tableList.length} Orang)`;
+      } else {
+        elTableHeading.textContent = `Daftar Nama Personil Pensiun - Tahun ${selectedPensiunYear} (${tableList.length} Orang)`;
+      }
+    }
+
     renderPensiunTable(tableList);
   }
 
