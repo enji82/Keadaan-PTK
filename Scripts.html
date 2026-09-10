@@ -318,7 +318,6 @@
     const breadcrumbWrap = document.getElementById('breadcrumbWrap');
 
     const filterKec = document.getElementById('filterKecamatan').value;
-    const filterStatus = document.getElementById('filterStatusKebutuhan').value;
     const searchEl = document.getElementById('searchSekolah');
     const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
 
@@ -343,20 +342,6 @@
       breadcrumbWrap.style.display = 'none'; // Sembunyikan badge/breadcrumb
 
       let list = (rawData.kebutuhanSD.perKecamatan || []).slice();
-
-      // Filter Status
-      if (filterStatus !== 'ALL') {
-        list = list.filter(k => {
-          let targetEval = k.total;
-          if (activeFormasiToggle !== 'ALL' && activeFormasiToggle !== 'MATRIX') {
-            if (k[fKey]) targetEval = k[fKey];
-          }
-          if (filterStatus === 'KURANG' && targetEval.selisih >= 0) return false;
-          if (filterStatus === 'PAS' && targetEval.selisih !== 0) return false;
-          if (filterStatus === 'LEBIH' && targetEval.selisih <= 0) return false;
-          return true;
-        });
-      }
 
       // Filter Pencarian jika diisi
       if (searchVal) {
@@ -574,15 +559,6 @@
           const matchNpsn = item.npsn && item.npsn.toLowerCase().includes(searchVal);
           if (!matchName && !matchNpsn) return false;
         }
-
-        let targetEval = item.total;
-        if (activeFormasiToggle !== 'ALL' && activeFormasiToggle !== 'MATRIX') {
-          if (item[fKey]) targetEval = item[fKey];
-        }
-
-        if (filterStatus === 'KURANG' && targetEval.selisih >= 0) return false;
-        if (filterStatus === 'PAS' && targetEval.selisih !== 0) return false;
-        if (filterStatus === 'LEBIH' && targetEval.selisih <= 0) return false;
         return true;
       });
 
@@ -1268,28 +1244,23 @@
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-    const wrapFilterStatus = document.getElementById('wrapFilterStatusKebutuhan');
-
     if (tabKey === 'kebutuhanSD') {
       const btn = document.getElementById('tabBtnKebutuhanSD');
       const pane = document.getElementById('tabKebutuhanSD');
       if (btn) btn.classList.add('active');
       if (pane) pane.classList.add('active');
-      if (wrapFilterStatus) wrapFilterStatus.style.display = 'flex';
       renderTabKebutuhanSD();
     } else if (tabKey === 'keadaanSD') {
       const btn = document.getElementById('tabBtnKeadaanSD');
       const pane = document.getElementById('tabKeadaanSD');
       if (btn) btn.classList.add('active');
       if (pane) pane.classList.add('active');
-      if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
       renderTabKeadaanSD();
     } else if (tabKey === 'pensiunSD') {
       const btn = document.getElementById('tabBtnPensiunSD');
       const pane = document.getElementById('tabPensiunSD');
       if (btn) btn.classList.add('active');
       if (pane) pane.classList.add('active');
-      if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
       renderTabPensiunSD();
     }
   }
