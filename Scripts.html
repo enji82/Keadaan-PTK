@@ -1069,7 +1069,7 @@
         modalLoading.style.display = 'none';
         modalTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 24px; color: #ef4444;">Terjadi kesalahan sistem: ${escapeHtml(err.message || err)}</td></tr>`;
       })
-      .getSchoolEmployees(npsn, namaSekolah);
+      .getPTKDetailSekolah(npsn, namaSekolah);
   }
 
   function closeModal() {

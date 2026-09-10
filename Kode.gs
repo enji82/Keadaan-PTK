@@ -899,3 +899,10 @@ function getPTKDetailSekolah(npsn, namaSekolah) {
     };
   }
 }
+
+/**
+ * Alias untuk backward-compatibility jika ada client yang memanggil getSchoolEmployees
+ */
+function getSchoolEmployees(npsn, namaSekolah) {
+  return getPTKDetailSekolah(npsn, namaSekolah);
+}
