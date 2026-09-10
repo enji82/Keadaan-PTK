@@ -815,13 +815,13 @@
         html += `
           <tr class="clickable-row" onclick="drillDownToKecamatanKeadaan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
             <td class="text-center">${idx + 1}</td>
-            <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
+            <td>${escapeHtml(k.kecamatan)}</td>
             <td class="text-center">${formatNumber(k.totalSekolah)}</td>
             <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
             <td class="text-center">${formatNumber(k.totalRombel || 0)}</td>
-            <td class="text-center" style="font-weight:600;">${formatNumber(k.guru)}</td>
-            <td class="text-center" style="font-weight:600;">${formatNumber(k.ks)}</td>
-            <td class="text-center" style="font-weight:600;">${formatNumber(k.tendik)}</td>
+            <td class="text-center">${formatNumber(k.guru)}</td>
+            <td class="text-center">${formatNumber(k.ks)}</td>
+            <td class="text-center">${formatNumber(k.tendik)}</td>
             <td class="text-center col-keadaan">${formatNumber(k.cpns || 0)}</td>
             <td class="text-center col-keadaan">${formatNumber(k.pns)}</td>
             <td class="text-center col-keadaan">${formatNumber(k.pppk)}</td>
@@ -928,9 +928,9 @@
             <td>${escapeHtml(sch.kecamatan)}</td>
             <td class="text-center">${formatNumber(sch.rombel || 0)}</td>
             <td class="text-center">${formatNumber(sch.murid || 0)}</td>
-            <td class="text-center" style="font-weight:600;">${formatNumber(sch.guruCount)}</td>
-            <td class="text-center" style="font-weight:600;">${formatNumber(sch.ksCount)}</td>
-            <td class="text-center" style="font-weight:600;">${formatNumber(sch.tendikCount)}</td>
+            <td class="text-center">${formatNumber(sch.guruCount)}</td>
+            <td class="text-center">${formatNumber(sch.ksCount)}</td>
+            <td class="text-center">${formatNumber(sch.tendikCount)}</td>
             <td class="text-center col-keadaan">${formatNumber(sch.cpnsCount || 0)}</td>
             <td class="text-center col-keadaan">${formatNumber(sch.pnsCount)}</td>
             <td class="text-center col-keadaan">${formatNumber(sch.pppkCount)}</td>
