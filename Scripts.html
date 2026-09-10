@@ -780,8 +780,7 @@
       TENDIK_LAIN:        'Tendik Lainnya'
     };
 
-    // Helper: ambil count dari tugasCount atau ptkCount/guruCount/ksCount/tendikCount
-    function getTugasVal(obj) {
+    // Helper untuk slot breakdown status kepegawaian per tugas
     function emptySlot() { return { cpns:0, pns:0, pppk:0, pw:0, nonAsnOld:0, nonAsnNew:0, total:0 }; }
     function getTugasSlot(obj) {
       if (!isFiltered) return null;
@@ -793,6 +792,7 @@
       const tc = sch.tugasCount || {};
       return tc[tugasKey] || emptySlot();
     }
+
 
     // -------------------------------------------------------------
     // KONDISI A: MODE KECAMATAN (DEFAULT)
