@@ -531,6 +531,46 @@ function getDashboardData(forceRefresh) {
     rk.nonAsnNew += (sch.nonAsnNewCount || 0);
   });
 
+  // 5b. Rekap Wilayah Kecamatan Khusus SD (Untuk Tab Keadaan PTK SD)
+  const rekapKecamatanSD = {};
+  listSD.forEach(sch => {
+    const kec = sch.kecamatan || 'LAINNYA';
+    if (!rekapKecamatanSD[kec]) {
+      rekapKecamatanSD[kec] = {
+        kecamatan: kec,
+        totalSekolah: 0,
+        totalMurid: 0,
+        totalRombel: 0,
+        totalPTK: 0,
+        guru: 0,
+        ks: 0,
+        tendik: 0,
+        cpns: 0,
+        pns: 0,
+        pppk: 0,
+        pw: 0,
+        nonAsn: 0,
+        nonAsnOld: 0,
+        nonAsnNew: 0
+      };
+    }
+    const rk = rekapKecamatanSD[kec];
+    rk.totalSekolah++;
+    rk.totalMurid += (sch.murid || 0);
+    rk.totalRombel += (sch.rombel || 0);
+    rk.totalPTK += sch.ptkCount;
+    rk.guru += sch.guruCount;
+    rk.ks += sch.ksCount;
+    rk.tendik += sch.tendikCount;
+    rk.cpns += sch.cpnsCount;
+    rk.pns += sch.pnsCount;
+    rk.pppk += sch.pppkCount;
+    rk.pw += sch.pwCount;
+    rk.nonAsn += sch.nonAsnCount;
+    rk.nonAsnOld += (sch.nonAsnOldCount || 0);
+    rk.nonAsnNew += (sch.nonAsnNewCount || 0);
+  });
+
   const rekapJenjang = {
     SD: { jenjang: 'SD', jmlSekolah: listSD.length, totalPTK: ptkSDList.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
     SMP: { jenjang: 'SMP', jmlSekolah: listSekolah.filter(s => s.jenjang === 'SMP').length, totalPTK: ptkSMPList.length, guru: 0, ks: 0, tendik: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
@@ -577,10 +617,27 @@ function getDashboardData(forceRefresh) {
       totalNonAsnNew: rekapJenjang.TOTAL.nonAsnNew,
       persenASN: allPTK.length ? Math.round(((rekapJenjang.TOTAL.cpns + rekapJenjang.TOTAL.pns + rekapJenjang.TOTAL.pppk + rekapJenjang.TOTAL.pw) / allPTK.length) * 100) : 0
     },
+    summarySD: {
+      totalSekolah: rekapJenjang.SD.jmlSekolah,
+      totalPTK: rekapJenjang.SD.totalPTK,
+      totalGuru: rekapJenjang.SD.guru,
+      totalKS: rekapJenjang.SD.ks,
+      totalTendik: rekapJenjang.SD.tendik,
+      totalCPNS: rekapJenjang.SD.cpns,
+      totalPNS: rekapJenjang.SD.pns,
+      totalPPPK: rekapJenjang.SD.pppk,
+      totalPW: rekapJenjang.SD.pw,
+      totalNonASN: rekapJenjang.SD.nonAsn,
+      totalNonAsnOld: rekapJenjang.SD.nonAsnOld,
+      totalNonAsnNew: rekapJenjang.SD.nonAsnNew,
+      persenASN: rekapJenjang.SD.totalPTK ? Math.round(((rekapJenjang.SD.cpns + rekapJenjang.SD.pns + rekapJenjang.SD.pppk + rekapJenjang.SD.pw) / rekapJenjang.SD.totalPTK) * 100) : 0
+    },
     kecamatanList: Array.from(kecamatanSet).sort(),
     rekapKecamatan: Object.values(rekapKecamatan).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan)),
+    rekapKecamatanSD: Object.values(rekapKecamatanSD).sort((a, b) => a.kecamatan.localeCompare(b.kecamatan)),
     rekapJenjang: [rekapJenjang.SD, rekapJenjang.SMP, rekapJenjang.TOTAL],
     rekapSekolah: listSekolah.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
+    rekapSekolahSD: listSD.sort((a, b) => a.namaSekolah.localeCompare(b.namaSekolah)),
     
     // Data Khusus Analisis Kebutuhan Guru SD
     kebutuhanSD: {

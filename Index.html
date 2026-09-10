@@ -77,19 +77,13 @@
       </div>
     </div>
 
-    <!-- TABS NAVIGASI UTAMA -->
+       <!-- TABS NAVIGASI UTAMA -->
     <div class="tabs-nav">
       <button class="tab-btn active" id="tabBtnKebutuhanSD" onclick="switchTab('kebutuhanSD')">
         1. Kebutuhan Guru SD
       </button>
-      <button class="tab-btn" id="tabBtnKecamatan" onclick="switchTab('kecamatan')">
-        2. Rekap Per Kecamatan
-      </button>
-      <button class="tab-btn" id="tabBtnJenjang" onclick="switchTab('jenjang')">
-        3. Rekap Per Jenjang
-      </button>
-      <button class="tab-btn" id="tabBtnSekolah" onclick="switchTab('sekolah')">
-        4. Rekap Per Sekolah
+      <button class="tab-btn" id="tabBtnKeadaanSD" onclick="switchTab('keadaanSD')">
+        2. Keadaan PTK SD
       </button>
     </div>
 
@@ -115,7 +109,7 @@
         <div class="kpi-card" onclick="setFormasiToggle('GURU_KELAS')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru Kelas">
           <div class="kpi-card-header">
             <span class="kpi-title">Guru Kelas</span>
-            <div class="kpi-icon icon-green">📚</div>
+            <div class="kpi-icon icon-green">👨‍🏫</div>
           </div>
           <div class="kpi-value" id="kpiGkSelisih">0</div>
           <div class="kpi-subtitle" id="kpiGkDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
@@ -125,7 +119,7 @@
         <div class="kpi-card" onclick="setFormasiToggle('GURU_PAI')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru PAI">
           <div class="kpi-card-header">
             <span class="kpi-title">Guru PAI</span>
-            <div class="kpi-icon icon-blue">🕌</div>
+            <div class="kpi-icon icon-amber">📖</div>
           </div>
           <div class="kpi-value" id="kpiPaiSelisih">0</div>
           <div class="kpi-subtitle" id="kpiPaiDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
@@ -135,7 +129,7 @@
         <div class="kpi-card" onclick="setFormasiToggle('GURU_PJOK')" style="cursor: pointer;" title="Klik untuk filter tabel ke Guru PJOK">
           <div class="kpi-card-header">
             <span class="kpi-title">Guru PJOK</span>
-            <div class="kpi-icon icon-amber">⚽</div>
+            <div class="kpi-icon icon-blue">⚽</div>
           </div>
           <div class="kpi-value" id="kpiPjokSelisih">0</div>
           <div class="kpi-subtitle" id="kpiPjokDetail">Butuh: 0 | Terisi: 0 | Non-ASN: 0</div>
@@ -171,7 +165,7 @@
             <div class="breadcrumb-wrap" id="breadcrumbWrap" style="display: none; margin-bottom: 0;"></div>
           </div>
 
-          <!-- Baris Kontrol: Pilih Jenis PTK & Tombol Reload Data Kecamatan Sejajar -->
+          <!-- Baris Kontrol: Pilih Jenis PTK & Tombol Ekspor Excel -->
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
               <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH JENIS PTK:</span>
@@ -187,9 +181,9 @@
               </div>
             </div>
 
-            <!-- Tombol Ekspor Excel Sejajar -->
-            <button class="btn btn-success" onclick="exportTableKebutuhanSDToExcel()" title="Ekspor tabel ini ke file Excel (.xlsx)">
-              📥 Ekspor Excel
+            <!-- Tombol Ekspor Excel -->
+            <button class="btn btn-excel" onclick="exportActiveTabToExcel()" title="Ekspor data tabel saat ini ke format Excel (.xlsx)">
+              📊 Ekspor Excel
             </button>
           </div>
         </div>
@@ -210,138 +204,75 @@
       </div>
     </div>
 
-    <!-- ==================== TAB 2: REKAP KECAMATAN ==================== -->
-    <div id="tabKecamatan" class="tab-pane">
+    <!-- ==================== TAB 2: KEADAAN PTK SD ==================== -->
+    <div id="tabKeadaanSD" class="tab-pane">
+      <!-- SECTION CARD RINGKASAN KEADAAN PTK SD -->
       <div class="kpi-grid">
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Total Keseluruhan PTK</span><div class="kpi-icon icon-blue">👥</div></div>
-          <div class="kpi-value" id="kpiTotalPTK">0</div>
-          <div class="kpi-subtitle" id="kpiSubSekolah">Mencakup 0 Sekolah</div>
+          <div class="kpi-card-header"><span class="kpi-title">Total PTK SD</span><div class="kpi-icon icon-blue">👥</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalPTK">0</div>
+          <div class="kpi-subtitle" id="kpiKeadaanSubSekolah">Mencakup 0 SD</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Guru (Pendidik)</span><div class="kpi-icon icon-green">👨‍🏫</div></div>
-          <div class="kpi-value" id="kpiTotalGuru">0</div>
-          <div class="kpi-subtitle" id="kpiSubGuru">Guru Kelas, Mapel & BK</div>
+          <div class="kpi-card-header"><span class="kpi-title">Guru SD (Pendidik)</span><div class="kpi-icon icon-green">👨‍🏫</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalGuru">0</div>
+          <div class="kpi-subtitle" id="kpiKeadaanSubGuru">Guru Kelas, Mapel & Agama</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-card-header"><span class="kpi-title">Kepala Sekolah</span><div class="kpi-icon icon-purple">🎓</div></div>
-          <div class="kpi-value" id="kpiTotalKS">0</div>
-          <div class="kpi-subtitle" id="kpiSubKS">Kepala Sekolah Aktif</div>
+          <div class="kpi-card-header"><span class="kpi-title">Kepala Sekolah SD</span><div class="kpi-icon icon-purple">🎓</div></div>
+          <div class="kpi-value" id="kpiKeadaanTotalKS">0</div>
+          <div class="kpi-subtitle" id="kpiKeadaanSubKS">Kepala Sekolah Definitif/Aktif</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card-header"><span class="kpi-title">Tenaga Kependidikan</span><div class="kpi-icon icon-amber">📑</div></div>
-          <div class="kpi-value" id="kpiTotalTendik">0</div>
-          <div class="kpi-subtitle" id="kpiSubTendik">Operator, TU & Staf</div>
+          <div class="kpi-value" id="kpiKeadaanTotalTendik">0</div>
+          <div class="kpi-subtitle" id="kpiKeadaanSubTendik">Operator, Penjaga & TU</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-card-header"><span class="kpi-title">Komposisi ASN / PW</span><div class="kpi-icon icon-cyan">🏛️</div></div>
-          <div class="kpi-value" id="kpiPersenASN">0%</div>
-          <div class="kpi-subtitle" id="kpiSubASN">PNS: 0 | PPPK: 0 | PW: 0</div>
+          <div class="kpi-value" id="kpiKeadaanPersenASN">0%</div>
+          <div class="kpi-subtitle" id="kpiKeadaanSubASN">CPNS: 0 | PNS: 0 | PPPK: 0 | PW: 0</div>
         </div>
       </div>
 
+      <!-- TABEL KEADAAN PTK SD -->
       <div class="card-table">
-        <div class="card-header-bar">
-          <h2>Tabel Rekapitulasi PTK per Kecamatan</h2>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Data agregat wilayah kecamatan</span>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="tableKecamatan">
-            <thead>
-              <tr>
-                <th class="text-center" rowspan="2" style="vertical-align: middle;">No</th>
-                <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-                <th class="text-center" colspan="3">Jumlah Sekolah</th>
-                <th class="text-center" colspan="3">Jabatan / Tugas</th>
-                <th class="text-center" colspan="5">Status Kepegawaian</th>
-                <th class="text-center" rowspan="2" style="vertical-align: middle; background-color: #f1f5f9;">Total PTK</th>
-              </tr>
-              <tr>
-                <th class="text-center">SD</th>
-                <th class="text-center">SMP</th>
-                <th class="text-center">Total</th>
-                <th class="text-center">Guru</th>
-                <th class="text-center">KS</th>
-                <th class="text-center">Tendik</th>
-                <th class="text-center">PNS</th>
-                <th class="text-center">PPPK</th>
-                <th class="text-center">PW</th>
-                <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
-                <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyKecamatan"></tbody>
-            <tfoot id="tfootKecamatan"></tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 3: REKAP JENJANG ==================== -->
-    <div id="tabJenjang" class="tab-pane">
-      <div class="card-table">
-        <div class="card-header-bar">
-          <h2>Tabel Rekapitulasi Komparasi per Jenjang Pendidikan</h2>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Komparasi SD vs SMP</span>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="tableJenjang">
-            <thead>
-              <tr>
-                <th class="text-center" rowspan="2" style="vertical-align: middle;">Jenjang</th>
-                <th class="text-center" rowspan="2" style="vertical-align: middle;">Jml Sekolah</th>
-                <th class="text-center" colspan="5">Status Kepegawaian</th>
-                <th class="text-center" colspan="3">Peran / Tugas</th>
-                <th class="text-center" rowspan="2" style="vertical-align: middle; background-color: #f1f5f9;">Total PTK</th>
-              </tr>
-              <tr>
-                <th class="text-center">PNS</th>
-                <th class="text-center">PPPK</th>
-                <th class="text-center">PW</th>
-                <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
-                <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
-                <th class="text-center">Guru</th>
-                <th class="text-center">KS</th>
-                <th class="text-center">Tendik</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyJenjang"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 4: REKAP SEKOLAH ==================== -->
-    <div id="tabSekolah" class="tab-pane">
-      <div class="card-table">
-        <div class="card-header-bar">
-          <div>
-            <h2>Tabel Rekapitulasi PTK per Satuan Pendidikan</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted);">Klik tombol <strong>Detail PTK</strong> pada salah satu baris untuk melihat nama-nama personil</p>
+        <div class="card-header-bar" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;">
+            <h2>Tabel Keadaan PTK Sekolah Dasar (SD)</h2>
+            <!-- Breadcrumb saat drilldown kecamatan -->
+            <div class="breadcrumb-wrap" id="breadcrumbWrapKeadaan" style="display: none; margin-bottom: 0;"></div>
           </div>
-          <span id="labelTotalSekolahFiltered" style="font-size: 0.85rem; font-weight: 600; color: var(--primary);"></span>
+
+          <!-- Baris Kontrol: Pilih Peran & Ekspor Excel -->
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH PERAN / TUGAS:</span>
+              <div class="toggle-bar">
+                <button class="toggle-btn active" id="btnKeadaanTog_ALL" onclick="setKeadaanRoleToggle('ALL')">Semua PTK</button>
+                <button class="toggle-btn" id="btnKeadaanTog_GURU" onclick="setKeadaanRoleToggle('GURU')">Guru</button>
+                <button class="toggle-btn" id="btnKeadaanTog_KS" onclick="setKeadaanRoleToggle('KS')">Kepala Sekolah</button>
+                <button class="toggle-btn" id="btnKeadaanTog_TENDIK" onclick="setKeadaanRoleToggle('TENDIK')">Tenaga Kependidikan</button>
+              </div>
+            </div>
+
+            <button class="btn btn-excel" onclick="exportActiveTabToExcel()" title="Ekspor data tabel saat ini ke format Excel (.xlsx)">
+              📊 Ekspor Excel
+            </button>
+          </div>
         </div>
+
         <div class="table-responsive">
-          <table class="data-table" id="tableSekolah">
-            <thead>
-              <tr>
-                <th class="text-center" style="width: 50px;">No</th>
-                <th class="th-sekolah">Nama Sekolah / Unit Kerja</th>
-                <th>Jenjang</th>
-                <th>Kecamatan</th>
-                <th class="text-center">Guru</th>
-                <th class="text-center">KS</th>
-                <th class="text-center">Tendik</th>
-                <th class="text-center">PNS</th>
-                <th class="text-center">PPPK</th>
-                <th class="text-center">PW</th>
-                <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
-                <th class="text-center" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
-                <th class="text-center" style="background-color: #f1f5f9;">Total PTK</th>
-                <th class="text-center">Aksi</th>
-              </tr>
+          <table class="data-table" id="tableKeadaanSD">
+            <thead id="theadKeadaanSD">
+              <!-- Header tabel keadaan SD dinamis -->
             </thead>
-            <tbody id="tbodySekolah"></tbody>
+            <tbody id="tbodyKeadaanSD">
+              <!-- Diisi via JS -->
+            </tbody>
+            <tfoot id="tfootKeadaanSD">
+              <!-- Total diisi via JS -->
+            </tfoot>
           </table>
         </div>
       </div>

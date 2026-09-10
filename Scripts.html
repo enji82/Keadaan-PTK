@@ -4,6 +4,10 @@
   let activeTab = 'kebutuhanSD';
   let activeFormasiToggle = 'ALL'; // 'ALL', 'KS', 'GURU_KELAS', 'GURU_PAI', 'GURU_PJOK', 'GURU_KRISTEN', 'GURU_KATOLIK', 'MATRIX'
   let currentKebutuhanMode = 'KECAMATAN'; // 'KECAMATAN' (default) atau 'SEKOLAH' (saat drilldown)
+  
+  // State Khusus Tab 2: Keadaan PTK SD
+  let activeKeadaanRoleToggle = 'ALL'; // 'ALL', 'GURU', 'KS', 'TENDIK'
+  let currentKeadaanMode = 'KECAMATAN'; // 'KECAMATAN' atau 'SEKOLAH'
 
   document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData(false);
@@ -32,12 +36,10 @@
     populateKecamatanOptions(data.kecamatanList || []);
 
     // Render Semua Bagian
-    renderKPIUmum(data.summary);
+    renderKPIUmum(data.summarySD || data.summary);
     renderCardsFormasiSD(data.kebutuhanSD);
     renderTabKebutuhanSD();
-    renderTabKecamatan(data.rekapKecamatan);
-    renderTabJenjang(data.rekapJenjang);
-    renderTabSekolah(data.rekapSekolah);
+    renderTabKeadaanSD();
   }
 
   function handleDataError(err) {
@@ -70,20 +72,33 @@
   }
 
   /**
-   * Render KPI Cards Umum
+   * Render KPI Cards Umum (Tab 2: Keadaan PTK SD)
    */
   function renderKPIUmum(summary) {
     if (!summary) return;
-    document.getElementById('kpiTotalPTK').textContent = formatNumber(summary.totalPTK);
-    document.getElementById('kpiSubSekolah').textContent = `Mencakup ${formatNumber(summary.totalSekolah)} Sekolah (SD: ${summary.totalSekolahSD}, SMP: ${summary.totalSekolahSMP})`;
+    const elTotal = document.getElementById('kpiKeadaanTotalPTK');
+    if (elTotal) elTotal.textContent = formatNumber(summary.totalPTK);
 
-    document.getElementById('kpiTotalGuru').textContent = formatNumber(summary.totalGuru);
-    document.getElementById('kpiTotalKS').textContent = formatNumber(summary.totalKS);
-    document.getElementById('kpiTotalTendik').textContent = formatNumber(summary.totalTendik);
+    const elSubSekolah = document.getElementById('kpiKeadaanSubSekolah');
+    if (elSubSekolah) elSubSekolah.textContent = `Mencakup ${formatNumber(summary.totalSekolah)} SD`;
 
-    document.getElementById('kpiPersenASN').textContent = `${summary.persenASN}%`;
+    const elGuru = document.getElementById('kpiKeadaanTotalGuru');
+    if (elGuru) elGuru.textContent = formatNumber(summary.totalGuru);
+
+    const elKS = document.getElementById('kpiKeadaanTotalKS');
+    if (elKS) elKS.textContent = formatNumber(summary.totalKS);
+
+    const elTendik = document.getElementById('kpiKeadaanTotalTendik');
+    if (elTendik) elTendik.textContent = formatNumber(summary.totalTendik);
+
+    const elPersen = document.getElementById('kpiKeadaanPersenASN');
+    if (elPersen) elPersen.textContent = `${summary.persenASN}%`;
+
     const cpnsSub = (summary.totalCPNS && summary.totalCPNS > 0) ? `CPNS: ${formatNumber(summary.totalCPNS)} | ` : '';
-    document.getElementById('kpiSubASN').textContent = `${cpnsSub}PNS: ${formatNumber(summary.totalPNS)} | PPPK: ${formatNumber(summary.totalPPPK)} | PW: ${formatNumber(summary.totalPW)}`;
+    const elSubASN = document.getElementById('kpiKeadaanSubASN');
+    if (elSubASN) {
+      elSubASN.textContent = `${cpnsSub}PNS: ${formatNumber(summary.totalPNS)} | PPPK: ${formatNumber(summary.totalPPPK)} | PW: ${formatNumber(summary.totalPW)}`;
+    }
   }
 
   /**
@@ -164,8 +179,10 @@
     const selectedKec = document.getElementById('filterKecamatan').value;
     if (selectedKec === 'ALL') {
       currentKebutuhanMode = 'KECAMATAN';
+      currentKeadaanMode = 'KECAMATAN';
     } else {
       currentKebutuhanMode = 'SEKOLAH';
+      currentKeadaanMode = 'SEKOLAH';
     }
     applyFilters();
   }
@@ -177,6 +194,7 @@
     const selKec = document.getElementById('filterKecamatan');
     selKec.value = kecamatanName;
     currentKebutuhanMode = 'SEKOLAH';
+    currentKeadaanMode = 'SEKOLAH';
     renderTabKebutuhanSD();
   }
 
@@ -187,6 +205,7 @@
     const selKec = document.getElementById('filterKecamatan');
     selKec.value = 'ALL';
     currentKebutuhanMode = 'KECAMATAN';
+    currentKeadaanMode = 'KECAMATAN';
     renderTabKebutuhanSD();
   }
 
@@ -698,176 +717,263 @@
   }
 
   /**
-   * TAB 2: Rekap Per Kecamatan
+   * Toggle Pilihan Peran/Tugas di Tab 2: Keadaan PTK SD
    */
-  function renderTabKecamatan(list) {
-    const tbody = document.getElementById('tbodyKecamatan');
-    const tfoot = document.getElementById('tfootKecamatan');
-    if (!list || !tbody) return;
+  function setKeadaanRoleToggle(roleKey) {
+    activeKeadaanRoleToggle = roleKey;
+    document.querySelectorAll('#tabKeadaanSD .toggle-btn').forEach(btn => btn.classList.remove('active'));
 
-    const selectedKec = document.getElementById('filterKecamatan').value;
-    const filtered = (selectedKec === 'ALL') ? list : list.filter(k => k.kecamatan === selectedKec);
+    const activeBtn = document.getElementById('btnKeadaanTog_' + roleKey);
+    if (activeBtn) activeBtn.classList.add('active');
 
-    let html = '';
-    let totSekolahSD = 0, totSekolahSMP = 0, totSekolah = 0;
-    let totGuru = 0, totKS = 0, totTendik = 0;
-    let totPNS = 0, totPPPK = 0, totPW = 0, totNonOld = 0, totNonNew = 0, grandTotal = 0;
-
-    filtered.forEach((k, idx) => {
-      totSekolahSD += k.jmlSekolahSD;
-      totSekolahSMP += k.jmlSekolahSMP;
-      totSekolah += k.totalSekolah;
-      totGuru += k.guru;
-      totKS += k.ks;
-      totTendik += k.tendik;
-      totPNS += k.pns;
-      totPPPK += k.pppk;
-      totPW += k.pw;
-      totNonOld += (k.nonAsnOld || 0);
-      totNonNew += (k.nonAsnNew || 0);
-      grandTotal += k.totalPTK;
-
-      html += `
-        <tr>
-          <td class="text-center">${idx + 1}</td>
-          <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
-          <td class="text-center">${formatNumber(k.jmlSekolahSD)}</td>
-          <td class="text-center">${formatNumber(k.jmlSekolahSMP)}</td>
-          <td class="text-center" style="font-weight:600;">${formatNumber(k.totalSekolah)}</td>
-          <td class="text-center">${formatNumber(k.guru)}</td>
-          <td class="text-center">${formatNumber(k.ks)}</td>
-          <td class="text-center">${formatNumber(k.tendik)}</td>
-          <td class="text-center"><span class="badge badge-pns">${formatNumber(k.pns)}</span></td>
-          <td class="text-center"><span class="badge badge-pppk">${formatNumber(k.pppk)}</span></td>
-          <td class="text-center"><span class="badge badge-pw">${formatNumber(k.pw)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn-old">${formatNumber(k.nonAsnOld)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn-new">${formatNumber(k.nonAsnNew)}</span></td>
-          <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(k.totalPTK)}</td>
-        </tr>
-      `;
-    });
-
-    tbody.innerHTML = html || '<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada data ditemukan</td></tr>';
-
-    tfoot.innerHTML = `
-      <tr>
-        <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
-        <th class="text-center">${formatNumber(totSekolahSD)}</th>
-        <th class="text-center">${formatNumber(totSekolahSMP)}</th>
-        <th class="text-center">${formatNumber(totSekolah)}</th>
-        <th class="text-center">${formatNumber(totGuru)}</th>
-        <th class="text-center">${formatNumber(totKS)}</th>
-        <th class="text-center">${formatNumber(totTendik)}</th>
-        <th class="text-center">${formatNumber(totPNS)}</th>
-        <th class="text-center">${formatNumber(totPPPK)}</th>
-        <th class="text-center">${formatNumber(totPW)}</th>
-        <th class="text-center">${formatNumber(totNonOld)}</th>
-        <th class="text-center">${formatNumber(totNonNew)}</th>
-        <th class="text-center" style="background-color: #e2e8f0; font-size: 1rem;">${formatNumber(grandTotal)}</th>
-      </tr>
-    `;
+    renderTabKeadaanSD();
   }
 
   /**
-   * TAB 3: Rekap Per Jenjang
+   * Drilldown Keadaan PTK SD ke Sekolah
    */
-  function renderTabJenjang(list) {
-    const tbody = document.getElementById('tbodyJenjang');
-    if (!list || !tbody) return;
+  function drillDownToKecamatanKeadaan(kecamatanName) {
+    const selKec = document.getElementById('filterKecamatan');
+    selKec.value = kecamatanName;
+    currentKeadaanMode = 'SEKOLAH';
+    renderTabKeadaanSD();
+  }
 
-    let html = '';
-    list.forEach(j => {
-      const isTotal = j.jenjang.includes('TOTAL');
-      const rowStyle = isTotal ? 'style="font-weight: 700; background-color: #f1f5f9;"' : '';
-      const badgeJenjang = j.jenjang === 'SD' ? '<span class="badge badge-sd">SD</span>' : (j.jenjang === 'SMP' ? '<span class="badge badge-smp">SMP</span>' : `<strong>${j.jenjang}</strong>`);
-
-      html += `
-        <tr ${rowStyle}>
-          <td class="text-center">${badgeJenjang}</td>
-          <td class="text-center">${formatNumber(j.jmlSekolah)}</td>
-          <td class="text-center"><span class="badge badge-pns">${formatNumber(j.pns)}</span></td>
-          <td class="text-center"><span class="badge badge-pppk">${formatNumber(j.pppk)}</span></td>
-          <td class="text-center"><span class="badge badge-pw">${formatNumber(j.pw)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn-old">${formatNumber(j.nonAsnOld)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn-new">${formatNumber(j.nonAsnNew)}</span></td>
-          <td class="text-center" style="font-weight:700;">${formatNumber(j.guru)}</td>
-          <td class="text-center" style="font-weight:700;">${formatNumber(j.ks)}</td>
-          <td class="text-center" style="font-weight:700;">${formatNumber(j.tendik)}</td>
-          <td class="text-center" style="font-size: 1rem; font-weight: 800; background-color: #e2e8f0;">${formatNumber(j.totalPTK)}</td>
-        </tr>
-      `;
-    });
-
-    tbody.innerHTML = html;
+  function resetToKecamatanKeadaanView() {
+    const selKec = document.getElementById('filterKecamatan');
+    selKec.value = 'ALL';
+    currentKeadaanMode = 'KECAMATAN';
+    renderTabKeadaanSD();
   }
 
   /**
-   * TAB 4: Rekap Per Sekolah
+   * TAB 2: Render Keadaan PTK SD (Mode Kecamatan & Mode Sekolah)
    */
-  function renderTabSekolah(list) {
-    const tbody = document.getElementById('tbodySekolah');
-    const labelCount = document.getElementById('labelTotalSekolahFiltered');
-    if (!list || !tbody) return;
+  function renderTabKeadaanSD() {
+    if (!rawData) return;
 
-    const filterJenjang = document.getElementById('filterJenjang').value;
+    const thead = document.getElementById('theadKeadaanSD');
+    const tbody = document.getElementById('tbodyKeadaanSD');
+    const tfoot = document.getElementById('tfootKeadaanSD');
+    const breadcrumbWrap = document.getElementById('breadcrumbWrapKeadaan');
+    if (!thead || !tbody || !tfoot) return;
+
     const filterKec = document.getElementById('filterKecamatan').value;
-    const searchEl = document.getElementById('searchSekolah');
-    const searchVal = searchEl ? searchEl.value.toLowerCase().trim() : '';
 
-    const filtered = list.filter(sch => {
-      if (filterJenjang !== 'ALL' && sch.jenjang !== filterJenjang) return false;
-      if (filterKec !== 'ALL' && sch.kecamatan !== filterKec) return false;
-      if (searchVal) {
-        const nameMatch = sch.namaSekolah && sch.namaSekolah.toLowerCase().includes(searchVal);
-        const npsnMatch = sch.npsn && sch.npsn.toLowerCase().includes(searchVal);
-        if (!nameMatch && !npsnMatch) return false;
-      }
-      return true;
-    });
+    // -------------------------------------------------------------
+    // KONDISI A: MODE KECAMATAN (DEFAULT)
+    // -------------------------------------------------------------
+    if (currentKeadaanMode === 'KECAMATAN') {
+      if (breadcrumbWrap) breadcrumbWrap.style.display = 'none';
 
-    if (labelCount) {
-      labelCount.textContent = `Menampilkan ${formatNumber(filtered.length)} dari ${formatNumber(list.length)} Sekolah`;
-    }
+      let list = (rawData.rekapKecamatanSD || []).slice();
 
-    let html = '';
-    filtered.forEach((sch, idx) => {
-      const badgeJenjang = sch.jenjang === 'SD' ? '<span class="badge badge-sd">SD</span>' : '<span class="badge badge-smp">SMP</span>';
-
-      html += `
+      thead.innerHTML = `
         <tr>
-          <td class="text-center">${idx + 1}</td>
-          <td class="col-sekolah">
-            <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
-            <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
-          </td>
-          <td class="text-center">${badgeJenjang}</td>
-          <td>${escapeHtml(sch.kecamatan)}</td>
-          <td class="text-center">${formatNumber(sch.guruCount)}</td>
-          <td class="text-center">${formatNumber(sch.ksCount)}</td>
-          <td class="text-center">${formatNumber(sch.tendikCount)}</td>
-          <td class="text-center"><span class="badge badge-pns">${formatNumber(sch.pnsCount)}</span></td>
-          <td class="text-center"><span class="badge badge-pppk">${formatNumber(sch.pppkCount)}</span></td>
-          <td class="text-center"><span class="badge badge-pw">${formatNumber(sch.pwCount)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn-old">${formatNumber(sch.nonAsnOldCount)}</span></td>
-          <td class="text-center"><span class="badge badge-nonasn-new">${formatNumber(sch.nonAsnNewCount)}</span></td>
-          <td class="text-center" style="font-weight: 700; background-color: #f8fafc;">${formatNumber(sch.ptkCount)}</td>
-          <td class="text-center">
-            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
-              👁️ PTK
-            </button>
-          </td>
+          <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
+          <th rowspan="2" style="vertical-align: middle;">Wilayah Kecamatan</th>
+          <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+          <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
+          <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
+          <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
+          <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
+          <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
+        </tr>
+        <tr>
+          <th class="text-center" style="background-color: #f8fafc;">Guru</th>
+          <th class="text-center" style="background-color: #f8fafc;">KS</th>
+          <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
+          <th class="text-center col-keadaan">CPNS</th>
+          <th class="text-center col-keadaan">PNS</th>
+          <th class="text-center col-keadaan">PPPK</th>
+          <th class="text-center col-keadaan">PW</th>
+          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
+          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
         </tr>
       `;
-    });
 
-    tbody.innerHTML = html || '<tr><td colspan="14" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok dengan kriteria filter</td></tr>';
+      let html = '';
+      let totSekolah = 0, totMurid = 0, totRombel = 0;
+      let totGuru = 0, totKS = 0, totTendik = 0;
+      let totCpns = 0, totPns = 0, totPppk = 0, totPw = 0, totNonOld = 0, totNonNew = 0, grandTotal = 0;
+
+      list.forEach((k, idx) => {
+        totSekolah += k.totalSekolah;
+        totMurid += (k.totalMurid || 0);
+        totRombel += (k.totalRombel || 0);
+        totGuru += k.guru;
+        totKS += k.ks;
+        totTendik += k.tendik;
+        totCpns += (k.cpns || 0);
+        totPns += k.pns;
+        totPppk += k.pppk;
+        totPw += k.pw;
+        totNonOld += (k.nonAsnOld || 0);
+        totNonNew += (k.nonAsnNew || 0);
+        grandTotal += k.totalPTK;
+
+        html += `
+          <tr class="clickable-row" onclick="drillDownToKecamatanKeadaan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
+            <td class="text-center">${idx + 1}</td>
+            <td><strong>${escapeHtml(k.kecamatan)}</strong></td>
+            <td class="text-center">${formatNumber(k.totalSekolah)}</td>
+            <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
+            <td class="text-center">${formatNumber(k.totalRombel || 0)}</td>
+            <td class="text-center" style="font-weight:600;">${formatNumber(k.guru)}</td>
+            <td class="text-center" style="font-weight:600;">${formatNumber(k.ks)}</td>
+            <td class="text-center" style="font-weight:600;">${formatNumber(k.tendik)}</td>
+            <td class="text-center col-keadaan">${formatNumber(k.cpns || 0)}</td>
+            <td class="text-center col-keadaan">${formatNumber(k.pns)}</td>
+            <td class="text-center col-keadaan">${formatNumber(k.pppk)}</td>
+            <td class="text-center col-keadaan">${formatNumber(k.pw)}</td>
+            <td class="text-center col-keadaan">${formatNumber(k.nonAsnOld)}</td>
+            <td class="text-center col-keadaan">${formatNumber(k.nonAsnNew)}</td>
+            <td class="text-center col-keadaan-total">${formatNumber(k.totalPTK)}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html || '<tr><td colspan="15" class="text-center" style="padding: 24px;">Tidak ada data kecamatan</td></tr>';
+
+      tfoot.innerHTML = `
+        <tr>
+          <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
+          <th class="text-center">${formatNumber(totSekolah)}</th>
+          <th class="text-center">${formatNumber(totMurid)}</th>
+          <th class="text-center">${formatNumber(totRombel)}</th>
+          <th class="text-center">${formatNumber(totGuru)}</th>
+          <th class="text-center">${formatNumber(totKS)}</th>
+          <th class="text-center">${formatNumber(totTendik)}</th>
+          <th class="text-center col-keadaan">${formatNumber(totCpns)}</th>
+          <th class="text-center col-keadaan">${formatNumber(totPns)}</th>
+          <th class="text-center col-keadaan">${formatNumber(totPppk)}</th>
+          <th class="text-center col-keadaan">${formatNumber(totPw)}</th>
+          <th class="text-center col-keadaan">${formatNumber(totNonOld)}</th>
+          <th class="text-center col-keadaan">${formatNumber(totNonNew)}</th>
+          <th class="text-center col-keadaan-total">${formatNumber(grandTotal)}</th>
+        </tr>
+      `;
+
+    } else {
+      // -------------------------------------------------------------
+      // KONDISI B: MODE SEKOLAH (SAAT FILTER KECAMATAN / DRILL DOWN)
+      // -------------------------------------------------------------
+      if (breadcrumbWrap) {
+        breadcrumbWrap.style.display = 'flex';
+        breadcrumbWrap.innerHTML = `
+          <span style="font-size: 0.78rem; color: var(--text-muted);">Wilayah:</span>
+          <span class="breadcrumb-badge">Kecamatan: <strong>${escapeHtml(filterKec)}</strong></span>
+          <button class="btn btn-secondary" style="padding: 3px 10px; font-size: 0.76rem;" onclick="resetToKecamatanKeadaanView()">
+            ⬅️ Kembali ke Data Kecamatan
+          </button>
+        `;
+      }
+
+      let list = (rawData.rekapSekolahSD || []).filter(s => s.jenjang === 'SD');
+      if (filterKec !== 'ALL') {
+        list = list.filter(s => s.kecamatan === filterKec);
+      }
+
+      thead.innerHTML = `
+        <tr>
+          <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
+          <th rowspan="2" class="th-sekolah" style="vertical-align: middle;">Nama Sekolah & NPSN</th>
+          <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+          <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+          <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
+          <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
+          <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
+          <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
+          <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
+        </tr>
+        <tr>
+          <th class="text-center" style="background-color: #f8fafc;">Guru</th>
+          <th class="text-center" style="background-color: #f8fafc;">KS</th>
+          <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
+          <th class="text-center col-keadaan">CPNS</th>
+          <th class="text-center col-keadaan">PNS</th>
+          <th class="text-center col-keadaan">PPPK</th>
+          <th class="text-center col-keadaan">PW</th>
+          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
+          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
+        </tr>
+      `;
+
+      let html = '';
+      let sumRombel = 0, sumMurid = 0;
+      let sumGuru = 0, sumKS = 0, sumTendik = 0;
+      let sumCpns = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumNonOld = 0, sumNonNew = 0, sumPTK = 0;
+
+      list.forEach((sch, idx) => {
+        sumRombel += (sch.rombel || 0);
+        sumMurid += (sch.murid || 0);
+        sumGuru += sch.guruCount;
+        sumKS += sch.ksCount;
+        sumTendik += sch.tendikCount;
+        sumCpns += (sch.cpnsCount || 0);
+        sumPns += sch.pnsCount;
+        sumPppk += sch.pppkCount;
+        sumPw += sch.pwCount;
+        sumNonOld += (sch.nonAsnOldCount || 0);
+        sumNonNew += (sch.nonAsnNewCount || 0);
+        sumPTK += sch.ptkCount;
+
+        html += `
+          <tr>
+            <td class="text-center">${idx + 1}</td>
+            <td class="col-sekolah">
+              <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
+              <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
+            </td>
+            <td>${escapeHtml(sch.kecamatan)}</td>
+            <td class="text-center">${formatNumber(sch.rombel || 0)}</td>
+            <td class="text-center">${formatNumber(sch.murid || 0)}</td>
+            <td class="text-center" style="font-weight:600;">${formatNumber(sch.guruCount)}</td>
+            <td class="text-center" style="font-weight:600;">${formatNumber(sch.ksCount)}</td>
+            <td class="text-center" style="font-weight:600;">${formatNumber(sch.tendikCount)}</td>
+            <td class="text-center col-keadaan">${formatNumber(sch.cpnsCount || 0)}</td>
+            <td class="text-center col-keadaan">${formatNumber(sch.pnsCount)}</td>
+            <td class="text-center col-keadaan">${formatNumber(sch.pppkCount)}</td>
+            <td class="text-center col-keadaan">${formatNumber(sch.pwCount)}</td>
+            <td class="text-center col-keadaan">${formatNumber(sch.nonAsnOldCount)}</td>
+            <td class="text-center col-keadaan">${formatNumber(sch.nonAsnNewCount)}</td>
+            <td class="text-center col-keadaan-total">${formatNumber(sch.ptkCount)}</td>
+            <td class="text-center">
+              <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
+                👁️ PTK
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html || `<tr><td colspan="16" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok di wilayah ini</td></tr>`;
+
+      tfoot.innerHTML = `
+        <tr>
+          <th colspan="3" class="text-center">TOTAL KESELURUHAN (${list.length} SD)</th>
+          <th class="text-center">${formatNumber(sumRombel)}</th>
+          <th class="text-center">${formatNumber(sumMurid)}</th>
+          <th class="text-center">${formatNumber(sumGuru)}</th>
+          <th class="text-center">${formatNumber(sumKS)}</th>
+          <th class="text-center">${formatNumber(sumTendik)}</th>
+          <th class="text-center col-keadaan">${formatNumber(sumCpns)}</th>
+          <th class="text-center col-keadaan">${formatNumber(sumPns)}</th>
+          <th class="text-center col-keadaan">${formatNumber(sumPppk)}</th>
+          <th class="text-center col-keadaan">${formatNumber(sumPw)}</th>
+          <th class="text-center col-keadaan">${formatNumber(sumNonOld)}</th>
+          <th class="text-center col-keadaan">${formatNumber(sumNonNew)}</th>
+          <th class="text-center col-keadaan-total">${formatNumber(sumPTK)}</th>
+          <th class="text-center">-</th>
+        </tr>
+      `;
+    }
   }
 
   function applyFilters() {
     if (!rawData) return;
     renderTabKebutuhanSD();
-    renderTabKecamatan(rawData.rekapKecamatan);
-    renderTabSekolah(rawData.rekapSekolah);
+    renderTabKeadaanSD();
   }
 
   function switchTab(tabKey) {
@@ -876,28 +982,21 @@
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
     const wrapFilterStatus = document.getElementById('wrapFilterStatusKebutuhan');
-    const wrapFilterJenjang = document.getElementById('wrapFilterJenjang');
 
     if (tabKey === 'kebutuhanSD') {
-      document.getElementById('tabBtnKebutuhanSD').classList.add('active');
-      document.getElementById('tabKebutuhanSD').classList.add('active');
+      const btn = document.getElementById('tabBtnKebutuhanSD');
+      const pane = document.getElementById('tabKebutuhanSD');
+      if (btn) btn.classList.add('active');
+      if (pane) pane.classList.add('active');
       if (wrapFilterStatus) wrapFilterStatus.style.display = 'flex';
-      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'none';
-    } else if (tabKey === 'kecamatan') {
-      document.getElementById('tabBtnKecamatan').classList.add('active');
-      document.getElementById('tabKecamatan').classList.add('active');
+      renderTabKebutuhanSD();
+    } else if (tabKey === 'keadaanSD') {
+      const btn = document.getElementById('tabBtnKeadaanSD');
+      const pane = document.getElementById('tabKeadaanSD');
+      if (btn) btn.classList.add('active');
+      if (pane) pane.classList.add('active');
       if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
-      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'flex';
-    } else if (tabKey === 'jenjang') {
-      document.getElementById('tabBtnJenjang').classList.add('active');
-      document.getElementById('tabJenjang').classList.add('active');
-      if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
-      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'flex';
-    } else if (tabKey === 'sekolah') {
-      document.getElementById('tabBtnSekolah').classList.add('active');
-      document.getElementById('tabSekolah').classList.add('active');
-      if (wrapFilterStatus) wrapFilterStatus.style.display = 'none';
-      if (wrapFilterJenjang) wrapFilterJenjang.style.display = 'flex';
+      renderTabKeadaanSD();
     }
   }
 
@@ -968,9 +1067,9 @@
       })
       .withFailureHandler(err => {
         modalLoading.style.display = 'none';
-        alert('Gagal mengambil rincian pegawai: ' + (err && err.message ? err.message : err));
+        modalTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 24px; color: #ef4444;">Terjadi kesalahan sistem: ${escapeHtml(err.message || err)}</td></tr>`;
       })
-      .getPTKDetailSekolah(npsn, namaSekolah);
+      .getSchoolEmployees(npsn, namaSekolah);
   }
 
   function closeModal() {
@@ -978,44 +1077,37 @@
   }
 
   function closeModalOnBackdrop(e) {
-    if (e.target.id === 'detailModal') closeModal();
+    if (e.target.id === 'detailModal') {
+      closeModal();
+    }
   }
 
-  /**
-   * Helper membersihkan tabel HTML sebelum diekspor ke Excel:
-   * 1. Menghilangkan titik/koma pemisah ribuan dari teks angka agar Excel membacanya sebagai angka murni (bukan desimal)
-   * 2. Mengubah tanda '-' menjadi '0' atau teks bersih
-   */
-  function cleanTableForExcelExport(tableEl, removeActionCol) {
-    const clone = tableEl.cloneNode(true);
-    const rows = clone.querySelectorAll('tr');
+  function cleanTableForExcelExport(originalTable, isSekolahMode) {
+    const clone = originalTable.cloneNode(true);
 
-    rows.forEach(row => {
-      if (removeActionCol) {
+    if (isSekolahMode) {
+      const rows = clone.querySelectorAll('tr');
+      rows.forEach(row => {
         const lastCell = row.lastElementChild;
-        if (lastCell && (lastCell.tagName === 'TH' || lastCell.tagName === 'TD')) {
-          const text = lastCell.textContent.trim();
-          if (text.includes('Aksi') || text.includes('PTK') || text === '-') {
-            lastCell.remove();
-          }
+        if (lastCell) {
+          row.removeChild(lastCell);
         }
-      }
+      });
+    }
 
-      // Bersihkan teks di setiap sel
+    const allRows = clone.querySelectorAll('tr');
+    allRows.forEach(row => {
       const cells = row.querySelectorAll('th, td');
       cells.forEach(cell => {
         let txt = cell.textContent.trim();
-        // Cek jika teks berupa tanda strip tunggal (-)
+
         if (txt === '-') {
           cell.textContent = '0';
           return;
         }
 
-        // Cek jika teks berupa angka (bisa ada tanda +/-, titik/koma ribuan)
-        // Contoh: '4.849', '2,595', '62.001', '-102', '+1'
         const cleanDigitsOnly = txt.replace(/^[+\-]/, '').replace(/[\.,\s]/g, '');
         if (/^\d+$/.test(cleanDigitsOnly)) {
-          // Ambil tanda minus jika ada
           const isNegative = txt.startsWith('-');
           const numericVal = parseInt(cleanDigitsOnly, 10);
           cell.textContent = String(isNegative ? -numericVal : numericVal);
@@ -1027,7 +1119,7 @@
   }
 
   /**
-   * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru SD dengan Judul Tabel Dinamis
+   * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru SD
    */
   function exportTableKebutuhanSDToExcel() {
     const table = document.getElementById('tableKebutuhanSD');
@@ -1047,24 +1139,19 @@
     const fTitle = formasiLabelMap[activeFormasiToggle] || activeFormasiToggle;
     const isSekolahMode = (currentKebutuhanMode === 'SEKOLAH' && filterKec !== 'ALL');
 
-    // Buat Judul Dokumen Excel
     const mainTitle = isSekolahMode 
       ? `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU SD (${fTitle.toUpperCase()}) - KECAMATAN ${filterKec.toUpperCase()}`
       : `TABEL KEBUTUHAN & KEKURANGAN/KELEBIHAN GURU SD (${fTitle.toUpperCase()}) - REKAP PER KECAMATAN`;
     
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
-    // Bersihkan tabel: hapus pemisah ribuan lokal dan kolom Aksi jika mode sekolah
     const cleanTable = cleanTableForExcelExport(table, isSekolahMode);
-
-    // Buat worksheet dari tabel HTML mulai dari baris ke-4 (origin: A4)
     const ws = XLSX.utils.table_to_sheet(cleanTable, { origin: "A4", raw: false });
 
-    // Tambahkan Judul di baris paling atas (A1 dan A2)
     XLSX.utils.sheet_add_aoa(ws, [
       [mainTitle],
       [subTitle],
-      [] // baris kosong pemisah
+      []
     ], { origin: "A1" });
 
     const fFileSlug = fTitle.replace(/[^A-Za-z0-9]/g, '_');
@@ -1078,31 +1165,23 @@
     XLSX.writeFile(wb, fileName);
   }
 
-  function exportActiveTabToExcel() {
-    if (activeTab === 'kebutuhanSD') {
-      exportTableKebutuhanSDToExcel();
-      return;
-    }
-
-    let tableId = 'tableKecamatan';
-    let mainTitle = 'REKAPITULASI PTK PER KECAMATAN';
-    let fileName = 'Rekap_PTK_Kecamatan.xlsx';
-
-    if (activeTab === 'jenjang') {
-      tableId = 'tableJenjang';
-      mainTitle = 'REKAPITULASI PTK PER JENJANG PENDIDIKAN';
-      fileName = 'Rekap_PTK_Jenjang.xlsx';
-    } else if (activeTab === 'sekolah') {
-      tableId = 'tableSekolah';
-      mainTitle = 'REKAPITULASI PTK PER SEKOLAH';
-      fileName = 'Rekap_PTK_Per_Sekolah.xlsx';
-    }
-
-    const table = document.getElementById(tableId);
+  /**
+   * Ekspor Khusus Tabel Keadaan PTK SD
+   */
+  function exportTableKeadaanSDToExcel() {
+    const table = document.getElementById('tableKeadaanSD');
     if (!table) return;
 
+    const filterKec = document.getElementById('filterKecamatan').value;
+    const isSekolahMode = (currentKeadaanMode === 'SEKOLAH' && filterKec !== 'ALL');
+
+    const mainTitle = isSekolahMode 
+      ? `TABEL KEADAAN PTK SD - KECAMATAN ${filterKec.toUpperCase()}`
+      : `TABEL KEADAAN PTK SD - REKAPITULASI PER KECAMATAN`;
+    
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
-    const cleanTable = cleanTableForExcelExport(table, false);
+
+    const cleanTable = cleanTableForExcelExport(table, isSekolahMode);
     const ws = XLSX.utils.table_to_sheet(cleanTable, { origin: "A4", raw: false });
 
     XLSX.utils.sheet_add_aoa(ws, [
@@ -1111,9 +1190,22 @@
       []
     ], { origin: "A1" });
 
+    const fileName = isSekolahMode 
+      ? `Keadaan_PTK_SD_Kecamatan_${filterKec.replace(/\s+/g, '_')}.xlsx`
+      : `Keadaan_PTK_SD_Per_Kecamatan.xlsx`;
+
+    const sheetName = isSekolahMode ? filterKec.substring(0, 30) : "Keadaan PTK SD";
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Rekap Data");
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
     XLSX.writeFile(wb, fileName);
+  }
+
+  function exportActiveTabToExcel() {
+    if (activeTab === 'kebutuhanSD') {
+      exportTableKebutuhanSDToExcel();
+    } else if (activeTab === 'keadaanSD') {
+      exportTableKeadaanSDToExcel();
+    }
   }
 
 
