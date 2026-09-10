@@ -6,7 +6,7 @@
   let currentKebutuhanMode = 'KECAMATAN'; // 'KECAMATAN' (default) atau 'SEKOLAH' (saat drilldown)
   
   // State Khusus Tab 2: Keadaan PTK SD
-  let activeKeadaanRoleToggle = 'ALL'; // 'ALL', 'GURU', 'KS', 'TENDIK'
+  let activeKeadaanRoleToggle = 'ALL'; // 'ALL','KS','GURU_KELAS','GURU_PJOK','GURU_PAI','GURU_KRISTEN','GURU_KATOLIK','GURU_INGGRIS','GURU_LAIN','OP_LAYANAN','PENGELOLA_LAYANAN','PENATA_LAYANAN','PENGELOLA_UMUM','TENDIK_LAIN'
   let currentKeadaanMode = 'KECAMATAN'; // 'KECAMATAN' atau 'SEKOLAH'
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -758,7 +758,44 @@
     const breadcrumbWrap = document.getElementById('breadcrumbWrapKeadaan');
     if (!thead || !tbody || !tfoot) return;
 
-    const filterKec = document.getElementById('filterKecamatan').value;
+    const filterKec  = document.getElementById('filterKecamatan').value;
+    const tugasKey   = activeKeadaanRoleToggle; // 'ALL' atau salah satu key granular
+    const isFiltered = (tugasKey !== 'ALL');
+
+    // Label judul kolom Tugas untuk heading tabel saat filter aktif
+    const TUGAS_LABEL = {
+      ALL:                'Semua PTK',
+      KS:                 'Kepala Sekolah',
+      GURU_KELAS:         'Guru Kelas',
+      GURU_PJOK:          'Guru PJOK',
+      GURU_PAI:           'Guru PAI',
+      GURU_KRISTEN:       'Guru PA Kristen',
+      GURU_KATOLIK:       'Guru PA Katolik',
+      GURU_INGGRIS:       'Guru Bhs. Inggris',
+      GURU_LAIN:          'Guru Lainnya',
+      OP_LAYANAN:         'Operator Layanan Operasional',
+      PENGELOLA_LAYANAN:  'Pengelola Layanan Operasional',
+      PENATA_LAYANAN:     'Penata Layanan Operasional',
+      PENGELOLA_UMUM:     'Pengelola Umum Operasional',
+      TENDIK_LAIN:        'Tendik Lainnya'
+    };
+
+    // Helper: ambil count dari tugasCount atau ptkCount/guruCount/ksCount/tendikCount
+    function getTugasVal(obj) {
+      if (!isFiltered) return obj.totalPTK !== undefined ? obj.totalPTK : (obj.ptkCount || 0);
+      const tc = obj.tugasCount || {};
+      return tc[tugasKey] || 0;
+    }
+    function getTugasValSch(sch) {
+      if (!isFiltered) return sch.ptkCount || 0;
+      const tc = sch.tugasCount || {};
+      return tc[tugasKey] || 0;
+    }
+
+    // Header tunggal kolom jumlah saat filter granular aktif
+    const tugasColHeader = isFiltered
+      ? `<th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">${escapeHtml(TUGAS_LABEL[tugasKey] || tugasKey)}</th>`
+      : '';
 
     // -------------------------------------------------------------
     // KONDISI A: MODE KECAMATAN (DEFAULT)
@@ -768,95 +805,135 @@
 
       let list = (rawData.rekapKecamatanSD || []).slice();
 
-      thead.innerHTML = `
-        <tr>
-          <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
-          <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
-          <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
-          <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
-          <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
-        </tr>
-        <tr>
-          <th class="text-center" style="background-color: #f8fafc;">Guru</th>
-          <th class="text-center" style="background-color: #f8fafc;">KS</th>
-          <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
-          <th class="text-center col-keadaan">CPNS</th>
-          <th class="text-center col-keadaan">PNS</th>
-          <th class="text-center col-keadaan">PPPK</th>
-          <th class="text-center col-keadaan">PW</th>
-          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
-          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
-        </tr>
-      `;
+      if (isFiltered) {
+        // Tampilan sederhana: satu kolom jumlah tugas terpilih
+        thead.innerHTML = `
+          <tr>
+            <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">${escapeHtml(TUGAS_LABEL[tugasKey])}</th>
+          </tr>
+          <tr></tr>
+        `;
 
-      let html = '';
-      let totSekolah = 0, totMurid = 0, totRombel = 0;
-      let totGuru = 0, totKS = 0, totTendik = 0;
-      let totCpns = 0, totPns = 0, totPppk = 0, totPw = 0, totNonOld = 0, totNonNew = 0, grandTotal = 0;
+        let html = '', totSekolah = 0, totTugas = 0;
+        list.forEach((k, idx) => {
+          const tugas = getTugasVal(k);
+          totSekolah += k.totalSekolah;
+          totTugas   += tugas;
+          if (!tugas) return; // sembunyikan kecamatan kosong saat filter aktif
+          html += `
+            <tr class="clickable-row" onclick="drillDownToKecamatanKeadaan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah di Kec. ${escapeHtml(k.kecamatan)}">
+              <td class="text-center">${idx + 1}</td>
+              <td>${escapeHtml(k.kecamatan)}</td>
+              <td class="text-center">${formatNumber(k.totalSekolah)}</td>
+              <td class="text-center col-keadaan-total">${formatNumber(tugas)}</td>
+            </tr>
+          `;
+        });
 
-      list.forEach((k, idx) => {
-        totSekolah += k.totalSekolah;
-        totMurid += (k.totalMurid || 0);
-        totRombel += (k.totalRombel || 0);
-        totGuru += k.guru;
-        totKS += k.ks;
-        totTendik += k.tendik;
-        totCpns += (k.cpns || 0);
-        totPns += k.pns;
-        totPppk += k.pppk;
-        totPw += k.pw;
-        totNonOld += (k.nonAsnOld || 0);
-        totNonNew += (k.nonAsnNew || 0);
-        grandTotal += k.totalPTK;
-
-        html += `
-          <tr class="clickable-row" onclick="drillDownToKecamatanKeadaan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
-            <td class="text-center">${idx + 1}</td>
-            <td>${escapeHtml(k.kecamatan)}</td>
-            <td class="text-center">${formatNumber(k.totalSekolah)}</td>
-            <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
-            <td class="text-center">${formatNumber(k.totalRombel || 0)}</td>
-            <td class="text-center">${formatNumber(k.guru)}</td>
-            <td class="text-center">${formatNumber(k.ks)}</td>
-            <td class="text-center">${formatNumber(k.tendik)}</td>
-            <td class="text-center col-keadaan">${formatNumber(k.cpns || 0)}</td>
-            <td class="text-center col-keadaan">${formatNumber(k.pns)}</td>
-            <td class="text-center col-keadaan">${formatNumber(k.pppk)}</td>
-            <td class="text-center col-keadaan">${formatNumber(k.pw)}</td>
-            <td class="text-center col-keadaan">${formatNumber(k.nonAsnOld)}</td>
-            <td class="text-center col-keadaan">${formatNumber(k.nonAsnNew)}</td>
-            <td class="text-center col-keadaan-total">${formatNumber(k.totalPTK)}</td>
+        tbody.innerHTML = html || `<tr><td colspan="4" class="text-center" style="padding:24px;">Tidak ada data kecamatan untuk tugas ini.</td></tr>`;
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
+            <th class="text-center">${formatNumber(totSekolah)}</th>
+            <th class="text-center col-keadaan-total">${formatNumber(totTugas)}</th>
           </tr>
         `;
-      });
 
-      tbody.innerHTML = html || '<tr><td colspan="15" class="text-center" style="padding: 24px;">Tidak ada data kecamatan</td></tr>';
+      } else {
+        // Tampilan lengkap: semua kolom
+        thead.innerHTML = `
+          <tr>
+            <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>SD</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Murid</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle; line-height: 1.2;">Jumlah<br>Rombel</th>
+            <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
+            <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
+            <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
+          </tr>
+          <tr>
+            <th class="text-center" style="background-color: #f8fafc;">Guru</th>
+            <th class="text-center" style="background-color: #f8fafc;">KS</th>
+            <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
+            <th class="text-center col-keadaan">CPNS</th>
+            <th class="text-center col-keadaan">PNS</th>
+            <th class="text-center col-keadaan">PPPK</th>
+            <th class="text-center col-keadaan">PW</th>
+            <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
+            <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
+          </tr>
+        `;
 
-      tfoot.innerHTML = `
-        <tr>
-          <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
-          <th class="text-center">${formatNumber(totSekolah)}</th>
-          <th class="text-center">${formatNumber(totMurid)}</th>
-          <th class="text-center">${formatNumber(totRombel)}</th>
-          <th class="text-center">${formatNumber(totGuru)}</th>
-          <th class="text-center">${formatNumber(totKS)}</th>
-          <th class="text-center">${formatNumber(totTendik)}</th>
-          <th class="text-center col-keadaan">${formatNumber(totCpns)}</th>
-          <th class="text-center col-keadaan">${formatNumber(totPns)}</th>
-          <th class="text-center col-keadaan">${formatNumber(totPppk)}</th>
-          <th class="text-center col-keadaan">${formatNumber(totPw)}</th>
-          <th class="text-center col-keadaan">${formatNumber(totNonOld)}</th>
-          <th class="text-center col-keadaan">${formatNumber(totNonNew)}</th>
-          <th class="text-center col-keadaan-total">${formatNumber(grandTotal)}</th>
-        </tr>
-      `;
+        let html = '';
+        let totSekolah = 0, totMurid = 0, totRombel = 0;
+        let totGuru = 0, totKS = 0, totTendik = 0;
+        let totCpns = 0, totPns = 0, totPppk = 0, totPw = 0, totNonOld = 0, totNonNew = 0, grandTotal = 0;
+
+        list.forEach((k, idx) => {
+          totSekolah  += k.totalSekolah;
+          totMurid    += (k.totalMurid || 0);
+          totRombel   += (k.totalRombel || 0);
+          totGuru     += k.guru;
+          totKS       += k.ks;
+          totTendik   += k.tendik;
+          totCpns     += (k.cpns || 0);
+          totPns      += k.pns;
+          totPppk     += k.pppk;
+          totPw       += k.pw;
+          totNonOld   += (k.nonAsnOld || 0);
+          totNonNew   += (k.nonAsnNew || 0);
+          grandTotal  += k.totalPTK;
+
+          html += `
+            <tr class="clickable-row" onclick="drillDownToKecamatanKeadaan('${escapeQuote(k.kecamatan)}')" title="Klik untuk melihat sekolah-sekolah di Kec. ${escapeHtml(k.kecamatan)}">
+              <td class="text-center">${idx + 1}</td>
+              <td>${escapeHtml(k.kecamatan)}</td>
+              <td class="text-center">${formatNumber(k.totalSekolah)}</td>
+              <td class="text-center">${formatNumber(k.totalMurid || 0)}</td>
+              <td class="text-center">${formatNumber(k.totalRombel || 0)}</td>
+              <td class="text-center">${formatNumber(k.guru)}</td>
+              <td class="text-center">${formatNumber(k.ks)}</td>
+              <td class="text-center">${formatNumber(k.tendik)}</td>
+              <td class="text-center col-keadaan">${formatNumber(k.cpns || 0)}</td>
+              <td class="text-center col-keadaan">${formatNumber(k.pns)}</td>
+              <td class="text-center col-keadaan">${formatNumber(k.pppk)}</td>
+              <td class="text-center col-keadaan">${formatNumber(k.pw)}</td>
+              <td class="text-center col-keadaan">${formatNumber(k.nonAsnOld)}</td>
+              <td class="text-center col-keadaan">${formatNumber(k.nonAsnNew)}</td>
+              <td class="text-center col-keadaan-total">${formatNumber(k.totalPTK)}</td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html || '<tr><td colspan="15" class="text-center" style="padding: 24px;">Tidak ada data kecamatan</td></tr>';
+
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="2" class="text-center">TOTAL KESELURUHAN</th>
+            <th class="text-center">${formatNumber(totSekolah)}</th>
+            <th class="text-center">${formatNumber(totMurid)}</th>
+            <th class="text-center">${formatNumber(totRombel)}</th>
+            <th class="text-center">${formatNumber(totGuru)}</th>
+            <th class="text-center">${formatNumber(totKS)}</th>
+            <th class="text-center">${formatNumber(totTendik)}</th>
+            <th class="text-center col-keadaan">${formatNumber(totCpns)}</th>
+            <th class="text-center col-keadaan">${formatNumber(totPns)}</th>
+            <th class="text-center col-keadaan">${formatNumber(totPppk)}</th>
+            <th class="text-center col-keadaan">${formatNumber(totPw)}</th>
+            <th class="text-center col-keadaan">${formatNumber(totNonOld)}</th>
+            <th class="text-center col-keadaan">${formatNumber(totNonNew)}</th>
+            <th class="text-center col-keadaan-total">${formatNumber(grandTotal)}</th>
+          </tr>
+        `;
+      }
 
     } else {
       // -------------------------------------------------------------
-      // KONDISI B: MODE SEKOLAH (SAAT FILTER KECAMATAN / DRILL DOWN)
+      // KONDISI B: MODE SEKOLAH (DRILL DOWN KECAMATAN)
       // -------------------------------------------------------------
       if (breadcrumbWrap) {
         breadcrumbWrap.style.display = 'flex';
@@ -874,101 +951,151 @@
         list = list.filter(s => s.kecamatan === filterKec);
       }
 
-      thead.innerHTML = `
-        <tr>
-          <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
-          <th rowspan="2" class="th-sekolah" style="vertical-align: middle;">Nama Sekolah</th>
-          <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
-          <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
-          <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
-          <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
-          <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
-        </tr>
-        <tr>
-          <th class="text-center" style="background-color: #f8fafc;">Guru</th>
-          <th class="text-center" style="background-color: #f8fafc;">KS</th>
-          <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
-          <th class="text-center col-keadaan">CPNS</th>
-          <th class="text-center col-keadaan">PNS</th>
-          <th class="text-center col-keadaan">PPPK</th>
-          <th class="text-center col-keadaan">PW</th>
-          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
-          <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
-        </tr>
-      `;
-
-      let html = '';
-      let sumRombel = 0, sumMurid = 0;
-      let sumGuru = 0, sumKS = 0, sumTendik = 0;
-      let sumCpns = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumNonOld = 0, sumNonNew = 0, sumPTK = 0;
-
-      list.forEach((sch, idx) => {
-        sumRombel += (sch.rombel || 0);
-        sumMurid += (sch.murid || 0);
-        sumGuru += sch.guruCount;
-        sumKS += sch.ksCount;
-        sumTendik += sch.tendikCount;
-        sumCpns += (sch.cpnsCount || 0);
-        sumPns += sch.pnsCount;
-        sumPppk += sch.pppkCount;
-        sumPw += sch.pwCount;
-        sumNonOld += (sch.nonAsnOldCount || 0);
-        sumNonNew += (sch.nonAsnNewCount || 0);
-        sumPTK += sch.ptkCount;
-
-        html += `
+      if (isFiltered) {
+        // Tampilan fokus: hanya tampilkan kolom jumlah tugas terpilih per sekolah
+        thead.innerHTML = `
           <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td class="col-sekolah">
-              <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
-              <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
-            </td>
-            <td>${escapeHtml(sch.kecamatan)}</td>
-            <td class="text-center">${formatNumber(sch.rombel || 0)}</td>
-            <td class="text-center">${formatNumber(sch.murid || 0)}</td>
-            <td class="text-center">${formatNumber(sch.guruCount)}</td>
-            <td class="text-center">${formatNumber(sch.ksCount)}</td>
-            <td class="text-center">${formatNumber(sch.tendikCount)}</td>
-            <td class="text-center col-keadaan">${formatNumber(sch.cpnsCount || 0)}</td>
-            <td class="text-center col-keadaan">${formatNumber(sch.pnsCount)}</td>
-            <td class="text-center col-keadaan">${formatNumber(sch.pppkCount)}</td>
-            <td class="text-center col-keadaan">${formatNumber(sch.pwCount)}</td>
-            <td class="text-center col-keadaan">${formatNumber(sch.nonAsnOldCount)}</td>
-            <td class="text-center col-keadaan">${formatNumber(sch.nonAsnNewCount)}</td>
-            <td class="text-center col-keadaan-total">${formatNumber(sch.ptkCount)}</td>
-            <td class="text-center">
-              <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
-                👁️ PTK
-              </button>
-            </td>
+            <th class="text-center" style="width: 48px;">No</th>
+            <th class="th-sekolah">Nama Sekolah</th>
+            <th>Kecamatan</th>
+            <th class="text-center col-keadaan-total">${escapeHtml(TUGAS_LABEL[tugasKey])}</th>
+            <th class="text-center">Aksi</th>
           </tr>
         `;
-      });
 
-      tbody.innerHTML = html || `<tr><td colspan="16" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok di wilayah ini</td></tr>`;
+        let html = '', sumTugas = 0, displayIdx = 0;
+        list.forEach(sch => {
+          const val = getTugasValSch(sch);
+          sumTugas += val;
+          if (!val) return; // sembunyikan sekolah yang tidak punya tugas ini
+          displayIdx++;
+          html += `
+            <tr>
+              <td class="text-center">${displayIdx}</td>
+              <td class="col-sekolah">
+                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
+                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
+              </td>
+              <td>${escapeHtml(sch.kecamatan)}</td>
+              <td class="text-center col-keadaan-total">${formatNumber(val)}</td>
+              <td class="text-center">
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
+                  👁️ PTK
+                </button>
+              </td>
+            </tr>
+          `;
+        });
 
-      tfoot.innerHTML = `
-        <tr>
-          <th colspan="3" class="text-center">TOTAL KESELURUHAN (${list.length} SD)</th>
-          <th class="text-center">${formatNumber(sumRombel)}</th>
-          <th class="text-center">${formatNumber(sumMurid)}</th>
-          <th class="text-center">${formatNumber(sumGuru)}</th>
-          <th class="text-center">${formatNumber(sumKS)}</th>
-          <th class="text-center">${formatNumber(sumTendik)}</th>
-          <th class="text-center col-keadaan">${formatNumber(sumCpns)}</th>
-          <th class="text-center col-keadaan">${formatNumber(sumPns)}</th>
-          <th class="text-center col-keadaan">${formatNumber(sumPppk)}</th>
-          <th class="text-center col-keadaan">${formatNumber(sumPw)}</th>
-          <th class="text-center col-keadaan">${formatNumber(sumNonOld)}</th>
-          <th class="text-center col-keadaan">${formatNumber(sumNonNew)}</th>
-          <th class="text-center col-keadaan-total">${formatNumber(sumPTK)}</th>
-          <th class="text-center">-</th>
-        </tr>
-      `;
+        tbody.innerHTML = html || `<tr><td colspan="5" class="text-center" style="padding: 24px;">Tidak ada sekolah dengan tugas <strong>${escapeHtml(TUGAS_LABEL[tugasKey])}</strong> di kecamatan ini.</td></tr>`;
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="3" class="text-center">TOTAL (${displayIdx} SD)</th>
+            <th class="text-center col-keadaan-total">${formatNumber(sumTugas)}</th>
+            <th class="text-center">-</th>
+          </tr>
+        `;
+
+      } else {
+        // Tampilan lengkap: semua kolom
+        thead.innerHTML = `
+          <tr>
+            <th rowspan="2" class="text-center" style="width: 48px; vertical-align: middle;">No</th>
+            <th rowspan="2" class="th-sekolah" style="vertical-align: middle;">Nama Sekolah</th>
+            <th rowspan="2" style="vertical-align: middle;">Kecamatan</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Rombel</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Murid</th>
+            <th colspan="3" class="text-center" style="background-color: #f1f5f9; border-bottom: 1px solid var(--border-color);">Tugas / Peran</th>
+            <th colspan="6" class="text-center col-keadaan" style="border-bottom: 1px solid var(--border-color);">Status Kepegawaian</th>
+            <th rowspan="2" class="text-center col-keadaan-total" style="vertical-align: middle;">Total PTK</th>
+            <th rowspan="2" class="text-center" style="vertical-align: middle;">Aksi</th>
+          </tr>
+          <tr>
+            <th class="text-center" style="background-color: #f8fafc;">Guru</th>
+            <th class="text-center" style="background-color: #f8fafc;">KS</th>
+            <th class="text-center" style="background-color: #f8fafc;">Tendik</th>
+            <th class="text-center col-keadaan">CPNS</th>
+            <th class="text-center col-keadaan">PNS</th>
+            <th class="text-center col-keadaan">PPPK</th>
+            <th class="text-center col-keadaan">PW</th>
+            <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&lt; 3-8-2023</th>
+            <th class="text-center col-keadaan" style="line-height: 1.2;">Non-ASN<br>&gt; 3-8-2023</th>
+          </tr>
+        `;
+
+        let html = '';
+        let sumRombel = 0, sumMurid = 0;
+        let sumGuru = 0, sumKS = 0, sumTendik = 0;
+        let sumCpns = 0, sumPns = 0, sumPppk = 0, sumPw = 0, sumNonOld = 0, sumNonNew = 0, sumPTK = 0;
+
+        list.forEach((sch, idx) => {
+          sumRombel   += (sch.rombel || 0);
+          sumMurid    += (sch.murid || 0);
+          sumGuru     += sch.guruCount;
+          sumKS       += sch.ksCount;
+          sumTendik   += sch.tendikCount;
+          sumCpns     += (sch.cpnsCount || 0);
+          sumPns      += sch.pnsCount;
+          sumPppk     += sch.pppkCount;
+          sumPw       += sch.pwCount;
+          sumNonOld   += (sch.nonAsnOldCount || 0);
+          sumNonNew   += (sch.nonAsnNewCount || 0);
+          sumPTK      += sch.ptkCount;
+
+          html += `
+            <tr>
+              <td class="text-center">${idx + 1}</td>
+              <td class="col-sekolah">
+                <div style="font-weight: 500; color: var(--secondary);">${escapeHtml(sch.namaSekolah)}</div>
+                <div style="font-size: 0.73rem; color: #64748b; margin-top: 2px;">NPSN: ${escapeHtml(sch.npsn)}</div>
+              </td>
+              <td>${escapeHtml(sch.kecamatan)}</td>
+              <td class="text-center">${formatNumber(sch.rombel || 0)}</td>
+              <td class="text-center">${formatNumber(sch.murid || 0)}</td>
+              <td class="text-center">${formatNumber(sch.guruCount)}</td>
+              <td class="text-center">${formatNumber(sch.ksCount)}</td>
+              <td class="text-center">${formatNumber(sch.tendikCount)}</td>
+              <td class="text-center col-keadaan">${formatNumber(sch.cpnsCount || 0)}</td>
+              <td class="text-center col-keadaan">${formatNumber(sch.pnsCount)}</td>
+              <td class="text-center col-keadaan">${formatNumber(sch.pppkCount)}</td>
+              <td class="text-center col-keadaan">${formatNumber(sch.pwCount)}</td>
+              <td class="text-center col-keadaan">${formatNumber(sch.nonAsnOldCount)}</td>
+              <td class="text-center col-keadaan">${formatNumber(sch.nonAsnNewCount)}</td>
+              <td class="text-center col-keadaan-total">${formatNumber(sch.ptkCount)}</td>
+              <td class="text-center">
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.74rem;" onclick="viewSchoolDetail('${escapeQuote(sch.npsn)}', '${escapeQuote(sch.namaSekolah)}')">
+                  👁️ PTK
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html || `<tr><td colspan="16" class="text-center" style="padding: 24px;">Tidak ada sekolah yang cocok di wilayah ini</td></tr>`;
+
+        tfoot.innerHTML = `
+          <tr>
+            <th colspan="3" class="text-center">TOTAL KESELURUHAN (${list.length} SD)</th>
+            <th class="text-center">${formatNumber(sumRombel)}</th>
+            <th class="text-center">${formatNumber(sumMurid)}</th>
+            <th class="text-center">${formatNumber(sumGuru)}</th>
+            <th class="text-center">${formatNumber(sumKS)}</th>
+            <th class="text-center">${formatNumber(sumTendik)}</th>
+            <th class="text-center col-keadaan">${formatNumber(sumCpns)}</th>
+            <th class="text-center col-keadaan">${formatNumber(sumPns)}</th>
+            <th class="text-center col-keadaan">${formatNumber(sumPppk)}</th>
+            <th class="text-center col-keadaan">${formatNumber(sumPw)}</th>
+            <th class="text-center col-keadaan">${formatNumber(sumNonOld)}</th>
+            <th class="text-center col-keadaan">${formatNumber(sumNonNew)}</th>
+            <th class="text-center col-keadaan-total">${formatNumber(sumPTK)}</th>
+            <th class="text-center">-</th>
+          </tr>
+        `;
+      }
     }
   }
+
+
 
   function applyFilters() {
     if (!rawData) return;

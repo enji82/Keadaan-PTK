@@ -244,15 +244,25 @@
             <div class="breadcrumb-wrap" id="breadcrumbWrapKeadaan" style="display: none; margin-bottom: 0;"></div>
           </div>
 
-          <!-- Baris Kontrol: Pilih Peran & Ekspor Excel -->
+          <!-- Baris Kontrol: Pilih Tugas & Ekspor Excel -->
           <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH PERAN / TUGAS:</span>
-              <div class="toggle-bar">
-                <button class="toggle-btn active" id="btnKeadaanTog_ALL" onclick="setKeadaanRoleToggle('ALL')">Semua PTK</button>
-                <button class="toggle-btn" id="btnKeadaanTog_GURU" onclick="setKeadaanRoleToggle('GURU')">Guru</button>
-                <button class="toggle-btn" id="btnKeadaanTog_KS" onclick="setKeadaanRoleToggle('KS')">Kepala Sekolah</button>
-                <button class="toggle-btn" id="btnKeadaanTog_TENDIK" onclick="setKeadaanRoleToggle('TENDIK')">Tenaga Kependidikan</button>
+              <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH TUGAS:</span>
+              <div class="toggle-bar" style="flex-wrap: wrap;">
+                <button class="toggle-btn active" id="btnKeadaanTog_ALL"                onclick="setKeadaanRoleToggle('ALL')">Semua PTK</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_KS"                 onclick="setKeadaanRoleToggle('KS')">Kepala Sekolah</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_GURU_KELAS"          onclick="setKeadaanRoleToggle('GURU_KELAS')">Guru Kelas</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_GURU_PJOK"           onclick="setKeadaanRoleToggle('GURU_PJOK')">Guru PJOK</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_GURU_PAI"            onclick="setKeadaanRoleToggle('GURU_PAI')">Guru PAI</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_GURU_KRISTEN"        onclick="setKeadaanRoleToggle('GURU_KRISTEN')">Guru PA Kristen</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_GURU_KATOLIK"        onclick="setKeadaanRoleToggle('GURU_KATOLIK')">Guru PA Katolik</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_GURU_INGGRIS"        onclick="setKeadaanRoleToggle('GURU_INGGRIS')">Guru Bhs. Inggris</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_GURU_LAIN"           onclick="setKeadaanRoleToggle('GURU_LAIN')">Guru Lainnya</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_OP_LAYANAN"          onclick="setKeadaanRoleToggle('OP_LAYANAN')">Operator Layanan Operasional</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_PENGELOLA_LAYANAN"   onclick="setKeadaanRoleToggle('PENGELOLA_LAYANAN')">Pengelola Layanan Operasional</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_PENATA_LAYANAN"      onclick="setKeadaanRoleToggle('PENATA_LAYANAN')">Penata Layanan Operasional</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_PENGELOLA_UMUM"      onclick="setKeadaanRoleToggle('PENGELOLA_UMUM')">Pengelola Umum Operasional</button>
+                <button class="toggle-btn"        id="btnKeadaanTog_TENDIK_LAIN"         onclick="setKeadaanRoleToggle('TENDIK_LAIN')">Tendik Lainnya</button>
               </div>
             </div>
 
@@ -260,6 +270,7 @@
               📊 Ekspor Excel
             </button>
           </div>
+
         </div>
 
         <div class="table-responsive">

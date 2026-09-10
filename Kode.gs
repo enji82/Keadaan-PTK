@@ -150,6 +150,50 @@ function mapFormasiGuruSD(rawTugas) {
 }
 
 /**
+ * Mapping Tugas Granular PTK (untuk filter Tab Keadaan PTK SD)
+ * Mengembalikan key granular yang konsisten untuk agregasi per-tugas.
+ */
+function mapTugasGranular(rawTugas) {
+  if (!rawTugas) return 'TENDIK_LAIN';
+  const val = String(rawTugas).trim().toLowerCase();
+
+  if (val.includes('kepala sekolah') || val === 'ks' || val === 'kasek') return 'KS';
+  if (val.includes('guru kelas') || val.includes('wali kelas')) return 'GURU_KELAS';
+  if (val.includes('pjok') || val.includes('penjas') || val.includes('pendidikan jasmani') || val.includes('olahraga')) return 'GURU_PJOK';
+  if (val.includes('pai') || val.includes('agama islam')) return 'GURU_PAI';
+  if (val.includes('kristen') || val.includes('protestan')) return 'GURU_KRISTEN';
+  if (val.includes('katolik')) return 'GURU_KATOLIK';
+  if (val.includes('bahasa inggris') || val.includes('bhs. inggris') || val.includes('bhs inggris') || val.includes('b. inggris') || val.includes('b inggris') || val.includes('english')) return 'GURU_INGGRIS';
+  if (val.includes('guru')) return 'GURU_LAIN';
+  if (val.includes('operator layanan') || val.includes('operator pend')) return 'OP_LAYANAN';
+  if (val.includes('pengelola layanan') || val.includes('pengelola pend')) return 'PENGELOLA_LAYANAN';
+  if (val.includes('penata layanan') || val.includes('penata pend')) return 'PENATA_LAYANAN';
+  if (val.includes('pengelola umum') || val.includes('umum operasional')) return 'PENGELOLA_UMUM';
+  return 'TENDIK_LAIN';
+}
+
+/**
+ * Helper membuat objek counter tugas granular yang terisi nol.
+ */
+function emptyTugasCount() {
+  return {
+    KS: 0,
+    GURU_KELAS: 0,
+    GURU_PJOK: 0,
+    GURU_PAI: 0,
+    GURU_KRISTEN: 0,
+    GURU_KATOLIK: 0,
+    GURU_INGGRIS: 0,
+    GURU_LAIN: 0,
+    OP_LAYANAN: 0,
+    PENGELOLA_LAYANAN: 0,
+    PENATA_LAYANAN: 0,
+    PENGELOLA_UMUM: 0,
+    TENDIK_LAIN: 0
+  };
+}
+
+/**
  * Rumus Kebutuhan Guru PAI & PJOK SD Berdasarkan Rombel
  * 1-10 rombel: 1
  * 11-16 rombel: 2
@@ -172,7 +216,7 @@ function hitungKebutuhanMapelSD(rombel) {
  */
 function getDashboardData(forceRefresh) {
   const cache = CacheService.getScriptCache();
-  const CACHE_KEY = 'REKAP_PTK_WITH_KEBUTUHAN_V3';
+  const CACHE_KEY = 'REKAP_PTK_WITH_KEBUTUHAN_V4';
   
   if (!forceRefresh) {
     const cached = cache.get(CACHE_KEY);
@@ -277,6 +321,9 @@ function getDashboardData(forceRefresh) {
       nonAsnOldCount: 0,
       nonAsnNewCount: 0,
 
+      // Counter granular per tugas (untuk filter Tab Keadaan)
+      tugasCount: emptyTugasCount(),
+
       // Komposisi Khusus Guru SD (Kebutuhan & Ketersediaan)
       formasiSD: {
         KS: { butuh: (jenjang === 'SD' ? 1 : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
@@ -324,6 +371,7 @@ function getDashboardData(forceRefresh) {
         nonAsnCount: 0,
         nonAsnOldCount: 0,
         nonAsnNewCount: 0,
+        tugasCount: emptyTugasCount(),
         formasiSD: {
           KS: { butuh: (ptk.jenjang === 'SD' ? 1 : 0), cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
           GURU_KELAS: { butuh: 0, cpns: 0, pns: 0, pppk: 0, pw: 0, nonAsn: 0, nonAsnOld: 0, nonAsnNew: 0 },
@@ -387,6 +435,12 @@ function getDashboardData(forceRefresh) {
           }
         }
       }
+    }
+
+    // Hitung counter tugas granular
+    const tugasKey = mapTugasGranular(ptk.tugasRaw);
+    if (tugasKey && sch.tugasCount) {
+      sch.tugasCount[tugasKey] = (sch.tugasCount[tugasKey] || 0) + 1;
     }
   });
 
@@ -551,7 +605,8 @@ function getDashboardData(forceRefresh) {
         pw: 0,
         nonAsn: 0,
         nonAsnOld: 0,
-        nonAsnNew: 0
+        nonAsnNew: 0,
+        tugasCount: emptyTugasCount()
       };
     }
     const rk = rekapKecamatanSD[kec];
@@ -569,6 +624,12 @@ function getDashboardData(forceRefresh) {
     rk.nonAsn += sch.nonAsnCount;
     rk.nonAsnOld += (sch.nonAsnOldCount || 0);
     rk.nonAsnNew += (sch.nonAsnNewCount || 0);
+    // Agregasi tugasCount granular ke rekap kecamatan
+    if (sch.tugasCount) {
+      Object.keys(sch.tugasCount).forEach(key => {
+        rk.tugasCount[key] = (rk.tugasCount[key] || 0) + (sch.tugasCount[key] || 0);
+      });
+    }
   });
 
   const rekapJenjang = {
