@@ -133,14 +133,14 @@
     populateKecamatanOptions(data.kecamatanList || []);
 
     // Render Tab Buttons and Controls
-    updateUIForActiveJenjang();
+    try { updateUIForActiveJenjang(); } catch (e) { console.error('Error updateUIForActiveJenjang:', e); }
 
     // Render Semua Bagian
-    renderKPIUmum();
-    renderCardsFormasi();
-    renderTabKebutuhan();
-    renderTabKeadaan();
-    renderTabPensiun();
+    try { renderKPIUmum(); } catch (e) { console.error('Error renderKPIUmum:', e); }
+    try { renderCardsFormasi(); } catch (e) { console.error('Error renderCardsFormasi:', e); }
+    try { renderTabKebutuhan(); } catch (e) { console.error('Error renderTabKebutuhan:', e); }
+    try { renderTabKeadaan(); } catch (e) { console.error('Error renderTabKeadaan:', e); }
+    try { renderTabPensiun(); } catch (e) { console.error('Error renderTabPensiun:', e); }
   }
 
   function handleDataError(err) {
@@ -970,7 +970,17 @@
       }
     }
   }
-function formatNumber(num) {
+  function renderBadgeSelisih(val) {
+    if (val < 0) {
+      return `<span style="color:#b91c1c; font-weight:600;">${val}</span>`;
+    } else if (val === 0 || !val) {
+      return `<span>-</span>`;
+    } else {
+      return `<span style="color:#0369a1; font-weight:600;">+${val}</span>`;
+    }
+  }
+
+  function formatNumber(num) {
     if (num === 0 || num === '0' || !num) return '-';
     return Number(num).toLocaleString('id-ID');
   }
@@ -1393,12 +1403,12 @@ function formatNumber(num) {
 
   function applyFilters() {
     if (!rawData) return;
-    updateUIForActiveJenjang();
-    renderCardsFormasi();
-    renderKPIUmum();
-    renderTabKebutuhan();
-    renderTabKeadaan();
-    renderTabPensiun();
+    try { updateUIForActiveJenjang(); } catch (e) { console.error('Error updateUIForActiveJenjang:', e); }
+    try { renderCardsFormasi(); } catch (e) { console.error('Error renderCardsFormasi:', e); }
+    try { renderKPIUmum(); } catch (e) { console.error('Error renderKPIUmum:', e); }
+    try { renderTabKebutuhan(); } catch (e) { console.error('Error renderTabKebutuhan:', e); }
+    try { renderTabKeadaan(); } catch (e) { console.error('Error renderTabKeadaan:', e); }
+    try { renderTabPensiun(); } catch (e) { console.error('Error renderTabPensiun:', e); }
   }
 
   function switchTab(tabKey) {
