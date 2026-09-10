@@ -316,10 +316,13 @@
 
     <!-- ==================== TAB 3: PROYEKSI PENSIUN SD ==================== -->
     <div id="tabPensiunSD" class="tab-pane">
-      <!-- KONTROL TAHUN PENSIUN (SEBELAH KIRI) -->
+      <!-- KONTROL TAHUN PENSIUN (SEBELAH KIRI DENGAN LABEL PILIH TAHUN) -->
       <div class="pensiun-topbar">
-        <div class="pensiun-year-switcher" id="pensiunYearButtons">
-          <!-- Diisi via JS: Rentang 5 tahun dinamis -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted);">PILIH TAHUN:</span>
+          <div class="pensiun-year-switcher" id="pensiunYearButtons">
+            <!-- Diisi via JS: Rentang 5 tahun dinamis -->
+          </div>
         </div>
       </div>
 

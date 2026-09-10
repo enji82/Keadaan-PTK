@@ -227,7 +227,14 @@
         valElem.innerHTML = renderBadgeSelisihLarge(item.selisih);
       }
       if (detElem) {
-        detElem.textContent = `Butuh: ${formatNumber(item.butuh)} | Terisi: ${formatNumber(item.terisi)} | Non: ${formatNumber(item.nonAsnOld)} (<) / ${formatNumber(item.nonAsnNew)} (>)`;
+        detElem.innerHTML = `
+          <div class="formasi-kpi-breakdown">
+            <span class="formasi-tag-butuh" title="Jumlah Kebutuhan">Butuh: ${formatNumber(item.butuh)}</span>
+            <span class="formasi-tag-terisi" title="Terisi ASN/PPPK PW">Terisi: ${formatNumber(item.terisi)}</span>
+            <span class="formasi-tag-nonold" title="Non-ASN TMT Sebelum 3-8-2023">&lt; 3-8-23: ${formatNumber(item.nonAsnOld)}</span>
+            <span class="formasi-tag-nonnew" title="Non-ASN TMT Setelah 3-8-2023">&gt; 3-8-23: ${formatNumber(item.nonAsnNew)}</span>
+          </div>
+        `;
       }
     };
 
