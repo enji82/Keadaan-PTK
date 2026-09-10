@@ -964,6 +964,51 @@
   }
 
   /**
+   * Helper membersihkan tabel HTML sebelum diekspor ke Excel:
+   * 1. Menghilangkan titik/koma pemisah ribuan dari teks angka agar Excel membacanya sebagai angka murni (bukan desimal)
+   * 2. Mengubah tanda '-' menjadi '0' atau teks bersih
+   */
+  function cleanTableForExcelExport(tableEl, removeActionCol) {
+    const clone = tableEl.cloneNode(true);
+    const rows = clone.querySelectorAll('tr');
+
+    rows.forEach(row => {
+      if (removeActionCol) {
+        const lastCell = row.lastElementChild;
+        if (lastCell && (lastCell.tagName === 'TH' || lastCell.tagName === 'TD')) {
+          const text = lastCell.textContent.trim();
+          if (text.includes('Aksi') || text.includes('PTK') || text === '-') {
+            lastCell.remove();
+          }
+        }
+      }
+
+      // Bersihkan teks di setiap sel
+      const cells = row.querySelectorAll('th, td');
+      cells.forEach(cell => {
+        let txt = cell.textContent.trim();
+        // Cek jika teks berupa tanda strip tunggal (-)
+        if (txt === '-') {
+          cell.textContent = '0';
+          return;
+        }
+
+        // Cek jika teks berupa angka (bisa ada tanda +/-, titik/koma ribuan)
+        // Contoh: '4.849', '2,595', '62.001', '-102', '+1'
+        const cleanDigitsOnly = txt.replace(/^[+\-]/, '').replace(/[\.,\s]/g, '');
+        if (/^\d+$/.test(cleanDigitsOnly)) {
+          // Ambil tanda minus jika ada
+          const isNegative = txt.startsWith('-');
+          const numericVal = parseInt(cleanDigitsOnly, 10);
+          cell.textContent = String(isNegative ? -numericVal : numericVal);
+        }
+      });
+    });
+
+    return clone;
+  }
+
+  /**
    * Ekspor Khusus Tabel Kebutuhan & Kekurangan Guru SD dengan Judul Tabel Dinamis
    */
   function exportTableKebutuhanSDToExcel() {
@@ -991,24 +1036,11 @@
     
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
-    // Salin tabel ke elemen virtual untuk dibersihkan (misal hapus tombol Aksi PTK)
-    const cloneTable = table.cloneNode(true);
-    if (isSekolahMode) {
-      // Hapus kolom terakhir (kolom Aksi) pada thead, tbody, dan tfoot
-      const allRows = cloneTable.querySelectorAll('tr');
-      allRows.forEach(row => {
-        const lastCell = row.lastElementChild;
-        if (lastCell && (lastCell.tagName === 'TH' || lastCell.tagName === 'TD')) {
-          const text = lastCell.textContent.trim();
-          if (text.includes('Aksi') || text.includes('PTK') || text === '-') {
-            lastCell.remove();
-          }
-        }
-      });
-    }
+    // Bersihkan tabel: hapus pemisah ribuan lokal dan kolom Aksi jika mode sekolah
+    const cleanTable = cleanTableForExcelExport(table, isSekolahMode);
 
     // Buat worksheet dari tabel HTML mulai dari baris ke-4 (origin: A4)
-    const ws = XLSX.utils.table_to_sheet(cloneTable, { origin: "A4" });
+    const ws = XLSX.utils.table_to_sheet(cleanTable, { origin: "A4", raw: false });
 
     // Tambahkan Judul di baris paling atas (A1 dan A2)
     XLSX.utils.sheet_add_aoa(ws, [
@@ -1052,7 +1084,8 @@
     if (!table) return;
 
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
-    const ws = XLSX.utils.table_to_sheet(table, { origin: "A4" });
+    const cleanTable = cleanTableForExcelExport(table, false);
+    const ws = XLSX.utils.table_to_sheet(cleanTable, { origin: "A4", raw: false });
 
     XLSX.utils.sheet_add_aoa(ws, [
       [mainTitle],
