@@ -1793,44 +1793,106 @@
    * Ekspor Tabel Proyeksi Pensiun ke Excel
    */
   function exportTablePensiunSDToExcel() {
+    if (!rawData) return;
+
     const filterKec = document.getElementById('filterKecamatan') ? document.getElementById('filterKecamatan').value : 'ALL';
-    const table = document.querySelector('.pensiun-table');
-    if (!table) {
-      alert('Tabel proyeksi pensiun tidak ditemukan.');
+    let list = (rawData.pensiunSD || []).slice();
+
+    // Filter Wilayah Kecamatan
+    if (filterKec !== 'ALL') {
+      list = list.filter(p => p.kecamatan === filterKec);
+    }
+
+    // Filter Tahun
+    const yearList = list.filter(p => p.pensiunTahun === selectedPensiunYear);
+
+    // Filter Bulan jika dipilih
+    const tableList = selectedPensiunMonth !== null 
+      ? yearList.filter(p => p.pensiunBulan === selectedPensiunMonth)
+      : yearList;
+
+    if (!tableList || tableList.length === 0) {
+      alert('Tidak ada data pensiun untuk diekspor pada filter ini.');
       return;
     }
 
-    const mainTitle = `PROYEKSI PENSIUN SD NEGERI TAHUN ${selectedPensiunYear} - WILAYAH ${filterKec.toUpperCase()}`;
+    // Urutkan seperti tampilan di tabel
+    tableList.sort((a, b) => {
+      if (a.pensiunBulan !== b.pensiunBulan) return a.pensiunBulan - b.pensiunBulan;
+      return a.nama.localeCompare(b.nama);
+    });
+
+    const bulanIndo = [
+      '', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI',
+      'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'
+    ];
+
+    const bulanTitle = selectedPensiunMonth !== null ? ` BULAN ${bulanIndo[selectedPensiunMonth]}` : '';
+    const mainTitle = `PROYEKSI PENSIUN SD NEGERI TAHUN ${selectedPensiunYear}${bulanTitle} - WILAYAH ${filterKec.toUpperCase()}`;
     const subTitle = `Tanggal Ekspor: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
-    // Clone tabel agar dapat memanipulasi format cell sebelum diekspor
-    const clone = table.cloneNode(true);
+    // Susun array of array secara murni tanpa konversi html table agar tipe string NIP tidak terpotong
+    const headers = ['NO', 'NAMA LENGKAP', 'NIP', 'UNIT KERJA', 'JABATAN', 'STATUS', 'TGL LAHIR', 'BUP', 'PENSIUN'];
+    const rows = [];
 
-    const ws = XLSX.utils.table_to_sheet(clone, { origin: "A4", raw: false });
+    tableList.forEach((p, idx) => {
+      const nipStr = (p.nip && p.nip !== '-') ? String(p.nip).trim() : '-';
+      let statusLabel = p.status || 'Non-ASN';
+      if (statusLabel === 'PW') statusLabel = 'PPPK PW';
 
-    // Format kolom C (NIP) secara eksplisit sebagai teks string ('s') agar tidak menjadi scientific notation (misal 1.9661E+17)
-    // Range worksheet dimulai dari baris 4 (header) s/d data terakhir
+      rows.push([
+        idx + 1,
+        p.nama || '-',
+        nipStr,
+        p.unitKerja || '-',
+        p.jabatan || '-',
+        statusLabel,
+        p.tglLahir || '-',
+        p.bup || 60,
+        p.pensiunTmt || '-'
+      ]);
+    });
+
+    // Buat worksheet dari AOA (Array of Arrays)
+    const wsData = [
+      [mainTitle],
+      [subTitle],
+      [], // baris kosong 3
+      headers,
+      ...rows
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Set tipe data Kolom C (NIP) menjadi teks string ('s') dengan format '@'
     if (ws['!ref']) {
       const range = XLSX.utils.decode_range(ws['!ref']);
-      // Kolom C adalah index 2 (A=0, B=1, C=2)
+      // Kolom C adalah index 2 (A=0, B=1, C=2). Baris data mulai baris ke-5 (index 4)
       for (let R = 4; R <= range.e.r; ++R) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: 2 });
         const cell = ws[cellAddress];
         if (cell && cell.v !== undefined && cell.v !== null) {
-          const strVal = String(cell.v).trim();
-          cell.t = 's'; // tipe string teks
-          cell.v = strVal;
-          cell.w = strVal;
-          cell.z = '@'; // format text
+          const sVal = String(cell.v).trim();
+          cell.t = 's'; // Pastikan tipe data Cell adalah Text/String
+          cell.v = sVal;
+          cell.w = sVal;
+          cell.z = '@';
         }
       }
     }
 
-    XLSX.utils.sheet_add_aoa(ws, [
-      [mainTitle],
-      [subTitle],
-      []
-    ], { origin: "A1" });
+    // Set lebar kolom otomatis agar nyaman dibaca di Excel
+    ws['!cols'] = [
+      { wch: 6 },  // NO
+      { wch: 36 }, // NAMA LENGKAP
+      { wch: 24 }, // NIP (cukup lebar untuk 18 digit)
+      { wch: 32 }, // UNIT KERJA
+      { wch: 28 }, // JABATAN
+      { wch: 14 }, // STATUS
+      { wch: 14 }, // TGL LAHIR
+      { wch: 8 },  // BUP
+      { wch: 18 }  // PENSIUN
+    ];
 
     const fileName = `Proyeksi_Pensiun_SD_${selectedPensiunYear}_${filterKec.replace(/\s+/g, '_')}.xlsx`;
     const wb = XLSX.utils.book_new();
